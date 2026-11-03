@@ -1,0 +1,16 @@
+# Wi-Fi passwords: copy the *.example.h files, never commit the real ones
+firmware/pico_pilot/wifi_config.h
+firmware/esp32cam_camera/wifi_config.h
+
+# Build outputs and downloads
+firmware/pico_pilot/build/
+firmware/esp32cam_camera/.pio/
+depth/hf_cache/
+__pycache__/
+*.pyc
+
+# Large raw outputs (bags, photos, depth maps): keep them backed up, and add them
+# to the reproducibility package deliberately rather than by accident
+data/bags/
+data/range/
+data/results/*.png

@@ -1,0 +1,6 @@
+#pragma once
+
+#define WIFI_SSID "YOUR_2_4_GHZ_WIFI_NAME"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+#define ROS_AGENT_IP "192.168.1.25"
+#define ROS_AGENT_PORT 8888
