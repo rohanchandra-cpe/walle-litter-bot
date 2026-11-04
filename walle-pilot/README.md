@@ -33,6 +33,7 @@ pilot/suggest_durations.py  T_A, T_psi, and coast-time suggestions from shakedow
 pilot/range_trial.py        RQ3 placements, depth calibration, field-of-view check
 pilot/analyze.py            the planned analysis -> data/results/pilot_summary.md
 tools/fake_pico.py          simulated robot for rehearsing without hardware
+rosa_agent/                 ROSA agent and custom tools (not used in the experiments)
 data/                       schedules, logs, bags, photos, results (see "Data files")
 ```
 
