@@ -233,9 +233,9 @@ This writes `data/results/pilot_summary.md`, `pilot_summary.json` and the figure
 | `data/range/<placement>_a<attempt>_*` | photo, mask, depth map (`.npy`), view | `range_trial.py` |
 
 Logs are append-only, so never edit a row by hand. If something was entered wrong, write a
-note in the notes column of a repeat, or in your lab notes. Bags and photos are git-ignored
-because they are large: back them up, and add them to the reproducibility package
-deliberately.
+note in the notes column of a repeat, or in your lab notes. Bags are committed with the
+logs. Photos and depth maps are git-ignored because they are large: back them up, and add
+them to the reproducibility package deliberately.
 
 ## Choices to confirm against the protocol
 

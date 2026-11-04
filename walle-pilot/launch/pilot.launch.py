@@ -42,9 +42,9 @@ def generate_launch_description():
         DeclareLaunchArgument("wheel_turn_rate_std", default_value="0.10"),
         # Where the BNO055 sits on the robot, measured from base_link (the
         # midpoint between the wheels): meters and radians.
-        DeclareLaunchArgument("imu_x", default_value="0.0"),
-        DeclareLaunchArgument("imu_y", default_value="0.0"),
-        DeclareLaunchArgument("imu_z", default_value="0.04"),
+        DeclareLaunchArgument("imu_x", default_value="-0.055"),
+        DeclareLaunchArgument("imu_y", default_value="-0.026"),
+        DeclareLaunchArgument("imu_z", default_value="0.03"),
         DeclareLaunchArgument("imu_roll", default_value="0.0"),
         DeclareLaunchArgument("imu_yaw", default_value="0.0"),
 

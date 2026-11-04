@@ -9,8 +9,10 @@ depth/hf_cache/
 __pycache__/
 *.pyc
 
-# Large raw outputs (bags, photos, depth maps): keep them backed up, and add them
-# to the reproducibility package deliberately rather than by accident
-data/bags/
+# Editor and system files
+.DS_Store
+.vscode/
+
+# Photos and depth maps are large: back them up, and add them to the
+# reproducibility package deliberately rather than by accident
 data/range/
-data/results/*.png

@@ -1,0 +1,2 @@
+session_id,timestamp_utc,commit,operator,measurer,motor_supply_v,logic_supply_v,ground_offset_v,driver_vcc_stby_v,emergency_stop_tested,temp_c,lux,floor,imu_still_s,imu_calibrated,rate_ticks_hz,rate_imu_hz,rate_wheel_odom_hz,rate_ekf_hz,ultrasonic_status,camera_ok,camera_ms,warnings,manifest,notes
+1,2026-11-04T03:30:07.411+00:00,nogit+cfg-62cbfd1a2c,RC,RC,8.24,4.96,0,2.8,1,21.67,121,0.58,30,True,49,49,49,43,no_response:10,0,,ultrasonic mostly invalid; camera not reachable,manifests/session_1.json,

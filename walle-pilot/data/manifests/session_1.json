@@ -1,0 +1,134 @@
+{
+  "session_id": 1,
+  "written_utc": "2026-11-04T03:30:06.278+00:00",
+  "git_commit": "none",
+  "uncommitted_changes": true,
+  "frozen_hash": "62cbfd1a2c",
+  "config": {
+    "study": {
+      "seed": 42,
+      "sessions": 3,
+      "rq1_blocks_per_session": 5,
+      "rq2_turns_per_session": [
+        5,
+        5,
+        6
+      ],
+      "rq3_placements": 64
+    },
+    "geometry": {
+      "wheel_diameter_m": 0.0648,
+      "wheel_separation_m": 0.127,
+      "counts_per_rev": 4320
+    },
+    "motion": {
+      "command_rate_hz": 20,
+      "straight_target_m": 0.5,
+      "timed_speed_mps": 0.15,
+      "timed_duration_s": 1.773,
+      "targeted_min_speed_mps": 0.05,
+      "targeted_max_speed_mps": 0.15,
+      "targeted_gain": 1.5,
+      "targeted_tolerance_m": 0.005,
+      "targeted_coast_time_s": 0.2,
+      "targeted_hold_heading": false,
+      "turn_rate_radps": 0.6,
+      "turn_duration_s": 0.497,
+      "run_timeout_s": 10.0,
+      "rest_window_s": 0.3,
+      "settle_s": 2.0
+    },
+    "ranging": {
+      "pings": 5,
+      "min_valid_pings": 3,
+      "acquire_timeout_s": 2.0,
+      "ultrasonic_offset_m": 0.0,
+      "default_temp_c": 21.0,
+      "camera_url": "http://192.168.1.50/capture",
+      "camera_timeout_s": 5.0,
+      "hfov_deg": 66.0,
+      "depth_model": "small",
+      "input_size": 364,
+      "calibration_object": "red ball",
+      "objects": {
+        "red_cup": "red",
+        "blue_bottle": "blue",
+        "green_bin": "green",
+        "yellow_wrapper": "yellow"
+      },
+      "distances_m": [
+        0.3,
+        0.5,
+        0.75,
+        1.0,
+        1.25,
+        1.5,
+        1.75,
+        2.0
+      ],
+      "angles_deg": [
+        0,
+        20
+      ]
+    },
+    "tolerances": {
+      "distance_cm": 5.0,
+      "lateral_cm": 5.0,
+      "heading_deg": 10.0,
+      "ape_pct": 15.0
+    },
+    "effects_of_interest": {
+      "distance_cm": 2.0,
+      "heading_deg": 4.0,
+      "ape_pp": 5.0
+    },
+    "analysis": {
+      "alpha": 0.05
+    }
+  },
+  "depth_calibration": null,
+  "depth_model": {
+    "id": "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf",
+    "revision": "8078d68a9c75a972131914f6afd0c1723be0da7f",
+    "input_size": 364
+  },
+  "file_sha256": {
+    "config/pilot.yaml": "5ea0853c421337939f2ddaa5a13647a7beeed81c5569b5d262f66b018302a991",
+    "config/ekf.yaml": "927782f58119e446f3ac553863e6771a583df7551f47325041fc8084d9b62064",
+    "config/depth_calibration.json": "",
+    "data/schedule/motion_schedule.csv": "4c664a6f04e0f54f4f4658a4817799a3c3b5a682e3895f05b85ae58f1d53436d",
+    "data/schedule/range_schedule.csv": "a74a02bec1642254984db7785dd0b790c912f4edfeedb584c386a2cbbff8e22a",
+    "launch/pilot.launch.py": "7f7bfdaa180b48d2e7453dc012681285d0b1d6d217e2338fe450636f6338bc45",
+    "odometry/odometry_node.py": "fa9bd08dca1b3f38b679c3b7da38fe09014894cf32411f21badd88d2269b304c",
+    "depth/depth_estimator.py": "a512a3eacf020dbdc944ffd78653077cc1d58fbe73a9ebaba06abe5c0c9688be",
+    "pilot/motion_trial.py": "c89d371a655c34423e4277020cb9c4d2aa4aa23a32237d61c56325f540192086",
+    "pilot/range_trial.py": "412b2995be528892bd716f49f1ead7e068587b72c555c15a78486d6e853bfe98",
+    "pilot/robot_io.py": "0dfde3d7b348bb28a2c1b69c93b3782156810a2b2b91162f566e79196e15e83c",
+    "firmware/pico_pilot/pico_pilot.c": "70d75eb3e4f90df08c85fe50e3c06234ce0e664c78899198ddd459624a8d2347",
+    "firmware/pico_pilot/ultrasonic.c": "fb482c24ed64ca20c7345e3bcd3a7bfad871e078911fb9be8e5f06ed8572f171",
+    "firmware/pico_pilot/drive_control.c": "87c4440664357e6a59a3daaca95bb5cf14dae7a87fb41c59cf9b00a5a839e9ec",
+    "firmware/pico_pilot/encoders.c": "f0260e9657cc6a4e7030517c9e9b94bd46d6cc7f81a6cd024e10dcf0418d50c1"
+  },
+  "firmware_uf2_sha256": {
+    "pico_pilot.uf2": "4c9eddf16cd87d06c6952cafb24832fad5c1085c5a83f20909ebdbe4786fd450"
+  },
+  "packages": {
+    "python": "3.10.12",
+    "numpy": "2.2.6",
+    "scipy": "1.15.3",
+    "torch": "2.14.1+cpu",
+    "transformers": "4.57.6",
+    "PIL": "12.3.0",
+    "matplotlib": "3.10.9",
+    "yaml": "6.0.1",
+    "ros-humble-rclpy": "3.3.22-1jammy.20260907.232408",
+    "ros-humble-robot-localization": "3.5.4-1jammy.20260916.054718",
+    "ros-humble-rosbag2": "0.15.17-1jammy.20260909.234421",
+    "ros_distro": "humble"
+  },
+  "platform": {
+    "machine": "aarch64",
+    "kernel": "6.12.5-linuxkit",
+    "container": true
+  }
+}

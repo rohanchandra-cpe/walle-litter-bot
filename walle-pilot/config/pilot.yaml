@@ -13,7 +13,7 @@ study:
   rq3_placements: 64          # 4 objects x 8 distances x 2 angles
 
 geometry:                     # MEASURE (draft III-A): odometry, the EKF, and RQ1-B use these
-  wheel_diameter_m: 0.0635    # source build says 65 mm; measure a wheel
+  wheel_diameter_m: 0.0648    # source build says 65 mm; measure a wheel
   wheel_separation_m: 0.127   # source build says 130 mm; measure wheel centers
   counts_per_rev: 4320        # 12 PPR x 90:1 x 4; check by turning a wheel one revolution
 
@@ -22,7 +22,7 @@ motion:
   straight_target_m: 0.50
   # RQ1-A: calibrated timed command
   timed_speed_mps: 0.15
-  timed_duration_s: 3.33      # T_A: set from shakedown (suggest_durations.py)
+  timed_duration_s: 1.773      # T_A: set from shakedown (suggest_durations.py)
   # RQ1-B: encoder-targeted stop on /wheel/odom
   targeted_min_speed_mps: 0.05
   targeted_max_speed_mps: 0.15
@@ -32,7 +32,7 @@ motion:
   targeted_hold_heading: false   # false: zero angular command, like RQ1-A
   # RQ2: open-loop turn; neither heading estimate decides when it stops
   turn_rate_radps: 0.6
-  turn_duration_s: 2.62       # T_psi: set from shakedown (suggest_durations.py)
+  turn_duration_s: 0.497       # T_psi: set from shakedown (suggest_durations.py)
   # Run ends
   run_timeout_s: 10.0         # not stopped by then = timeout failure
   rest_window_s: 0.3          # wheel counts unchanged this long = robot stopped
