@@ -1,0 +1,73 @@
+# WALL-E pilot configuration: every setting the protocol says to freeze.
+#
+# Change values only during shakedown and calibration, then commit this file
+# before session 1. manifest.py records its hash with every session, and every
+# trial row records the git commit, so a change after that point is visible.
+# Values marked MEASURE are placeholders until you measure them on the robot.
+
+study:
+  seed: 42                    # schedule seed (make_schedule.py)
+  sessions: 3
+  rq1_blocks_per_session: 5   # 15 blocks = 30 straight runs
+  rq2_turns_per_session: [5, 5, 6]   # 16 turns, 8 each direction
+  rq3_placements: 64          # 4 objects x 8 distances x 2 angles
+
+geometry:                     # MEASURE (draft III-A): odometry, the EKF, and RQ1-B use these
+  wheel_diameter_m: 0.0648    # source build says 65 mm; measure a wheel
+  wheel_separation_m: 0.127   # source build says 130 mm; measure wheel centers
+  counts_per_rev: 4320        # 12 PPR x 90:1 x 4; check by turning a wheel one revolution
+
+motion:
+  command_rate_hz: 20         # Twist messages per second (the Pico stops after 500 ms without one)
+  straight_target_m: 0.50
+  # RQ1-A: calibrated timed command
+  timed_speed_mps: 0.15
+  timed_duration_s: 1.773      # T_A: set from shakedown (suggest_durations.py)
+  # RQ1-B: encoder-targeted stop on /wheel/odom
+  targeted_min_speed_mps: 0.05
+  targeted_max_speed_mps: 0.15
+  targeted_gain: 1.5          # speed = gain x remaining distance, clamped to [min, max]
+  targeted_tolerance_m: 0.005
+  targeted_coast_time_s: 0.2  # stop early by (measured speed x this); confirm in shakedown
+  targeted_hold_heading: false   # false: zero angular command, like RQ1-A
+  # RQ2: open-loop turn; neither heading estimate decides when it stops
+  turn_rate_radps: 0.6
+  turn_duration_s: 0.497       # T_psi: set from shakedown (suggest_durations.py)
+  # Run ends
+  run_timeout_s: 10.0         # not stopped by then = timeout failure
+  rest_window_s: 0.3          # wheel counts unchanged this long = robot stopped
+  settle_s: 2.0               # wait after stopping before reading the estimates
+
+ranging:
+  pings: 5                    # pings per placement, 60 ms apart (firmware)
+  min_valid_pings: 3          # fewer valid pings = invalid placement
+  acquire_timeout_s: 2.0
+  ultrasonic_offset_m: 0.0    # MEASURE: transducer face behind (+) the shared reference plane
+  default_temp_c: 21.0        # used only if session_log.csv has no temperature
+  camera_url: "http://192.168.1.50/capture"   # MEASURE: your ESP32-CAM's address
+  camera_timeout_s: 5.0
+  hfov_deg: 66.0              # MEASURE for the OV3660 (range_trial.py --hfov-check)
+  depth_model: small          # Depth-Anything-V2-Metric-Indoor-Small-hf
+  input_size: 364
+  calibration_object: "red ball"
+  objects:                    # object name -> color word the mask looks for
+    red_cup: red
+    blue_bottle: blue
+    green_bin: green
+    yellow_wrapper: yellow
+  distances_m: [0.30, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00]
+  angles_deg: [0, 20]
+
+tolerances:                   # engineering criteria from the draft
+  distance_cm: 5.0
+  lateral_cm: 5.0
+  heading_deg: 10.0
+  ape_pct: 15.0
+
+effects_of_interest:
+  distance_cm: 2.0
+  heading_deg: 4.0
+  ape_pp: 5.0
+
+analysis:
+  alpha: 0.05
