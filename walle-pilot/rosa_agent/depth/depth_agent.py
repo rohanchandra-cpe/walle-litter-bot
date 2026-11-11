@@ -2,7 +2,7 @@
 
 Run inside the container while the sensor fusion launch and the depth launch are
 running (Gazebo or the real robot):
-    python3 /workspace/depth/depth_agent.py
+    python3 /workspace/walle-pilot/rosa_agent/depth/depth_agent.py
 
 One model plans (OLLAMA_MODEL, default llama3.2, served by Ollama on your computer).
 The depth model runs inside the depth node, on the CPU: no vision model is needed.

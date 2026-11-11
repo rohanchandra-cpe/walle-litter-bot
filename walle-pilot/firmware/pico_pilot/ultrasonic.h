@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-// HC-SR04 wiring. ECHO is a 5 V output: it reaches GP7 through a
-// 1 kOhm (series) / 2 kOhm (to GND) divider, because Pico pins are 3.3 V only.
-#define ULTRASONIC_TRIG_PIN 6
-#define ULTRASONIC_ECHO_PIN 7
+// HC-SR04 wiring. ECHO is a 5 V output: it must be stepped down before it reaches
+// GP16, because Pico pins are 3.3 V only.
+#define ULTRASONIC_TRIG_PIN 17
+#define ULTRASONIC_ECHO_PIN 16
 
 // One ping every 60 ms (the HC-SR04 datasheet's minimum cycle). A ping whose echo
 // has not ended 30 ms after the trigger is a timeout (4 m is about 23 ms).

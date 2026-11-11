@@ -16,3 +16,6 @@ __pycache__/
 # Photos and depth maps are large: back them up, and add them to the
 # reproducibility package deliberately rather than by accident
 data/range/
+
+# Photos the ROSA vision and depth nodes save
+rosa_agent/*/results/images/

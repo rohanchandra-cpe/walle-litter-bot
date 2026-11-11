@@ -9,7 +9,7 @@ downloads http://CAMERA_IP/capture  <-   ESP32-CAM photo server (esp32cam_camera
 Publishes   /camera/image/compressed   sensor_msgs/CompressedImage   JPEG, `rate` per second
 
 Started by launch/vision.launch.py. To run it by itself:
-    python3 /workspace/vision/camera_node.py --ros-args -p url:=http://192.168.1.50/capture
+    python3 /workspace/walle-pilot/rosa_agent/vision/camera_node.py --ros-args -p url:=http://192.168.1.50/capture
 """
 
 import io

@@ -2,7 +2,7 @@
 
 Run inside the container while launch/sensor_fusion.launch.py is running (Gazebo or the
 real robot):
-    python3 /workspace/odometry/odom_agent.py
+    python3 /workspace/walle-pilot/rosa_agent/odometry/odom_agent.py
 
 Example requests:
     Where are you?

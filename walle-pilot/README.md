@@ -22,7 +22,7 @@ config/pilot.yaml           every frozen setting (geometry, speeds, durations, r
 config/ekf.yaml             robot_localization EKF (copied from Module 8)
 config/depth_calibration.json   written by depth/fit_depth.py
 launch/pilot.launch.py      wheel odometry + IMU mount + EKF (fake:=true for rehearsal)
-firmware/pico_pilot/        Pico 2 W firmware: Module 8 + HC-SR04 on GP6/GP7
+firmware/pico_pilot/        Pico 2 W firmware: Module 8 + HC-SR04 on GP17 (TRIG) / GP16 (ECHO)
 firmware/esp32cam_camera/   ESP32-CAM photo server (copied from Module 8)
 odometry/                   wheel odometry node (copied from Module 8)
 depth/                      Depth Anything V2 wrapper, calibration fit, model download
@@ -45,10 +45,10 @@ data/                       schedules, logs, bags, photos, results (see "Data fi
 |---|---|
 | VCC | 5 V rail (BreadVolt) |
 | GND | common ground |
-| TRIG | Pico GP6 |
-| ECHO | 1 kΩ in series to Pico GP7, and 2 kΩ from GP7 to GND |
+| TRIG | Pico GP17 |
+| ECHO | 1 kΩ in series to Pico GP16, and 2 kΩ from GP16 to GND |
 
-**ECHO is a 5 V output and the Pico's pins are 3.3 V only, so never wire ECHO directly to GP7.**
+**ECHO is a 5 V output and the Pico's pins are 3.3 V only, so never wire ECHO directly to GP16.**
 
 Mount the sensor directly below the camera. Its transducer face should sit in the camera
 lens's vertical plane, or record the offset in `ranging.ultrasonic_offset_m`. The existing
