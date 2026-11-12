@@ -1,8 +1,8 @@
 """ROSA agent that identifies objects with the camera and ranges them with the HC-SR04.
 
-Run inside the container while launch/pilot.launch.py and rosa_agent/launch/vision.launch.py
+Run inside the container while launch/pilot.launch.py and launch/vision.launch.py
 are running:
-    python3 /workspace/walle-pilot/rosa_agent/range/range_agent.py
+    python3 /workspace/walle-pilot/range/range_agent.py
 
 Two models, both served by Ollama on your computer:
     OLLAMA_MODEL  (default qwen3.5:4b)  plans and calls the tools (this agent)

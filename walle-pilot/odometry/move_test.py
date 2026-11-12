@@ -1,14 +1,14 @@
 """Drive known test moves using the fused estimate as feedback, then compare estimates.
 
 Run inside the container while launch/sensor_fusion.launch.py is running:
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py straight 1.0       # drive 1 m forward
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py turn 90            # turn 90 deg left (-90 = right)
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py square 1.0         # 1 m square, counter-clockwise
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py square 1.0 --cw    # 1 m square, clockwise
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py goto 1.0 0.5       # drive to world point (1.0, 0.5)
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py square 1.0 --feedback /wheel/odom
+    python3 /workspace/walle-pilot/odometry/move_test.py straight 1.0       # drive 1 m forward
+    python3 /workspace/walle-pilot/odometry/move_test.py turn 90            # turn 90 deg left (-90 = right)
+    python3 /workspace/walle-pilot/odometry/move_test.py square 1.0         # 1 m square, counter-clockwise
+    python3 /workspace/walle-pilot/odometry/move_test.py square 1.0 --cw    # 1 m square, clockwise
+    python3 /workspace/walle-pilot/odometry/move_test.py goto 1.0 0.5       # drive to world point (1.0, 0.5)
+    python3 /workspace/walle-pilot/odometry/move_test.py square 1.0 --feedback /wheel/odom
                                                                 # steer by the wheels alone
-    python3 /workspace/walle-pilot/rosa_agent/odometry/move_test.py turn 90 --coast-time 0.09
+    python3 /workspace/walle-pilot/odometry/move_test.py turn 90 --coast-time 0.09
                                                                 # robot coasts longer
 
 Commands go to /pico/cmd_vel: the real Pico, or sim_pico_bridge.py in Gazebo.

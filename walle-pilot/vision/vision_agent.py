@@ -2,7 +2,7 @@
 
 Run inside the container while the sensor fusion launch and the vision launch are
 running (Gazebo or the real robot):
-    python3 /workspace/walle-pilot/rosa_agent/vision/vision_agent.py
+    python3 /workspace/walle-pilot/vision/vision_agent.py
 
 Two models, both served by Ollama on your computer:
     OLLAMA_MODEL  (default llama3.2)  plans and calls the tools (this agent)

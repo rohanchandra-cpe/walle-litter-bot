@@ -24,8 +24,12 @@ config/depth_calibration.json   written by depth/fit_depth.py
 launch/pilot.launch.py      wheel odometry + IMU mount + EKF (fake:=true for rehearsal)
 firmware/pico_pilot/        Pico 2 W firmware: Module 8 + HC-SR04 on GP17 (TRIG) / GP16 (ECHO)
 firmware/esp32cam_camera/   ESP32-CAM photo server (copied from Module 8)
-odometry/                   wheel odometry node (copied from Module 8)
-depth/                      Depth Anything V2 wrapper, calibration fit, model download
+launch/vision.launch.py     camera + vision nodes (ROSA agent only)
+launch/depth.launch.py      camera + depth nodes (ROSA agent only)
+odometry/                   wheel odometry node (copied from Module 8), plus the odometry agent
+depth/                      Depth Anything V2 wrapper, calibration fit, model download, plus the depth agent
+vision/                     camera and vision nodes and the vision agent (ROSA agent only)
+range/                      ultrasonic tools and the range agent (ROSA agent only)
 pilot/make_schedule.py      frozen schedule from seed 42
 pilot/session_check.py      start-of-session checklist + configuration manifest
 pilot/motion_trial.py       RQ1/RQ2 trials and shakedown runs
@@ -33,7 +37,7 @@ pilot/suggest_durations.py  T_A, T_psi, and coast-time suggestions from shakedow
 pilot/range_trial.py        RQ3 placements, depth calibration, field-of-view check
 pilot/analyze.py            the planned analysis -> data/results/pilot_summary.md
 tools/fake_pico.py          simulated robot for rehearsing without hardware
-rosa_agent/                 ROSA agent and custom tools (not used in the experiments)
+ROSA_AGENT.md               the ROSA agent and its tools (not used in the experiments)
 data/                       schedules, logs, bags, photos, results (see "Data files")
 ```
 
@@ -72,26 +76,42 @@ respond. The USB serial log prints the ping every second.
 
 ### 3. Containers
 
-From the `ollama/` folder, after stopping Module 8's containers (they also use UDP 8888):
+The containers are defined in `docker-compose.yml` at the repository root, with shortcuts in
+the root `Makefile` (run `make` to list them). Run these from the repository root, after
+stopping Module 8's containers (they also use UDP 8888):
 
 ```bash
 docker compose -f module-8-sensor-fusion/docker-compose.yml down
 ```
 
-```bash
-docker compose --profile pilot up -d --build pilot micro-ros-agent
-```
+Start the pilot container and the micro-ROS Agent (builds the image the first time):
 
 ```bash
-docker exec -it walle-pilot bash
+make up
 ```
 
-Every command below runs inside that shell, from `/workspace/walle-pilot`. Open a second
-shell (`docker exec -it walle-pilot bash`) and leave the launch file running in it:
+Open a shell in the pilot container. It starts in `/workspace/walle-pilot` with ROS 2
+sourced, and every command below runs there. Run `make shell` again in another terminal for
+each extra shell you need:
+
+```bash
+make shell
+```
+
+Leave the launch file running in one shell (or run `make launch` from the host):
 
 ```bash
 ros2 launch launch/pilot.launch.py
 ```
+
+Stop everything when you are done:
+
+```bash
+make down
+```
+
+Without `make`, the same commands are `docker compose up -d --build`,
+`docker compose exec pilot bash`, and `docker compose down`.
 
 Download the depth model once (99 MB, saved in `depth/hf_cache`):
 
@@ -101,7 +121,7 @@ python3 depth/download_model.py
 
 ### Rehearse without the robot
 
-`ros2 launch launch/pilot.launch.py fake:=true` starts `tools/fake_pico.py` instead of using
+`ros2 launch launch/pilot.launch.py fake:=true` (or `make fake`) starts `tools/fake_pico.py` instead of using
 the Pico. You can then run every motion script end to end and practice the prompts. Fake
 runs are not data. Delete `data/logs/*` (keep the two templates) and the bags before the real
 pilot.

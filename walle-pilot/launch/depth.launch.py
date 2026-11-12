@@ -4,21 +4,24 @@ Starts camera_node.py (photos -> /camera/image/compressed) and depth_node.py
 (questions on /depth/ask -> Depth Anything V2 on the CPU -> answers on /depth/result).
 
 Run inside the container:
-    Real robot:   ros2 launch /workspace/walle-pilot/rosa_agent/launch/depth.launch.py camera_url:=http://CAMERA_IP/capture
-    Gazebo:       ros2 launch /workspace/walle-pilot/rosa_agent/launch/depth.launch.py sim:=true
+    Real robot:   ros2 launch /workspace/walle-pilot/launch/depth.launch.py camera_url:=http://CAMERA_IP/capture
+    Gazebo:       ros2 launch /workspace/walle-pilot/launch/depth.launch.py sim:=true
     Bigger model: ... model_size:=base     (downloads 390 MB the first time)
     Faster:       ... input_size:=266
     Known ball:   ... object_diameter_m:=0.14   (also reports a distance from its size)
     Camera already running (for example vision.launch.py): ... camera:=false
 """
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.conditions import IfCondition
 from launch.substitutions import AndSubstitution, LaunchConfiguration, NotSubstitution
 
-CAMERA_NODE = "/workspace/walle-pilot/rosa_agent/vision/camera_node.py"
-DEPTH_NODE = "/workspace/walle-pilot/rosa_agent/depth/depth_node.py"
+PILOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CAMERA_NODE = os.path.join(PILOT_DIR, "vision/camera_node.py")
+DEPTH_NODE = os.path.join(PILOT_DIR, "depth/depth_node.py")
 
 
 def generate_launch_description():

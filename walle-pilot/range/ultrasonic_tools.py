@@ -3,7 +3,7 @@
 measure_ultrasonic() reads the next pings from /pico/wheel_ticks and reports the median,
 using the same settings as the pilot (`ranging` in config/pilot.yaml).
 identify_and_range(target) asks the vision node what it sees, then takes that reading.
-Every reading is also added to rosa_agent/range/results/range_log.csv.
+Every reading is also added to range/results/range_log.csv.
 
 The HC-SR04 reports the nearest surface in a cone straight ahead, which is not always the
 object the camera named. So identify_and_range only measures when the target is in the
@@ -25,7 +25,7 @@ from rclpy.signals import SignalHandlerOptions
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "vision"))
-sys.path.append(os.path.join(HERE, "..", "..", "pilot"))
+sys.path.append(os.path.join(HERE, "..", "pilot"))
 import vision_tools  # noqa: E402
 from common import load_config  # noqa: E402
 from robot_io import RobotIO  # noqa: E402
