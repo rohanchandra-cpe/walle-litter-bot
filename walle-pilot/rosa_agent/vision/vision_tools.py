@@ -2,7 +2,7 @@
 
 look(target) and describe_scene() send a question on /vision/ask and wait for the
 vision node's answer on /vision/result. Every answer is also added to
-/workspace/vision/results/vision_log.csv for your evaluation.
+/workspace/walle-pilot/rosa_agent/vision/results/vision_log.csv for your evaluation.
 """
 
 import csv

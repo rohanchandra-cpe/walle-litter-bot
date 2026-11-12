@@ -1,0 +1,2 @@
+time,target,position,distance_m,valid_pings,spread_m,ping_status,obstacle_ahead,image,description,error
+2026-11-05 17:01:52,,,,,,,,,,No ultrasonic data on /pico/wheel_ticks. Is the Pico connected and running the pilot firmware?

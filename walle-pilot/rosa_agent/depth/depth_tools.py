@@ -3,7 +3,7 @@
 measure_distance(target) sends a question on /depth/ask and waits for the depth
 node's answer on /depth/result. approach_to(target, stop_distance_m) drives toward an
 object in short steps, measuring before every step, and stops at the distance you ask
-for. Every answer is also added to /workspace/depth/results/depth_log.csv.
+for. Every answer is also added to /workspace/walle-pilot/rosa_agent/depth/results/depth_log.csv.
 
 Safety: a depth estimate from one camera can be wrong, so approach_to
   - never drives more than 0.30 m between two measurements,
