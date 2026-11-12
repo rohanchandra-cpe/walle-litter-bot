@@ -14,8 +14,10 @@ import subprocess
 import yaml
 
 PILOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE = os.path.join(PILOT_DIR, "config", "pilot.yaml")
-DATA_DIR = os.path.join(PILOT_DIR, "data")
+# The Gazebo container (walle-sim/) points these at its own config and data folder,
+# so simulated runs never mix with the robot's frozen config or real logs.
+CONFIG_FILE = os.environ.get("WALLE_CONFIG") or os.path.join(PILOT_DIR, "config", "pilot.yaml")
+DATA_DIR = os.environ.get("WALLE_DATA_DIR") or os.path.join(PILOT_DIR, "data")
 SCHEDULE_DIR = os.path.join(DATA_DIR, "schedule")
 LOG_DIR = os.path.join(DATA_DIR, "logs")
 BAG_DIR = os.path.join(DATA_DIR, "bags")
@@ -70,8 +72,10 @@ def git_commit():
 def frozen_hash():
     """First 10 hex digits of a hash over every frozen file's content."""
     digest = hashlib.sha256()
+    overrides = {"config/pilot.yaml": CONFIG_FILE}   # hash the config actually in use
     for name in FROZEN_FILES:
-        digest.update(name.encode() + b"\0" + file_sha256(os.path.join(PILOT_DIR, name)).encode())
+        path = overrides.get(name, os.path.join(PILOT_DIR, name))
+        digest.update(name.encode() + b"\0" + file_sha256(path).encode())
     return digest.hexdigest()[:10]
 
 

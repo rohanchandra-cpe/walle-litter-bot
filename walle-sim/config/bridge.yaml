@@ -1,0 +1,60 @@
+# Topics passed between Gazebo and ROS 2 by ros_gz_bridge (adapted from Module 6).
+#
+# The Gazebo side is renamed into /sim/* so nothing in the pilot stack can mistake a
+# raw simulator topic for a robot topic. nodes/sim_pico_bridge.py turns these into the
+# exact /pico/* topics the Pico firmware publishes; the pilot scripts only see those.
+#
+# Not bridged on purpose: Gazebo's /tf. The EKF owns odom -> base_link, as on the robot.
+
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "ignition.msgs.Clock"
+  direction: GZ_TO_ROS
+
+# Wheel speed command (from sim_pico_bridge's firmware model) to the DiffDrive plugin
+- ros_topic_name: "/sim/cmd_vel"
+  gz_topic_name: "/cmd_vel"
+  ros_type_name: "geometry_msgs/msg/Twist"
+  gz_type_name: "ignition.msgs.Twist"
+  direction: ROS_TO_GZ
+
+# The plugin's own odometry: debugging only, never an estimate under test
+- ros_topic_name: "/sim/diff_drive_odom"
+  gz_topic_name: "/odom"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "ignition.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+# Wheel angles -> encoder counts (sim_pico_bridge); also feeds robot_state_publisher
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/joint_states"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "ignition.msgs.Model"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/sim/imu"
+  gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "ignition.msgs.IMU"
+  direction: GZ_TO_ROS
+
+# The camera: vision/camera_node.py (source:=sim) and nodes/sim_camera_server.py read this
+- ros_topic_name: "/sim/camera"
+  gz_topic_name: "/camera/image_raw"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "ignition.msgs.Image"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/sim/camera_info"
+  gz_topic_name: "/camera/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "ignition.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# HC-SR04 cone (3-D, so the packed point cloud rather than the 2-D LaserScan)
+- ros_topic_name: "/sim/ultrasonic/points"
+  gz_topic_name: "/ultrasonic/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "ignition.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS

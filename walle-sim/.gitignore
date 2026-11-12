@@ -1,0 +1,5 @@
+# Simulated runs are rehearsal output, never study data: keep them out of git.
+# Commit a run deliberately (git add -f) if you want to share it.
+data/
+__pycache__/
+*.pyc

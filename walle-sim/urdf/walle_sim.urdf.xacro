@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!--
+  WALL-E in Gazebo: the Module 6 robot car, unchanged, plus the HC-SR04.
+
+  gazebo_car.urdf.xacro is a verbatim copy of module-6-gazebo-sim/urdf/ (chassis,
+  wheels, caster, IMU, camera, DiffDrive and JointStatePublisher plugins). Change
+  the robot there. This file only adds the ultrasonic sensor that RQ3 needs, so the
+  base model stays a clean copy.
+
+  HC-SR04: mounted directly below the camera, transducer face in the camera's
+  vertical plane (draft III-A), so both sensors share the reference plane
+  x = camera_x in base_link. Modeled as a cone of GPU lidar rays, +/-15 deg
+  (ultrasonic_half_beam below); nodes/sim_pico_bridge.py turns the nearest return
+  into an echo time exactly as the firmware reports it.
+-->
+<robot name="walle" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Relative to this file -->
+  <xacro:include filename="gazebo_car.urdf.xacro"/>
+
+  <!-- ===== HC-SR04 (added for RQ3) ===== -->
+  <xacro:property name="ultrasonic_drop" value="0.03"/>   <!-- below the camera center -->
+  <!-- Half-angle of the acoustic cone. The datasheet's "measuring angle 15 deg" is
+       read here as +/-15 deg, the effective cone usually observed; at +/-7.5 deg no
+       20 deg placement could ever be detected. -->
+  <xacro:property name="ultrasonic_half_beam" value="0.2618"/>   <!-- 15 deg -->
+
+  <link name="ultrasonic_link">
+    <visual>
+      <geometry><box size="0.012 0.045 0.02"/></geometry>
+      <material name="ultrasonic_silver"><color rgba="0.75 0.75 0.78 1"/></material>
+    </visual>
+    <inertial>
+      <mass value="0.008"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+  <joint name="ultrasonic_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="ultrasonic_link"/>
+    <origin xyz="${camera_x} 0 ${camera_z - ultrasonic_drop}"/>
+  </joint>
+
+  <gazebo reference="ultrasonic_link">
+    <sensor name="ultrasonic_sensor" type="gpu_lidar">
+      <always_on>true</always_on>
+      <!-- Faster than the firmware's 60 ms ping, so every ping sees a fresh frame -->
+      <update_rate>20</update_rate>
+      <topic>ultrasonic</topic>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>21</samples>
+            <resolution>1</resolution>
+            <min_angle>${-ultrasonic_half_beam}</min_angle>
+            <max_angle>${ultrasonic_half_beam}</max_angle>
+          </horizontal>
+          <vertical>
+            <samples>13</samples>
+            <resolution>1</resolution>
+            <min_angle>${-ultrasonic_half_beam}</min_angle>
+            <max_angle>${ultrasonic_half_beam}</max_angle>
+          </vertical>
+        </scan>
+        <range>
+          <min>0.02</min>
+          <max>4.5</max>
+          <resolution>0.001</resolution>
+        </range>
+      </lidar>
+    </sensor>
+  </gazebo>
+
+</robot>
