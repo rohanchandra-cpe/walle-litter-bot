@@ -12,7 +12,7 @@ robot has stopped moving), runs the model on the CPU, and publishes:
      "power",
      "model", "seconds", "image", "depth_image", "error"}
 Each analyzed photo is saved, with its depth map beside it, in
-/workspace/walle-pilot/rosa_agent/depth/results/images/ for your report.
+/workspace/walle-pilot/depth/results/images/ for your report.
 
 Started by launch/depth.launch.py. Settings: model_size (small, base, or large),
 input_size (pixels; smaller is faster), hfov_deg (the camera's horizontal field of view),

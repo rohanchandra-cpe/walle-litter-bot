@@ -10,7 +10,7 @@ robot has stopped moving), sends it to Ollama's /api/chat with a JSON schema, an
 publishes:
     {"id", "target", "description", "target_visible", "position", "size",
      "obstacle_ahead", "path_clear", "seconds", "model", "image", "error"}
-Each analyzed photo is saved in /workspace/walle-pilot/rosa_agent/vision/results/images/ for your report.
+Each analyzed photo is saved in /workspace/walle-pilot/vision/results/images/ for your report.
 
 Started by launch/vision.launch.py. Settings: model (default: VISION_MODEL or gemma4),
 ollama_url (default: OLLAMA_URL or http://host.docker.internal:11434).

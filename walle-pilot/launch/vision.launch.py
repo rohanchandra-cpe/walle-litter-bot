@@ -4,8 +4,8 @@ Starts camera_node.py (photos -> /camera/image/compressed) and vision_node.py
 (questions on /vision/ask -> Ollama vision model -> answers on /vision/result).
 
 Run inside the container:
-    Real robot:  ros2 launch /workspace/walle-pilot/rosa_agent/launch/vision.launch.py camera_url:=http://CAMERA_IP/capture
-    Gazebo:      ros2 launch /workspace/walle-pilot/rosa_agent/launch/vision.launch.py sim:=true
+    Real robot:  ros2 launch /workspace/walle-pilot/launch/vision.launch.py camera_url:=http://CAMERA_IP/capture
+    Gazebo:      ros2 launch /workspace/walle-pilot/launch/vision.launch.py sim:=true
     Other model: ... vision_model:=gemma3
     Dim room:    ... camera_url:=http://CAMERA_IP/capture?flash=1
 """
@@ -17,8 +17,9 @@ from launch.actions import DeclareLaunchArgument, ExecuteProcess
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import LaunchConfiguration
 
-CAMERA_NODE = "/workspace/walle-pilot/rosa_agent/vision/camera_node.py"
-VISION_NODE = "/workspace/walle-pilot/rosa_agent/vision/vision_node.py"
+PILOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CAMERA_NODE = os.path.join(PILOT_DIR, "vision/camera_node.py")
+VISION_NODE = os.path.join(PILOT_DIR, "vision/vision_node.py")
 
 
 def generate_launch_description():

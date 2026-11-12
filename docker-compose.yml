@@ -1,24 +1,23 @@
-services:
-  ros2:
-    build: .
-    container_name: rosa-ros2
-    network_mode: host
-    volumes:
-      - .:/workspace
-    environment:
-      - ROS_DOMAIN_ID=0
-    stdin_open: true
-    tty: true
-    command: bash
+# WALL-E containers (see walle-pilot/README.md).
+#
+#   make up      start both containers (builds the image the first time)
+#   make shell   open a shell in the pilot container (run it again for more shells)
+#   make down    stop and remove both containers
+#
+# Or with plain Compose, from this folder:
+#   docker compose up -d --build
+#   docker compose exec pilot bash
+#   docker compose down
+#
+# The Pico sends micro-ROS traffic to this computer on UDP 8888, so stop any other
+# container that uses port 8888 (for example Module 8's) first.
 
-  # ===== WALL-E pilot (walle-pilot/README.md) =====
-  # Start with:  docker compose --profile pilot up -d --build
-  # The Pico sends micro-ROS traffic to this computer on UDP 8888, so stop any other
-  # container that uses port 8888 (for example Module 8's) first.
+services:
   pilot:
     build: .
     container_name: walle-pilot
-    profiles: ["pilot"]
+    # Makes `docker compose down` stop the idle container right away
+    init: true
     # Lets the micro-ROS Agent container share this container's memory
     ipc: shareable
     shm_size: "1gb"
@@ -33,12 +32,13 @@ services:
       - ROS_DOMAIN_ID=0
       # Depth models download into the project folder, so rebuilding keeps them
       - HF_HOME=/workspace/walle-pilot/depth/hf_cache
+    stdin_open: true
+    tty: true
     command: sleep infinity
 
   micro-ros-agent:
     image: microros/micro-ros-agent:humble
     container_name: walle-micro-ros-agent
-    profiles: ["pilot"]
     # Same network and memory as the pilot container, so the Pico's topics
     # appear in its ROS 2 graph
     network_mode: "service:pilot"
