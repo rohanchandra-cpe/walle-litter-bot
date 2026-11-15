@@ -30,8 +30,9 @@ import numpy as np
 import depth_estimator
 
 # Pilot: rows come from range_trial.py --calibrate (a separate object and distances)
-LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "logs",
-                   "depth_calibration_log.csv")
+LOG = os.path.join(os.environ.get("WALLE_DATA_DIR")
+                   or os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"),
+                   "logs", "depth_calibration_log.csv")
 MIN_FOR_POWER = 6
 
 

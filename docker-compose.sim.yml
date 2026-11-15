@@ -1,0 +1,43 @@
+# WALL-E in Gazebo (see walle-sim/README.md).
+#
+#   make sim-up      build (first time) and start the simulator container
+#   make sim-shell   open a shell in it (run again for more shells)
+#   make sim-down    stop it
+#
+# Or with plain Compose, from this folder:
+#   docker compose -f docker-compose.sim.yml up -d --build
+#
+# Kept apart from the robot on purpose: its own Compose project (so its own network),
+# ROS_DOMAIN_ID 42 instead of 0, and no UDP 8888 / micro-ROS Agent. The simulated
+# /pico/* topics can never reach a robot session running in walle-pilot, and the
+# simulator can run at the same time as the real containers.
+
+name: walle-sim
+
+services:
+  sim:
+    build: ./walle-sim/docker
+    image: walle-sim:latest
+    container_name: walle-sim
+    init: true
+    shm_size: "2gb"
+    ports:
+      # Browser desktop. 127.0.0.1 keeps it private to your computer.
+      - "127.0.0.1:6080:6080"
+    extra_hosts:
+      # Lets ROSA reach Ollama running on your computer
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/walle-pilot
+    environment:
+      - ROS_DOMAIN_ID=42
+      - DISPLAY=:1
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - QT_X11_NO_MITSHM=1
+      # Same model cache as the pilot container: download the depth model once
+      - HF_HOME=/workspace/walle-pilot/depth/hf_cache
+      # The pilot scripts read the SIMULATED robot's config and write to walle-sim/data/
+      - WALLE_CONFIG=/workspace/walle-sim/config/sim_pilot.yaml
+      - WALLE_DATA_DIR=/workspace/walle-sim/data/default
+      - WALLE_DEPTH_CALIBRATION=/workspace/walle-sim/config/depth_calibration.json

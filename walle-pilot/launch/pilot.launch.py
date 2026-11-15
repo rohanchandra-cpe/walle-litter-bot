@@ -25,11 +25,17 @@ PILOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ODOMETRY_NODE = os.path.join(PILOT_DIR, "odometry", "odometry_node.py")
 FAKE_PICO = os.path.join(PILOT_DIR, "tools", "fake_pico.py")
 EKF_CONFIG = os.path.join(PILOT_DIR, "config", "ekf.yaml")
-with open(os.path.join(PILOT_DIR, "config", "pilot.yaml")) as f:
-    GEOMETRY = yaml.safe_load(f)["geometry"]
+
+
+def load_geometry():
+    """Wheel geometry from config/pilot.yaml, or from WALLE_CONFIG (the Gazebo config)."""
+    path = os.environ.get("WALLE_CONFIG") or os.path.join(PILOT_DIR, "config", "pilot.yaml")
+    with open(path) as f:
+        return yaml.safe_load(f)["geometry"]
 
 
 def generate_launch_description():
+    GEOMETRY = load_geometry()
     sim = LaunchConfiguration("sim")
     arg = LaunchConfiguration
     return LaunchDescription([

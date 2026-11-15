@@ -1,0 +1,110 @@
+# Hardware profiles for nodes/sim_pico_bridge.py: how the simulated Pico firmware,
+# motors, BNO055, HC-SR04, Wi-Fi link and operator behave.
+#
+#   ros2 launch /workspace/walle-sim/launch/sim.launch.py profile:=pilot_firmware
+#
+# Each profile starts from `defaults` and overrides what it lists. Add a profile to
+# model a new firmware or hardware change, then compare runs with sim_trials.py
+# (each run records the full profile in its sim_manifest.json).
+#
+# Firmware models (nodes/firmware_models.py):
+#   ideal          the commanded twist reaches the wheels exactly (perfect speed control)
+#   open_loop_pwm  a line-for-line copy of firmware/pico_pilot/drive_control.c: wheel speed
+#                  -> PWM duty with a minimum duty and no feedback, so the real speed
+#                  depends on the motors (the pilot measured 0.27 m/s for 0.15 m/s)
+#   pid            per-wheel PI speed control on the encoder counts: a template for
+#                  testing a closed-loop firmware before writing it in C
+#
+# Limits of the Gazebo model (urdf/gazebo_car.urdf.xacro, kept as Module 6 made it):
+# its DiffDrive plugin caps commands at 0.3 m/s and 1.5 rad/s, and its geometry
+# (60 mm wheels, 145 mm track) is not WALL-E's. Numbers are therefore comparable
+# between sim runs, not with the robot.
+
+defaults:
+  firmware: open_loop_pwm
+  firmware_params:              # the constants in the firmware's C source
+    # drive_control.c WHEEL_SEPARATION_M is 0.127 for WALL-E; the firmware is configured
+    # for the robot it drives, so here it is the Gazebo model's 0.145
+    wheel_separation_m: 0.145
+    wheel_diameter_m: 0.060     # used by the pid model to turn counts into speed
+    counts_per_rev: 4320
+    max_wheel_speed_mps: 0.40   # drive_control.c MAX_WHEEL_SPEED_MPS (full PWM)
+    min_duty: 0.40              # drive_control.c MIN_DUTY
+    max_linear_mps: 0.30
+    max_angular_rps: 1.50
+    watchdog_s: 0.5             # DRIVE_TIMEOUT_MS
+    kp: 1.2                     # pid model: duty per (m/s) of speed error
+    ki: 6.0                     # pid model: duty per (m) of integrated error
+  motor:
+    full_speed_mps: 0.432       # wheel speed at duty 1.0 (pilot: 0.27 m/s at duty 0.625)
+    time_constant_s: 0.12       # first-order lag: spin-up and coast
+    left_gain: 1.0              # unequal motors or tires: 1.01 / 0.99 drifts the robot
+    right_gain: 1.0
+    stall_duty: 0.0             # duty below this does not turn the wheel
+  encoder:
+    left_scale: 1.0             # counts per true wheel turn, relative (a larger tire > 1)
+    right_scale: 1.0
+  imu:
+    calibration_delay_s: 2.0    # the firmware publishes nothing before the gyro calibrates
+    gyro_bias_dps: 0.0          # constant gyro bias: heading drift in IMU mode
+    gyro_noise_dps: 0.0         # added to Gazebo's own gyro noise
+    quantize_deg: 0.0625        # BNO055 heading resolution (1/16 deg); 0 = off
+    orientation_std_deg: 2.0    # covariances the firmware reports (pico_pilot.c)
+    gyro_std_rad_s: 0.02
+    accel_std_m_s2: 0.30
+  ultrasonic:
+    ping_period_s: 0.06         # one ping every 60 ms (ultrasonic.c)
+    max_range_m: 4.0            # beyond this: echo timeout (-1)
+    noise_std_m: 0.003
+    timeout_prob: 0.0           # a ping that returns -1 anyway
+    no_response_prob: 0.0       # -2: the sensor did not answer (wiring fault)
+    sound_temp_c: 21.0          # room temperature that sets the true echo time
+    floor_reject_m: 0.01        # returns this close to the floor are a grazing floor (no echo)
+  network:                      # Wi-Fi between the Pico and the micro-ROS Agent
+    tick_drop_prob: 0.0         # a /pico/wheel_ticks message that never arrives
+    burst_prob: 0.0             # chance per message that the link stalls ...
+    burst_hold_s: 0.0           # ... for this long, then delivers the backlog at once
+  camera:
+    capture_latency_s: 0.15     # ESP32-CAM /capture time
+    jpeg_quality: 85
+  placement:                    # the operator's alignment error (sim_trials.py)
+    position_std_m: 0.002
+    yaw_std_deg: 0.5
+
+profiles:
+  # Perfect hardware: isolates the host software (odometry, EKF, trial scripts).
+  ideal:
+    firmware: ideal
+    motor: {time_constant_s: 0.0}
+    imu: {calibration_delay_s: 0.5, quantize_deg: 0.0}
+    ultrasonic: {noise_std_m: 0.0}
+    placement: {position_std_m: 0.0, yaw_std_deg: 0.0}
+
+  # The current Pico firmware and the pilot's observed hardware (the default).
+  pilot_firmware:
+    firmware: open_loop_pwm
+    motor: {left_gain: 1.01, right_gain: 0.99}
+    imu: {gyro_bias_dps: 0.05}
+    ultrasonic: {timeout_prob: 0.02}
+
+  # A closed-loop firmware candidate: same hardware, PI wheel-speed control.
+  pid_firmware:
+    firmware: pid
+    motor: {left_gain: 1.01, right_gain: 0.99}
+    imu: {gyro_bias_dps: 0.05}
+    ultrasonic: {timeout_prob: 0.02}
+
+  # Worst plausible session: Wi-Fi stalls, drift, noisy and flaky ultrasonic.
+  stress:
+    firmware: open_loop_pwm
+    motor: {left_gain: 1.03, right_gain: 0.97, time_constant_s: 0.18}
+    encoder: {left_scale: 1.01}
+    imu: {gyro_bias_dps: 0.3, gyro_noise_dps: 0.2}
+    ultrasonic: {noise_std_m: 0.01, timeout_prob: 0.10, no_response_prob: 0.02}
+    network: {tick_drop_prob: 0.02, burst_prob: 0.01, burst_hold_s: 0.3}
+    camera: {capture_latency_s: 0.4}
+    placement: {position_std_m: 0.005, yaw_std_deg: 1.5}
+
+  # The pilot's RQ3 failure (draft IV-F): no ultrasonic response on any ping.
+  ultrasonic_dead:
+    ultrasonic: {no_response_prob: 1.0}

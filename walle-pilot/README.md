@@ -119,6 +119,13 @@ Download the depth model once (99 MB, saved in `depth/hf_cache`):
 python3 depth/download_model.py
 ```
 
+### Rehearse in Gazebo
+
+`walle-sim/` (see its README) runs these same scripts against a simulated robot, with
+Gazebo as the measurer, in separate worlds for RQ1, RQ2 and RQ3. The sim container sets
+`WALLE_CONFIG`, `WALLE_DATA_DIR` and `WALLE_DEPTH_CALIBRATION` so its config, logs and depth
+calibration never mix with the ones here; with those unset, nothing changes.
+
 ### Rehearse without the robot
 
 `ros2 launch launch/pilot.launch.py fake:=true` (or `make fake`) starts `tools/fake_pico.py` instead of using

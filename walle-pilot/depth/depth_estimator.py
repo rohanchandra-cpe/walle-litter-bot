@@ -18,7 +18,9 @@ from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Pilot: the calibration is part of the frozen configuration
-CALIBRATION_FILE = os.path.join(HERE, "..", "config", "depth_calibration.json")
+# WALLE_DEPTH_CALIBRATION: the Gazebo container keeps its own (simulated-camera) fit
+CALIBRATION_FILE = (os.environ.get("WALLE_DEPTH_CALIBRATION")
+                    or os.path.join(HERE, "..", "config", "depth_calibration.json"))
 
 # Metric models fine-tuned for INDOOR scenes (Hypersim), in Hugging Face format.
 # They download by themselves the first time they are used.
