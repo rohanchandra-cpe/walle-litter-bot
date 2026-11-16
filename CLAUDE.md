@@ -90,6 +90,7 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   park.py            park.yaml + scenario (+ overrides) -> layout; shared by sim and robot
 walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
 docs/plans/          approved phase plans (phase-N-plan.md)
+docs/handoff/        start prompts for each phase's session, session summaries
 ```
 
 `walle-sim/` has its own Compose project (ROS domain 42, no UDP 8888) and a simulated Pico

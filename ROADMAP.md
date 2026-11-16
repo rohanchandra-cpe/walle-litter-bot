@@ -58,6 +58,9 @@ world that matches it.
 - [x] Park world launches in Gazebo with the bins in the configured places.
       (`make sim-park-check`: PASS for `mixed` and for `mixed BINS=2 OBSTACLE=none`)
 - [ ] Real park layout measured and entered (user): real bin size, and the square taped out.
+      (2026-11-16: interim bins are paper bags, 30 × 18 × 36 cm (L × W × H), not yet entered:
+      `park.yaml` models bins as cylinders. Plastic bins from Target come later. Square not
+      taped yet.)
 
 Plan: [`docs/plans/phase-0-plan.md`](docs/plans/phase-0-plan.md).
 
@@ -89,8 +92,15 @@ Drive the route from the park config, waypoint to waypoint, and come back to the
 - [ ] On the robot: completes the route and stops at each bin waypoint (user).
 - [ ] End-of-route position error measured on the robot and recorded.
 
+**Known conditions (2026-11-16, may change):** testing on carpet (cardboard later), so expect
+more wheel slip than in the pilot; the robot runs on the current firmware (open-loop PWM map,
+`MIN_DUTY` 0.40, so low speeds come out fast).
+
 **Open decisions**
 - PID in firmware (C) vs. on the computer side.
+- Bin shape in `park.yaml`: the interim paper bags are rectangular (30 × 18 cm footprint), so
+  a cylinder radius no longer describes them (a circumscribed radius of 0.175 m would push
+  the auto offset to about 0.44 m).
 - Acceptable drift, and whether to add markers (e.g. AprilTags at bins, or a known bin
   position the camera can line up on) to correct it.
 

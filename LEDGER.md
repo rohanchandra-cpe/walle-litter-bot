@@ -126,3 +126,30 @@ Work done before the ledger started, summarized from git history:
     square; then tick the last Phase 0 box.
   - Changing the park inside a running simulation (without relaunching) is not supported.
   - Next phase: Phase 1 (route following), starting in plan mode.
+
+### 2026-11-16: Real-world facts for Phase 1, and session handoff prompts
+
+- **Phase:** between 0 and 1
+- **Branch / commit:** `implement-core-walle-functionality` (renamed from `walle-roadmap-docs`
+  at the user's request; the old remote branch was deleted, no PR existed) @ after `e1b61c2`
+  (Phase 0 is committed and pushed, not merged to `main`)
+- **Asked for:** record the user's answers about the real setup; write a summary prompt of
+  this session and a prompt that starts Phase 1 in a new session ("a separate session for
+  each phase").
+- **Done:**
+  - Recorded in `ROADMAP.md` (Phase 0 last box, Phase 1 known conditions and a new open
+    decision): interim bins are Trader Joe's paper bags, 30 × 18 × 36 cm (L × W × H); plastic
+    bins from Target later; square not taped yet; testing on carpet (cardboard later); robot
+    still runs on the current firmware. The user said these may change.
+  - `docs/handoff/session-2026-11-15-summary.md` (what this session did) and
+    `docs/handoff/phase-1-prompt.md` (start prompt for the Phase 1 session).
+- **Verified:** documentation only. Firmware facts in the Phase 1 prompt were read from
+  `pico_pilot.c`, `drive_control.c`, `walle-sim/nodes/firmware_models.py`,
+  `walle-sim/config/sim_profiles.yaml`, and `walle-pilot/data/results/pilot_summary.md`.
+- **Scope:** In scope. `park.yaml` was NOT changed for the paper bags: bins are cylinders in
+  the model, and the shape change is left to the Phase 1 plan.
+- **Decisions:** handoff prompts live in `docs/handoff/`.
+- **Open / next:**
+  - Merge `implement-core-walle-functionality` to `main` so Phase 1 branches from `origin/main`.
+  - Phase 1 plan mode: bin shape for the paper bags, PID location, N/X pass criteria, corner
+    and bin-stop behaviour, carpet slip in the sim profile.
