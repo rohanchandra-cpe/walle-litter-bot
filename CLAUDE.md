@@ -14,7 +14,8 @@ Guidance for Claude Code (and any other agent) working in this repository.
 
 - **Plan mode at the start of each roadmap phase.** Before writing code for a new phase, enter
   plan mode, read the code the phase touches, and agree the plan with the user. Resolve that
-  phase's open decisions in `ROADMAP.md` there, not silently in code.
+  phase's open decisions in `ROADMAP.md` there, not silently in code. Once approved, copy the
+  plan to `docs/plans/phase-N-plan.md`.
 - **Sim first.** Every new capability is built and checked in Gazebo (`walle-sim/`) before it
   runs on the robot. A phase is not done until its sim check passes *and* the user has run it
   on the real robot. Prefer checks that run headless with one command and report pass/fail.
@@ -83,12 +84,17 @@ walle-pilot/
   pilot/             RQ1–RQ3 study scripts (frozen protocol)
   tools/fake_pico.py simulated Pico for rehearsal without hardware
   ROSA_AGENT.md      the existing ROSA agents and tools
-walle-sim/           Gazebo simulator (see note below)
+walle-app/           the WALL-E application (ROADMAP phases); see walle-app/README.md
+  config/park.yaml   the park: 1 m square route, bins, robot footprint, sim item catalog
+  config/scenarios/  test scenarios: which bins, their state, the obstacle
+  park.py            park.yaml + scenario (+ overrides) -> layout; shared by sim and robot
+walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
+docs/plans/          approved phase plans (phase-N-plan.md)
 ```
 
-**`walle-sim/` lives on the `gazebo-test-environments` branch and is not merged into `main`
-yet.** It has its own Compose project (ROS domain 42, no UDP 8888) and a simulated Pico that
-speaks the same topics, so the code under test is the real code. Merging it is Phase 0.
+`walle-sim/` has its own Compose project (ROS domain 42, no UDP 8888) and a simulated Pico
+that speaks the same topics, so the code under test is the real code. The application code
+imports from `walle-pilot/` but must not change the frozen study files.
 
 ## Commands
 
@@ -102,8 +108,19 @@ make fake      # same with tools/fake_pico.py instead of the Pico
 make down
 ```
 
-Simulator (after `walle-sim` is merged): `make sim-up`, `make sim-launch WORLD=<name>`,
-`make sim-shell`, `make sim-check`, `make sim-down`. Details in `walle-sim/README.md`.
+Simulator: `make sim-up`, `make sim-launch WORLD=<name>`, `make sim-shell`, `make sim-check`,
+`make sim-down`. Details in `walle-sim/README.md`.
+
+Park (the WALL-E test world):
+
+```bash
+make sim-launch WORLD=park SCENARIO=mixed GUI=false     # BINS=0-4 OBSTACLE=none|random|1-4 SEED=n
+make sim-park-check LOOK_AT="bin_2 obstacle"            # layout vs ground truth, saves photos
+python3 -m unittest discover -s walle-app/tests         # park loader tests (host or container)
+```
+
+To stop a headless launch from outside, `pkill` inside the container with bracketed patterns
+(e.g. `pkill -f "[i]gn gazebo"`) so the command doesn't match and kill its own shell.
 
 ROSA agents talk to Ollama at `OLLAMA_URL` (default `http://host.docker.internal:11434`).
 Ollama runs on the host, not in the container.

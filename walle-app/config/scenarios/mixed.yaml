@@ -1,0 +1,9 @@
+# One of everything: an ok bin, two overflowing bins (slight and heavy), litter around two
+# bins, and one obstacle somewhere on the route.
+bins:
+  1: {state: ok}
+  2: {state: overflowing, level: 1}
+  3: {state: ok, litter: 3}
+  4: {state: overflowing, level: 3, litter: 2}
+obstacle: {side: random, at: random, item: random}
+seed: 7

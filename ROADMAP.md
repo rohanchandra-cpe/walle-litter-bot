@@ -21,7 +21,7 @@ commands. Metrics and an LLM judge are stretch goals.
 
 | # | Phase | Status |
 |---|---|---|
-| 0 | Foundations: sim merged, park defined | ⬜ |
+| 0 | Foundations: sim merged, park defined | 🟨 sim done; real park to measure |
 | 1 | Route following | ⬜ |
 | 2 | Memory store | ⬜ |
 | 3 | Object detection and trash/recycling classification | ⬜ |
@@ -52,17 +52,21 @@ world that matches it.
 - Decide where the WALL-E application code lives.
 
 **Done when**
-- [ ] `walle-sim/` is on `main` and `make sim-check` passes.
-- [ ] Park config file exists and is the single source for route and bin positions.
-- [ ] Park world launches in Gazebo with the bins in the configured places.
-- [ ] Real park layout measured and entered (user).
+- [x] `walle-sim/` is on `main` and `make sim-check` passes. (PR #5; check passed 2026-11-15)
+- [x] Park config file exists and is the single source for route and bin positions.
+      (`walle-app/config/park.yaml` + `walle-app/park.py`)
+- [x] Park world launches in Gazebo with the bins in the configured places.
+      (`make sim-park-check`: PASS for `mixed` and for `mixed BINS=2 OBSTACLE=none`)
+- [ ] Real park layout measured and entered (user): real bin size, and the square taped out.
+
+Plan: [`docs/plans/phase-0-plan.md`](docs/plans/phase-0-plan.md).
 
 **Open decisions**
-- Location of the application code: a new top-level folder (e.g. `walle-app/`) vs. inside
-  `walle-pilot/`. It must reuse `odometry/`, `vision/`, `depth/` without changing the frozen
-  study code.
-- Track shape and size, number of bins, and how the real track is marked (tape, none).
-- Coordinate frame: is the start pose the origin each run?
+- ~~Location of the application code~~ → `walle-app/` (decided 2026-11-15).
+- ~~Track shape and size, number of bins~~ → 1 m square, up to 4 bins, one per corner
+  (decided 2026-11-15). Still open: how the real track is marked (tape, none).
+- ~~Coordinate frame~~ → corner 1 is the origin, start there facing corner 2 (decided
+  2026-11-15).
 
 ---
 
@@ -248,4 +252,11 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
-| | | |
+| 2026-11-15 | 0 | Application code lives in a new top-level `walle-app/`. |
+| 2026-11-15 | 0 | Park = 1 m × 1 m square, CCW route, corner 1 = origin and start (facing corner 2). |
+| 2026-11-15 | 0 | Bins sit outside the corners on the diagonal (auto offset keeps the robot clear); up to 4. |
+| 2026-11-15 | 0 | At most one obstacle per lap, on a side, 0.25–0.75 along it. |
+| 2026-11-15 | 0 | Bin states: `ok` or `overflowing` (level 1–3), plus `litter` count around it. No fill levels or bin types yet. |
+| 2026-11-15 | 0 | Test setups are scenario files + launch overrides (`BINS`, `OBSTACLE`, `SEED`); the park world is generated at launch. |
+| 2026-11-15 | 0 | The sim item catalog only lists what the simulator can place; detection stays open-vocabulary (Phase 3). |
+| 2026-11-15 | all | Approved phase plans are kept in `docs/plans/phase-N-plan.md`. |

@@ -5,10 +5,16 @@ Run inside the sim container (make sim-shell):
     ros2 launch /workspace/walle-sim/launch/sim.launch.py world:=motion_area
     ros2 launch /workspace/walle-sim/launch/sim.launch.py world:=rq3_ranging gui:=false
     ros2 launch /workspace/walle-sim/launch/sim.launch.py profile:=pid_firmware
+    ros2 launch /workspace/walle-sim/launch/sim.launch.py world:=park scenario:=mixed bins:=2
 
 Arguments:
     world     rq1_lane, rq2_protractor, motion_area, rq3_ranging, rq3_ranging_dim,
-              inspection_room (worlds/*.sdf)
+              inspection_room (worlds/*.sdf), or park (built from walle-app/config at
+              launch by worlds/park_world.py)
+    scenario  park only: a scenario in walle-app/config/scenarios/ (default "default")
+    bins, obstacle, park_seed
+              park only: override the scenario's bin count (0-4), obstacle
+              (none | random | side 1-4), and seed
     profile   a hardware profile from config/sim_profiles.yaml (default pilot_firmware)
     gui       true: Gazebo window in the browser desktop (http://localhost:6080/vnc.html)
     pilot     true: also start walle-pilot/launch/pilot.launch.py sim:=true
@@ -23,6 +29,7 @@ plus simulator-only ground truth on /sim/ground_truth (never an input to the rob
 
 import math
 import os
+import sys
 
 import yaml
 
@@ -60,12 +67,39 @@ def truthy(value):
     return str(value).lower() in ("1", "true", "yes")
 
 
+def park_overrides(get):
+    """The park launch arguments; "scenario" means: keep the scenario file's value."""
+    out = {}
+    for key in ("bins", "obstacle", "park_seed"):
+        value = get(key)
+        if value not in ("", "scenario"):
+            out["seed" if key == "park_seed" else key] = value
+    return out
+
+
+def build_park(get):
+    """Generate the park world from walle-app's config and the chosen scenario."""
+    sys.path.insert(0, os.path.join(SIM_DIR, "worlds"))
+    import park_world
+    overrides = park_overrides(get)
+    try:
+        sdf, info = park_world.build(get("scenario"), overrides.get("bins"),
+                                     overrides.get("obstacle"), overrides.get("seed"))
+    except park_world.park.ParkError as e:
+        raise RuntimeError(f"park: {e}")
+    print(park_world.park.summary(info["worlds"]["park"]["park"]), flush=True)
+    return sdf, info["worlds"]
+
+
 def setup(context):
     get = lambda name: context.launch_configurations[name]  # noqa: E731
     world, profile, gui = get("world"), get("profile"), truthy(get("gui"))
     world_file = os.path.join(SIM_DIR, "worlds", f"{world}.sdf")
     with open(WORLD_INFO) as f:
         info = yaml.safe_load(f)["worlds"]
+    if world == "park":
+        world_file, park_info = build_park(get)
+        info.update(park_info)
     if world not in info or not os.path.exists(world_file):
         raise RuntimeError(f"Unknown world '{world}'. Choose one of: {', '.join(info)}")
     x, y, yaw_deg = info[world]["spawn"]
@@ -132,5 +166,10 @@ def generate_launch_description():
         DeclareLaunchArgument("gui", default_value="true"),
         DeclareLaunchArgument("pilot", default_value="true"),
         DeclareLaunchArgument("seed", default_value="0"),
+        # world:=park only (walle-app/config/scenarios/); "scenario" = the file's own value
+        DeclareLaunchArgument("scenario", default_value="default"),
+        DeclareLaunchArgument("bins", default_value="scenario"),
+        DeclareLaunchArgument("obstacle", default_value="scenario"),
+        DeclareLaunchArgument("park_seed", default_value="scenario"),
         OpaqueFunction(function=setup),
     ])

@@ -75,3 +75,54 @@ Work done before the ledger started, summarized from git history:
   - The servo is not in the firmware, and the micro-ROS library has no free publisher or
     subscription slot (see Phase 4 open decisions).
   - Next session: plan mode for Phase 0.
+
+### 2026-11-15: Phase 0, park config and configurable Gazebo park world
+
+- **Phase:** 0, Foundations
+- **Branch / commit:** `walle-roadmap-docs` (rebased onto `origin/main` @ `e425042`, which now
+  has `walle-sim/` from PR #5) @ see git log
+- **Asked for:** start Phase 0 with a very simple park: a "1 meter by 1 meter square", bins
+  "on each corner", obstacles "on the straight paths between the bins", "1 obstacle per
+  square", and the ability to "change the number of bins, the state of the bins, and whether
+  or not an obstacle appears for testing purposes". Plan approved in plan mode with answers:
+  one obstacle per lap, bins just outside the corners, states overflowing + litter around,
+  code in `walle-app/`. The user asked that the item catalog not limit future YOLO-World
+  detection, and that the plan file be named like "phase 0 plan".
+- **Done:**
+  - Park geometry, robot footprint, bin size (placeholder), sim item catalog
+    (`walle-app/config/park.yaml`)
+  - Scenarios `default`, `mixed`, `obstacle_only` (`walle-app/config/scenarios/`)
+  - Loader with overrides (bins, obstacle, seed), clearance checks, per-bin/obstacle seeded
+    random streams, CLI (`walle-app/park.py`); 10 unit tests (`walle-app/tests/test_park.py`)
+  - Gazebo world generator into git-ignored `worlds/generated/`
+    (`walle-sim/worlds/park_world.py`, `walle-sim/.gitignore`)
+  - `world:=park` + `scenario`/`bins`/`obstacle`/`park_seed` launch args
+    (`walle-sim/launch/sim.launch.py`); generated park info merged into the world info
+    (`walle-sim/harness/sim_world.py`); `park-check` command with `--look-at` photos
+    (`walle-sim/harness/sim_trials.py`)
+  - `SCENARIO`/`BINS`/`OBSTACLE`/`SEED`/`LOOK_AT` variables, `sim-park`, `sim-park-check`
+    targets (`Makefile`)
+  - Docs: `walle-app/README.md`, `walle-sim/README.md` (park row), `CLAUDE.md` (layout,
+    commands, plans folder; removed the "walle-sim not merged" note), `ROADMAP.md` (Phase 0
+    ticks, decision log), approved plan copied to `docs/plans/phase-0-plan.md`
+- **Verified:** in the sim container (headless, RTF 1.00):
+  - unit tests pass on host and in the container; generated SDF for all 3 scenarios and an
+    override case is `ign sdf -k` valid;
+  - `world:=park scenario:=mixed`: `sim-check` all OK; `park-check` PASS, 25 models at their
+    positions (0.0 cm error), no strays; photos of bins 1–4 and the obstacle show ok bins,
+    a level-1 and a level-3 heap, litter, and the upright bottle on side 3;
+  - relaunched with `BINS=2 OBSTACLE=none`: `park-check` PASS, only bins 1–2, no obstacle;
+  - `motion_area` still launches and `sim-check` is all OK (RQ worlds unaffected).
+  - Not verified: anything on the real robot or a real park (nothing to run there yet). The
+    RQ harness commands (rq1/rq2/rq3) were not re-run; their code paths are unchanged
+    except `load_world_info()`, which only adds the park entry.
+- **Scope:** In scope. Small additions beyond the request: a `park-check` command with
+  photos (needed to verify), a `docs/plans/` folder (user asked for a readable plan name).
+  Litter is placed only on the outward side of each bin so it never blocks the route; from
+  the route it is partly hidden behind the bin. Revisit if bin checks need to see it.
+- **Decisions:** all in the ROADMAP decision log under 2026-11-15, Phase 0.
+- **Open / next:**
+  - User: measure the real bins (update `bins.radius_m`/`height_m`) and tape out the real
+    square; then tick the last Phase 0 box.
+  - Changing the park inside a running simulation (without relaunching) is not supported.
+  - Next phase: Phase 1 (route following), starting in plan mode.

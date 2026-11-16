@@ -39,9 +39,17 @@ def wrap(a):
     return math.atan2(math.sin(a), math.cos(a))
 
 
+PARK_INFO = os.path.join(SIM_DIR, "worlds", "generated", "park_info.yaml")
+
+
 def load_world_info():
     with open(WORLD_INFO) as f:
-        return yaml.safe_load(f)
+        info = yaml.safe_load(f)
+    # The park world is generated at launch (worlds/park_world.py); add its entry
+    if os.path.exists(PARK_INFO):
+        with open(PARK_INFO) as f:
+            info["worlds"].update(yaml.safe_load(f)["worlds"])
+    return info
 
 
 class GroundTruth(Node):

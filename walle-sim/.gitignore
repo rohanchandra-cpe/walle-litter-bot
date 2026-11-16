@@ -3,3 +3,5 @@
 data/
 __pycache__/
 *.pyc
+# The park world is rebuilt from walle-app/config every launch (worlds/park_world.py)
+worlds/generated/

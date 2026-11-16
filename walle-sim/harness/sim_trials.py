@@ -24,6 +24,7 @@ Run inside the sim container while launch/sim.launch.py is running:
     python3 /workspace/walle-sim/harness/sim_trials.py --run base rq3                  # all 64 placements
     python3 /workspace/walle-sim/harness/sim_trials.py --run base range --session 1    # frozen schedule
     python3 /workspace/walle-sim/harness/sim_trials.py --run base analyze
+    python3 /workspace/walle-sim/harness/sim_trials.py park-check --look-at bin_2 obstacle  # world park
 
 Simulated runs are never study data. Their logs say so (session "sim" or the
 schedule's session, a SIM note on every row, and sim_runs.jsonl beside them).
@@ -89,6 +90,11 @@ def parse_args():
     p.add_argument("--no-camera", action="store_true")
     sub.add_parser("calibrate-depth", help="red ball at 8 distances, then depth/fit_depth.py")
     sub.add_parser("analyze", help="pilot/analyze.py on this run")
+    p = sub.add_parser("park-check", help="world park: is every bin, item and obstacle where "
+                       "the scenario put it? Saves robot-camera photos")
+    p.add_argument("--look-at", nargs="*", default=[], metavar="TARGET",
+                   help="bin_1 ... bin_4 or obstacle: put the robot facing each and save a "
+                   "photo (then back to the start)")
     for name in ("shakedown", "rq1", "rq2", "motion"):
         sub.choices[name].add_argument("--bag", action="store_true", help="record ros2 bags")
     return parser.parse_args()
@@ -109,7 +115,8 @@ import motion_trial  # noqa: E402
 import robot_io  # noqa: E402
 from common import (append_row, commit_label, load_config, next_scheduled, read_rows,  # noqa: E402
                     utc_now, wrap_deg)
-from sim_world import ROBOT, GroundTruth, World, lane_exit, wait_new_frames  # noqa: E402
+from sim_world import (REST_Z, ROBOT, GroundTruth, World, lane_exit,  # noqa: E402
+                       wait_new_frames)
 
 
 def pilot_env():
@@ -538,6 +545,102 @@ def cmd_check(sim, cfg):
     print(f"  this world supports: {anchors}")
 
 
+PARK_TOLERANCE_M = 0.01
+BIN_PHOTO_DISTANCE_M = 0.65   # robot axle to bin center for park-check photos
+
+
+def park_expected(layout):
+    """Every model the scenario should have put in the world: name -> (x, y)."""
+    out = {}
+    for b in layout["bins"]:
+        out[b["name"]] = b["position"][:2]
+        for kind in ("mound", "spill", "litter"):
+            out.update({i["name"]: i["position"][:2] for i in b[kind]})
+    if layout["obstacle"]:
+        out["obstacle"] = layout["obstacle"]["position"][:2]
+    return out
+
+
+def park_view_pose(layout, target):
+    """Where the robot stands to photograph a target: inside the square on the line through
+    the bin's corner, far enough back that the whole bin (and its litter) is in view, facing
+    the bin; or 0.35 m before the obstacle on its side, facing along the side."""
+    if target == "obstacle":
+        o = layout["obstacle"]
+        if o is None:
+            raise SystemExit("This scenario has no obstacle.")
+        side = math.radians(o["yaw_deg"]) - math.pi / 2
+        x, y = o["position"][0] - 0.35 * math.cos(side), o["position"][1] - 0.35 * math.sin(side)
+        return x, y, side
+    bins = {b["name"]: b for b in layout["bins"]}
+    if target not in bins:
+        raise SystemExit(f"No {target} in this scenario (bins: {', '.join(bins) or 'none'}).")
+    b = bins[target]
+    cx, cy = layout["route"]["corners"][b["corner"]]
+    bx, by = b["position"]
+    yaw = math.atan2(by - cy, bx - cx)
+    back = BIN_PHOTO_DISTANCE_M
+    return bx - back * math.cos(yaw), by - back * math.sin(yaw), yaw
+
+
+def save_photo(path):
+    import urllib.request
+    with urllib.request.urlopen("http://localhost:8080/capture", timeout=5.0) as reply:
+        data = reply.read()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+def cmd_park_check(sim):
+    layout = sim.world.info.get("park")
+    if layout is None:
+        raise SystemExit(f"World '{sim.world.name}' is not the park. Launch world:=park.")
+    expected = park_expected(layout)
+    print(f"Park scenario '{layout['scenario']}' (seed {layout['seed']})"
+          + (f", overrides {layout['overrides']}" if layout["overrides"] else ""))
+    sim.gt.wait_ready(tuple(expected), timeout=10.0)
+    failures = 0
+    for name, (x, y) in expected.items():
+        pose = sim.gt.pose(name)
+        if pose is None:
+            print(f"  [FAIL] {name:18s} missing from Gazebo")
+            failures += 1
+            continue
+        err = math.hypot(pose[0] - x, pose[1] - y)
+        ok = err <= PARK_TOLERANCE_M
+        failures += not ok
+        print(f"  [{'OK' if ok else 'FAIL'}] {name:18s} ({pose[0]:6.3f}, {pose[1]:6.3f})  "
+              f"error {err * 100:.1f} cm")
+    with sim.gt.lock:
+        present = set(sim.gt.poses)
+    strays = sorted(n for n in present - set(expected) if n.startswith("bin_") or n == "obstacle")
+    for name in strays:
+        print(f"  [FAIL] {name:18s} in Gazebo but not in the scenario")
+    failures += len(strays)
+    print(f"  {len(layout['bins'])} bins, obstacle: "
+          f"{layout['obstacle']['item'] + ' on side %d' % layout['obstacle']['side'] if layout['obstacle'] else 'none'}")
+
+    if ARGS.look_at:
+        start = layout["route"]["start"]
+        for target in ARGS.look_at:
+            x, y, yaw = park_view_pose(layout, target)
+            sim.world.set_pose(ROBOT, x, y, REST_Z, yaw)
+            time.sleep(0.5)
+            if not wait_new_frames(3):
+                print(f"  [FAIL] no new camera frames for {target}")
+                failures += 1
+                continue
+            path = save_photo(os.path.join(RUN_DIR, "photos",
+                                           f"park_{layout['scenario']}_{target}.jpg"))
+            print(f"  photo of {target}: {path}")
+        sim.world.set_pose(ROBOT, start[0], start[1], REST_Z, math.radians(start[2]))
+    print("PASS" if not failures else f"FAIL ({failures} problems)")
+    if failures:
+        raise SystemExit(1)
+
+
 def main():
     cfg = load_config()
     if ARGS.command == "analyze":
@@ -554,6 +657,8 @@ def main():
             cmd_rq3(sim, cfg)
         elif ARGS.command == "calibrate-depth":
             cmd_calibrate(sim, cfg)
+        elif ARGS.command == "park-check":
+            cmd_park_check(sim)
 
 
 if __name__ == "__main__":
