@@ -144,9 +144,25 @@ class Geometry:
         self.half_width = float(robot["half_width_m"])
         self.turn_radius = float(robot["turn_radius_m"])
         self.margin = float(robot["margin_m"])
-        self.bin_radius = float(bins["radius_m"])
+        self.bin_shape = bins.get("shape", "cylinder")
+        if self.bin_shape == "box":
+            # The wide face (length) faces the square; depth (width) runs along the diagonal
+            self.bin_length, self.bin_width = float(bins["length_m"]), float(bins["width_m"])
+            self.bin_half = (self.bin_width / 2, self.bin_length / 2)   # (outward, across)
+        elif self.bin_shape == "cylinder":
+            r = float(bins["radius_m"])
+            self.bin_length = self.bin_width = 2 * r
+            self.bin_half = (r, r)
+        else:
+            raise ParkError(f"bins.shape must be box or cylinder, not '{self.bin_shape}'.")
         self.bin_height = float(bins["height_m"])
+        # Smallest distance from the bin's center to its side (mound spread, item spacing)
+        self.bin_inner = min(self.bin_half)
+        self.camera = robot.get("camera")
         self.items = park["items"]
+        self.frame_from_corner = bool(bins.get("frame_from_corner", False))
+        self.bin_clear_offset = self.clearance_offset()
+        self.bin_frame_offset = self.framing_offset() if self.frame_from_corner else 0.0
         self.bin_offset = self.check_bin_offset(bins.get("offset_m", "auto"))
 
     def corner(self, c):
@@ -183,18 +199,86 @@ class Geometry:
             c = nxt
         return out
 
+    # ----- bins -----
+    def bin_extent(self, rel):
+        """Distance from the bin's center to its side, in the direction `rel` radians from
+        the outward diagonal."""
+        hx, hy = self.bin_half
+        if self.bin_shape == "cylinder":
+            return hx
+        c, s = abs(math.cos(rel)), abs(math.sin(rel))
+        return min(hx / c if c > 1e-9 else float("inf"), hy / s if s > 1e-9 else float("inf"))
+
+    def dist_to_bin(self, x, y, center, yaw):
+        """Distance from a floor point to the bin's footprint (0 inside it)."""
+        dx, dy = x - center[0], y - center[1]
+        if self.bin_shape == "cylinder":
+            return max(0.0, math.hypot(dx, dy) - self.bin_half[0])
+        c, s = math.cos(yaw), math.sin(yaw)
+        lx, ly = abs(dx * c + dy * s), abs(-dx * s + dy * c)
+        return math.hypot(max(0.0, lx - self.bin_half[0]), max(0.0, ly - self.bin_half[1]))
+
+    def bin_outline(self, center, yaw, n=72):
+        """Points around the bin's footprint on the floor (its outline)."""
+        out = []
+        for k in range(n):
+            a = 2 * math.pi * k / n
+            d = self.bin_extent(a)
+            out.append((center[0] + d * math.cos(yaw + a), center[1] + d * math.sin(yaw + a)))
+        return out
+
+    def dist_to_side_lines(self, x, y):
+        """Distance to the nearest side of the square, each side extended past its corners
+        as a full line (the robot may overshoot a corner before it turns)."""
+        best = float("inf")
+        for c in CORNERS:
+            (x0, y0), (x1, y1) = self.corner(c), self.corner(self.next_corner(c))
+            dx, dy = x1 - x0, y1 - y0
+            best = min(best, abs((x - x0) * dy - (y - y0) * dx) / math.hypot(dx, dy))
+        return best
+
+    def bin_is_clear(self, center, yaw):
+        """The bin's outline is clear of the robot driving the route (sides as full lines)
+        and turning on the corners."""
+        for x, y in self.bin_outline(center, yaw):
+            if self.dist_to_side_lines(x, y) < self.half_width + self.margin - 1e-9:
+                return False
+            if self.dist_to_nearest_corner(x, y) < self.turn_radius + self.margin - 1e-9:
+                return False
+        return True
+
+    def clearance_offset(self):
+        """Smallest offset (1 mm steps) at which a bin outside corner 1 is clear."""
+        ux, uy = self.outward(1)
+        yaw = math.atan2(uy, ux)
+        for mm in range(0, 5001):
+            d = mm / 1000
+            if self.bin_is_clear((d * ux, d * uy), yaw):
+                return d
+        raise ParkError("No bin offset up to 5 m keeps the bin clear of the route.")
+
+    def framing_offset(self):
+        """Smallest offset at which the camera, with the robot on the corner facing the bin,
+        sees the whole bin: top, bottom and both sides inside the frame, with
+        `frame_margin` of each half-frame left free."""
+        cam = self.camera
+        if not cam:
+            raise ParkError("bins.frame_from_corner needs robot.camera in park.yaml.")
+        keep = 1.0 - float(cam.get("frame_margin", 0.0))
+        tv = math.tan(math.radians(float(cam["vertical_fov_deg"])) / 2) * keep
+        th = math.tan(math.radians(float(cam["horizontal_fov_deg"])) / 2) * keep
+        hc = float(cam["height_m"])
+        near = max((self.bin_height - hc) / tv, hc / tv, (self.bin_length / 2) / th)
+        return near + float(cam["forward_m"]) + self.bin_half[0]
+
     def check_bin_offset(self, offset):
-        r = self.bin_radius
-        # Clear of the robot driving along either side that meets at the corner, and
-        # clear of the robot's body while it turns on the corner.
-        need = max(math.sqrt(2) * (self.half_width + self.margin + r),
-                   self.turn_radius + self.margin + r)
+        need = self.bin_clear_offset
         if offset in (None, "auto"):
-            return math.ceil(need * 100 - 1e-9) / 100
+            return math.ceil(max(need, self.bin_frame_offset) * 100 - 1e-9) / 100
         offset = float(offset)
         if offset + 1e-9 < need:
-            raise ParkError(f"bins.offset_m {offset:.3f} m is too small: a bin of radius "
-                            f"{r:.3f} m needs at least {need:.3f} m to stay clear of the robot.")
+            raise ParkError(f"bins.offset_m {offset:.3f} m is too small: this bin needs at "
+                            f"least {need:.3f} m to stay clear of the robot.")
         return offset
 
     def dist_to_route(self, x, y):
@@ -260,10 +344,16 @@ def build_bin(geo, park, corner, spec, seed):
     cx, cy = geo.corner(corner)
     ux, uy = geo.outward(corner)
     bx, by = cx + geo.bin_offset * ux, cy + geo.bin_offset * uy
+    yaw = math.atan2(uy, ux)
     name = f"bin_{corner}"
     out = {"id": corner, "name": name, "corner": corner,
            "position": [round(bx, 4), round(by, 4)],
-           "radius_m": geo.bin_radius, "height_m": geo.bin_height,
+           "shape": geo.bin_shape, "height_m": geo.bin_height,
+           # box: length = the wide face toward the square, width = depth along the diagonal
+           "size_m": [geo.bin_length, geo.bin_width, geo.bin_height],
+           "yaw_deg": round(math.degrees(yaw), 3),
+           # heading the robot turns to on the corner to face the bin's center
+           "view_heading_deg": round(math.degrees(yaw), 3),
            "state": state, "overflow_level": level,
            "mound": [], "spill": [], "litter": []}
     items = sorted(geo.items)
@@ -271,14 +361,16 @@ def build_bin(geo, park, corner, spec, seed):
     if level:
         for layer, count in enumerate(MOUND_LAYERS[level]):
             z_base = geo.bin_height + layer * LAYER_STEP_M
-            spread = geo.bin_radius * (0.7 - 0.15 * layer)
+            spread = geo.bin_inner * (0.7 - 0.15 * layer)
             for _ in range(count):
                 item = rng.choice(items)
                 a, r = rng.uniform(0, 2 * math.pi), spread * math.sqrt(rng.random())
                 out["mound"].append(geo.placed(f"{name}_mound_{len(out['mound'])}", item,
                                                bx + r * math.cos(a), by + r * math.sin(a),
                                                z_base, "lying", rng.uniform(-math.pi, math.pi)))
-    taken = [(bx, by, geo.bin_radius)]
+    if geo.bin_shape == "cylinder":
+        out["radius_m"] = geo.bin_half[0]
+    taken = [(bx, by, geo.bin_inner)]
     for kind, count in (("spill", (level or 1) - 1), ("litter", litter)):
         for i in range(count):
             out[kind].append(place_on_floor(geo, rng, items, f"{name}_{kind}_{i}",
@@ -294,13 +386,15 @@ def place_on_floor(geo, rng, items, model, center, outward, taken):
         item = rng.choice(items)
         foot = geo.footprint(item, "lying")
         a = base + math.radians(rng.uniform(-LITTER_SPREAD_DEG, LITTER_SPREAD_DEG))
-        d = geo.bin_radius + rng.uniform(*LITTER_GAP_M) + foot
+        d = geo.bin_extent(a - base) + rng.uniform(*LITTER_GAP_M) + foot
         x, y = center[0] + d * math.cos(a), center[1] + d * math.sin(a)
         if geo.dist_to_route(x, y) < geo.half_width + geo.margin + foot:
             continue
         if geo.dist_to_nearest_corner(x, y) < geo.turn_radius + geo.margin + foot:
             continue
-        if any(math.hypot(x - tx, y - ty) < tr + foot + 0.01 for tx, ty, tr in taken):
+        if geo.dist_to_bin(x, y, center, base) < LITTER_GAP_M[0] + foot:
+            continue
+        if any(math.hypot(x - tx, y - ty) < tr + foot + 0.01 for tx, ty, tr in taken[1:]):
             continue
         taken.append((x, y, foot))
         return geo.placed(model, item, x, y, 0.0, "lying", rng.uniform(-math.pi, math.pi))
@@ -349,7 +443,9 @@ def summary(layout):
         state = (f"overflowing (level {b['overflow_level']}, {len(b['mound'])} items over the "
                  f"rim, {len(b['spill'])} spilled)" if b["state"] == "overflowing" else "ok")
         litter = ", ".join(f"{i['item']}" for i in b["litter"]) or "none"
-        lines.append(f"  {b['name']} at ({b['position'][0]:.3f}, {b['position'][1]:.3f}): "
+        size = " x ".join(f"{v * 100:.0f}" for v in b["size_m"])
+        lines.append(f"  {b['name']} at ({b['position'][0]:.3f}, {b['position'][1]:.3f}), "
+                     f"{b['shape']} {size} cm, face it at {b['view_heading_deg']:.0f} deg: "
                      f"{state}; litter: {litter}")
     o = layout["obstacle"]
     lines.append("Obstacle: none" if o is None else

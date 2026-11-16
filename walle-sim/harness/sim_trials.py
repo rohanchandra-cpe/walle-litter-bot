@@ -25,6 +25,7 @@ Run inside the sim container while launch/sim.launch.py is running:
     python3 /workspace/walle-sim/harness/sim_trials.py --run base range --session 1    # frozen schedule
     python3 /workspace/walle-sim/harness/sim_trials.py --run base analyze
     python3 /workspace/walle-sim/harness/sim_trials.py park-check --look-at bin_2 obstacle  # world park
+    python3 /workspace/walle-sim/harness/sim_trials.py --run route route-check --laps 1   # world park
 
 Simulated runs are never study data. Their logs say so (session "sim" or the
 schedule's session, a SIM note on every row, and sim_runs.jsonl beside them).
@@ -95,6 +96,13 @@ def parse_args():
     p.add_argument("--look-at", nargs="*", default=[], metavar="TARGET",
                    help="bin_1 ... bin_4 or obstacle: put the robot facing each and save a "
                    "photo (then back to the start)")
+    p = sub.add_parser("route-check", help="world park: run walle-app's route follower "
+                       "from the start pose and judge it against Gazebo's ground truth")
+    p.add_argument("--laps", type=int, default=1)
+    p.add_argument("--tolerance-cm", type=float, default=5.0,
+                   help="pass if the robot ends within this of the start (Phase 1: 5 cm)")
+    p.add_argument("--dwell", type=float, help="seconds at each bin (default route.yaml)")
+    p.add_argument("--feedback", help="/odometry/filtered (default) or /wheel/odom")
     for name in ("shakedown", "rq1", "rq2", "motion"):
         sub.choices[name].add_argument("--bag", action="store_true", help="record ros2 bags")
     return parser.parse_args()
@@ -641,6 +649,133 @@ def cmd_park_check(sim):
         raise SystemExit(1)
 
 
+# ===== Phase 1: route following =====
+ROUTE_FOLLOWER = os.path.join(REPO_DIR, "walle-app", "route", "route_follower.py")
+# The Gazebo camera (urdf/gazebo_car.urdf.xacro): 60 deg wide, 320 x 240, level, mounted
+# camera_x ahead of and camera_z above base_link
+SIM_CAMERA = {"forward_m": 0.07, "up_m": 0.07, "hfov_rad": 1.047, "aspect": 240 / 320}
+
+
+def bin_corners(b):
+    """The 8 corners of a bin (box or cylinder's bounding box) in the world frame."""
+    length, width, height = b["size_m"]
+    yaw = math.radians(b.get("yaw_deg", 0.0))
+    c, s = math.cos(yaw), math.sin(yaw)
+    bx, by = b["position"]
+    out = []
+    for dx in (-width / 2, width / 2):            # box x: depth along the diagonal
+        for dy in (-length / 2, length / 2):      # box y: the wide face
+            for z in (0.0, height):
+                out.append((bx + dx * c - dy * s, by + dx * s + dy * c, z))
+    return out
+
+
+def bin_in_frame(b, pose):
+    """Where the bin's corners land in the simulated camera's image, from robot pose
+    (x, y, yaw_deg): the largest |horizontal| and |vertical| position as a fraction of the
+    half-frame (<= 1 means inside the photo)."""
+    x, y, yaw = pose[0], pose[1], math.radians(pose[2])
+    cx, cy = x + SIM_CAMERA["forward_m"] * math.cos(yaw), y + SIM_CAMERA["forward_m"] * math.sin(yaw)
+    cz = REST_Z + SIM_CAMERA["up_m"]
+    th = math.tan(SIM_CAMERA["hfov_rad"] / 2)
+    tv = th * SIM_CAMERA["aspect"]
+    worst_h = worst_v = 0.0
+    for px, py, pz in bin_corners(b):
+        dx, dy = px - cx, py - cy
+        fwd = dx * math.cos(yaw) + dy * math.sin(yaw)
+        left = -dx * math.sin(yaw) + dy * math.cos(yaw)
+        if fwd <= 0.01:
+            return float("inf"), float("inf")
+        worst_h = max(worst_h, abs(left / fwd) / th)
+        worst_v = max(worst_v, abs((pz - cz) / fwd) / tv)
+    return worst_h, worst_v
+
+
+def cmd_route_check(sim):
+    layout = sim.world.info.get("park")
+    if layout is None:
+        raise SystemExit(f"World '{sim.world.name}' is not the park. Launch world:=park.")
+    if layout["obstacle"]:
+        raise SystemExit("This park has an obstacle on the route (Phase 5). Relaunch with "
+                         "OBSTACLE=none, or SCENARIO=default.")
+    sim.wait_robot(("ticks", "wheel", "ekf", "imu"))
+    rtf = warn_rtf(sim)
+    out_dir = os.path.join(RUN_DIR, "route", time.strftime("%Y%m%d_%H%M%S"))
+    os.makedirs(out_dir, exist_ok=True)
+    layout_path = os.path.join(out_dir, "layout.json")
+    with open(layout_path, "w") as f:
+        json.dump(layout, f, indent=2)
+
+    sx, sy, syaw = layout["route"]["start"]
+    sim.world.set_pose(ROBOT, sx, sy, REST_Z, math.radians(syaw))
+    time.sleep(2.0)                   # let the estimates settle on the new pose
+    print(f"{sim.describe(rtf)}  scenario '{layout['scenario']}', "
+          f"{len(layout['bins'])} bins, {ARGS.laps} lap(s)")
+    cmd = [sys.executable, ROUTE_FOLLOWER, "--layout-json", layout_path, "--run-dir", out_dir,
+           "--laps", str(ARGS.laps), "--camera-url", "http://localhost:8080/capture",
+           "--no-measure"]
+    if ARGS.dwell is not None:
+        cmd += ["--dwell", str(ARGS.dwell)]
+    if ARGS.feedback:
+        cmd += ["--feedback", ARGS.feedback]
+    code = subprocess.call(cmd)
+    summary_path = os.path.join(out_dir, "summary.json")
+    if not os.path.exists(summary_path):
+        raise SystemExit(f"FAIL: the route follower wrote no summary (exit {code}).")
+    with open(summary_path) as f:
+        summary = json.load(f)
+
+    bins = {b["name"]: b for b in layout["bins"]}
+    checks = []
+    checks.append(("run finished", summary["status"] == "done",
+                   summary["status"] + (f" ({summary['reason']})" if summary.get("reason") else "")))
+    truth = summary["end_errors"].get("ground_truth")
+    if truth:
+        checks.append((f"ends within {ARGS.tolerance_cm:.0f} cm of the start",
+                       truth["position_m"] * 100 <= ARGS.tolerance_cm,
+                       f"{truth['position_m'] * 100:.1f} cm, heading {truth['heading_deg']:+.1f} deg"))
+    else:
+        checks.append(("ground truth recorded", False, "none in summary.json"))
+    corner_rows = []
+    for ev in summary["events"]:
+        if ev["event"] == "arrived" and "true_error_m" in ev:
+            corner_rows.append((ev["corner"], ev["true_error_m"] * 100,
+                                ev["poses"]["ground_truth"][2]))
+        if ev["event"] == "facing_bin":
+            g = ev["poses"].get("ground_truth")
+            h, v = bin_in_frame(bins[ev["bin"]], g) if g else (float("inf"),) * 2
+            ev["in_frame_h"], ev["in_frame_v"] = round(h, 3), round(v, 3)
+            checks.append((f"{ev['bin']} whole bin in frame", h <= 1.0 and v <= 1.0,
+                           f"bearing to bin {ev.get('true_bearing_error_deg', float('nan')):+.1f} deg, "
+                           f"extent {h:.2f} wide / {v:.2f} tall of the half-frame"
+                           + (f", photo {ev['photo']}" if ev.get("photo") else "")))
+    faced = {ev["bin"] for ev in summary["events"] if ev["event"] == "facing_bin"}
+    for name in bins:
+        if name not in faced:
+            checks.append((f"{name} stop", False, "the robot never faced it"))
+
+    print("\nPer corner (Gazebo truth):")
+    for corner, err_cm, heading in corner_rows:
+        print(f"  corner {corner}: {err_cm:5.1f} cm from the corner, heading {heading:+7.1f} deg")
+    print("\nChecks:")
+    for name, ok, detail in checks:
+        print(f"  [{'OK' if ok else 'FAIL'}] {name}: {detail}")
+    failures = sum(not ok for _, ok, _ in checks)
+    result = {"profile": sim.profile.get("name"), "rtf": rtf, "laps": ARGS.laps,
+              "tolerance_cm": ARGS.tolerance_cm, "pass": failures == 0,
+              "checks": [{"name": n, "ok": ok, "detail": d} for n, ok, d in checks],
+              "corners": [{"corner": c, "true_error_cm": round(e, 2), "true_heading_deg": h}
+                          for c, e, h in corner_rows], "summary": summary}
+    with open(os.path.join(out_dir, "route_check.json"), "w") as f:
+        json.dump(result, f, indent=2)
+    log_invocation(sim, {"route_check": out_dir, "pass": failures == 0})
+    sim.world.set_pose(ROBOT, sx, sy, REST_Z, math.radians(syaw))
+    print(f"Results: {out_dir}")
+    print("PASS" if not failures else f"FAIL ({failures} problems)")
+    if failures:
+        raise SystemExit(1)
+
+
 def main():
     cfg = load_config()
     if ARGS.command == "analyze":
@@ -659,6 +794,8 @@ def main():
             cmd_calibrate(sim, cfg)
         elif ARGS.command == "park-check":
             cmd_park_check(sim)
+        elif ARGS.command == "route-check":
+            cmd_route_check(sim)
 
 
 if __name__ == "__main__":

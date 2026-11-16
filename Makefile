@@ -6,7 +6,7 @@ SVC     := pilot
 .DEFAULT_GOAL := help
 .PHONY: help up build down restart shell launch fake logs agent-logs ps \
         sim-up sim-build sim-down sim-shell sim-launch sim-check sim-worlds \
-        sim-park sim-park-check
+        sim-park sim-park-check sim-route-check
 
 # Gazebo simulator (walle-sim/README.md): a separate Compose project and ROS domain
 SIM_COMPOSE := docker compose -f docker-compose.sim.yml
@@ -20,6 +20,8 @@ BINS     ?= scenario
 OBSTACLE ?= scenario
 SEED     ?= scenario
 LOOK_AT  ?=
+LAPS     ?= 1
+DWELL    ?=
 
 help:
 	@echo "make up          start the pilot + micro-ROS Agent containers (builds if needed)"
@@ -42,6 +44,7 @@ help:
 	@echo "make sim-check   is everything publishing? (RUN=name picks the data folder)"
 	@echo "make sim-park    print a park layout (same SCENARIO/BINS/OBSTACLE/SEED) without launching"
 	@echo "make sim-park-check  world park: every bin/item/obstacle in place? LOOK_AT=\"bin_2 obstacle\" saves photos"
+	@echo "make sim-route-check  world park: drive the route (LAPS=1 DWELL=s), PASS if it ends within 5 cm"
 	@echo "make sim-worlds  regenerate walle-sim/worlds/*.sdf after editing generate_worlds.py"
 	@echo "make sim-down    stop the simulator"
 	@echo "Desktop: http://localhost:6080/vnc.html"
@@ -101,3 +104,6 @@ sim-park:
 
 sim-park-check:
 	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) park-check $(if $(LOOK_AT),--look-at $(LOOK_AT))"
+
+sim-route-check:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) route-check --laps $(LAPS) $(if $(DWELL),--dwell $(DWELL))"

@@ -94,6 +94,25 @@ profiles:
     imu: {gyro_bias_dps: 0.05}
     ultrasonic: {timeout_prob: 0.02}
 
+  # Carpet (WALL-E Phase 1 testing surface): the wheels slip, so the encoders count more
+  # turn than the robot travels; unequal grip pulls it to one side; the pile slows spin-up
+  # and coast. Guessed values, not measured: compare with the robot's route runs.
+  carpet:
+    firmware: open_loop_pwm
+    motor: {left_gain: 1.02, right_gain: 0.98, time_constant_s: 0.16}
+    encoder: {left_scale: 1.03, right_scale: 1.02}
+    imu: {gyro_bias_dps: 0.1}
+    ultrasonic: {timeout_prob: 0.02}
+
+  # The same carpet with a closed-loop wheel-speed firmware (module 7's pico_pid idea,
+  # modeled by the pid firmware): does speed control fix what carpet does to open loop?
+  carpet_pid:
+    firmware: pid
+    motor: {left_gain: 1.02, right_gain: 0.98, time_constant_s: 0.16}
+    encoder: {left_scale: 1.03, right_scale: 1.02}
+    imu: {gyro_bias_dps: 0.1}
+    ultrasonic: {timeout_prob: 0.02}
+
   # Worst plausible session: Wi-Fi stalls, drift, noisy and flaky ultrasonic.
   stress:
     firmware: open_loop_pwm

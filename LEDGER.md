@@ -153,3 +153,71 @@ Work done before the ledger started, summarized from git history:
   - Merge `implement-core-walle-functionality` to `main` so Phase 1 branches from `origin/main`.
   - Phase 1 plan mode: bin shape for the paper bags, PID location, N/X pass criteria, corner
     and bin-stop behaviour, carpet slip in the sim profile.
+
+### 2026-11-16: Phase 1, route follower, box bins, sim route check
+
+- **Phase:** 1, Route following
+- **Branch / commit:** `walle-phase-1` (from `implement-core-walle-functionality` @ `3c01fd9`,
+  at the user's request; Phase 0 is not merged to `main`) @ uncommitted
+- **Asked for:** Phase 1 in plan mode. The user's answers: build on module 7 and module 8
+  (`Ollama/module-7-kinematics-control`, `module-8-sensor-fusion`, firmware + odometry);
+  1 lap, end within 5 cm; stop and turn in place; at each corner "turn to face the bin so that
+  the whole bin is in the center of the camera frame", wait 15 s; bins as rectangles ("might
+  become cylinders later"); measuring drift is "EXTREMELY important"; the user starts runs and
+  stops them with Ctrl+C. Asked whether the whole bag must fit, the user chose "move bins
+  farther out".
+- **Done:**
+  - Module 8's `move_test.py`, `odometry_node.py`, `transforms.py` and `pico_fusion` firmware
+    are byte-identical to `walle-pilot/`; module 7's `pico_pid` (firmware wheel PI) was read,
+    not used. Plan approved, copied to `docs/plans/phase-1-plan.md` (+ "changes while
+    building" section).
+  - Box bins: `shape: box` 30 × 18 × 36 cm, wide face toward the square; clearance now
+    checks the bin's outline against both sides as full lines and the turn circle (0.43 m);
+    new `robot.camera` block and `frame_from_corner` set the offset so the whole bin is in
+    frame from the corner (0.83 m). Layout gains `shape`, `size_m`, `yaw_deg`,
+    `view_heading_deg`. Cylinders still load (`walle-app/config/park.yaml`,
+    `walle-app/park.py`, `walle-sim/worlds/park_world.py`).
+  - Route follower subclassing module 8's `Mover` (imported, unchanged): line following,
+    absolute-heading turns, bin stops, learned coast, correction moves, gyro-drift
+    measurement and zero-velocity update, `/walle/route/status`, run logs, end-of-run tape
+    measurement prompt and `results/route/robot_runs.csv` (`walle-app/route/route_follower.py`,
+    `walle-app/route/route_geometry.py`, `walle-app/config/route.yaml`).
+  - Tests: 5 new park tests (box clearance, framing, yaw, refusal, cylinder), 5 route
+    geometry/plan tests (`walle-app/tests/`).
+  - `route-check` harness command (start pose, follower as subprocess, ground-truth judging,
+    bin-in-frame projection, photos) and `make sim-route-check`; `carpet` and `carpet_pid`
+    sim profiles (`walle-sim/harness/sim_trials.py`, `walle-sim/config/sim_profiles.yaml`,
+    `Makefile`).
+  - Docs: `walle-app/README.md` (bins, route following, robot steps), `walle-sim/README.md`,
+    `CLAUDE.md` (layout, commands), `ROADMAP.md` (Phase 1 status, tick, decisions).
+- **Verified:**
+  - 20 unit tests pass on the host (Python 3.13) and in the sim container.
+  - Gazebo, world `park`, scenario `default` (4 bins, no obstacle), headless, RTF 1.00:
+    `park-check` PASS with the box bins (0.0 cm); photo shows the whole bag centered.
+  - `route-check`, 1 lap, 15 s waits, final code, one run per profile, all PASS:
+    `ideal` 0.6 cm; `pilot_firmware` 1.6 cm (corners 1.5–1.7 cm); `carpet` 4.7 cm (corners
+    1.0–4.7 cm); `carpet_pid` 1.3 cm. Every bin wholly in frame; bearing to the bin up to
+    9° (`pilot_firmware`) and 12° (`carpet_pid`), mostly on the first bin, before the turn
+    coast is learned.
+  - Earlier failing runs, kept in `walle-sim/data/phase1/route/` (git-ignored): open-loop
+    `pilot_firmware` with module 8's settings ended 5.2 cm off (2 s waits) and 7.3 cm
+    (15 s waits) and missed the frame at all 4 bins; `carpet` 8.3 and 10.6 cm before the
+    gyro-drift estimate.
+  - **Not verified:** nothing has run on the real robot. The carpet profiles' values are
+    guesses, and `carpet` passes by only 0.3 cm in a single run (run-to-run spread is not
+    measured). `ideal` reports +0.8°/min of rest drift although it has no gyro bias,
+    probably the EKF settling after the harness teleports the robot; harmless here but not
+    explained. `--feedback /wheel/odom` and multi-lap runs were not run in sim.
+- **Scope:** Drift, inside the approved plan's escalation step 1 but beyond what the plan
+  listed: learned coast with correction moves, and gyro-bias estimation with a zero-velocity
+  update (plus a 10 s still period before each run) were added because the first sim runs
+  failed. The `carpet_pid` profile was added to size the firmware option. Told to the user
+  in the session; recorded in the plan's "changes while building".
+- **Decisions:** Phase 1 decisions 1–7 in the ROADMAP decision log (2026-11-16).
+- **Open / next:**
+  - User: measure the camera (`robot.camera.height_m`, `forward_m` in `park.yaml`), place
+    the bags where `park.py` prints, and run the follower on the carpet. Record the tape end
+    error; tick the two remaining Phase 1 boxes.
+  - If the robot misses 5 cm: next escalation steps (wheel diameter and track calibrated on
+    carpet, then module 7's firmware wheel PID: sim shows 4.7 → 1.3 cm on carpet).
+  - Run several sim laps per profile to measure spread.
