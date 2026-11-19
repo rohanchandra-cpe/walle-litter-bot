@@ -22,7 +22,7 @@ commands. Metrics and an LLM judge are stretch goals.
 | # | Phase | Status |
 |---|---|---|
 | 0 | Foundations: sim merged, park defined | 🟨 sim done; real park to measure |
-| 1 | Route following | ⬜ |
+| 1 | Route following | ✅ done 2026-11-18 (bin centering moved to Phase 3) |
 | 2 | Memory store | ⬜ |
 | 3 | Object detection and trash/recycling classification | ⬜ |
 | 4 | Servo and bin monitoring | ⬜ |
@@ -58,9 +58,11 @@ world that matches it.
 - [x] Park world launches in Gazebo with the bins in the configured places.
       (`make sim-park-check`: PASS for `mixed` and for `mixed BINS=2 OBSTACLE=none`)
 - [ ] Real park layout measured and entered (user): real bin size, and the square taped out.
-      (2026-11-16: interim bins are paper bags, 30 × 18 × 36 cm (L × W × H), not yet entered:
-      `park.yaml` models bins as cylinders. Plastic bins from Target come later. Square not
-      taped yet.)
+      (2026-11-16: interim bins are paper bags, 30 × 18 × 36 cm (L × W × H), **entered**
+      2026-11-16 as box bins (Phase 1). Plastic bins from Target come later. Square not
+      taped yet.) (2026-11-18: now black plastic bins, 27.7 × 21.1 × 29.2 cm (W × D × H),
+      entered; the square is on corrugated plastic sheets. Whether it is taped out is not
+      recorded.)
 
 Plan: [`docs/plans/phase-0-plan.md`](docs/plans/phase-0-plan.md).
 
@@ -87,22 +89,32 @@ Drive the route from the park config, waypoint to waypoint, and come back to the
   how much, and decide whether a re-localization cue is needed.
 
 **Done when**
-- [ ] In sim: the robot completes the route N times in a row and ends within X cm of the
-      start. (N and X set in plan mode.)
-- [ ] On the robot: completes the route and stops at each bin waypoint (user).
-- [ ] End-of-route position error measured on the robot and recorded.
+- [x] In sim: the robot completes the route N times in a row and ends within X cm of the
+      start. (N = 1 lap, X = 5 cm, set in plan mode; also: every bin wholly in frame at its
+      stop.) `make sim-route-check`, 15 s bin waits, 2026-11-16: PASS on `ideal` 0.6 cm,
+      `pilot_firmware` 1.6 cm, `carpet` 4.7 cm, `carpet_pid` 1.3 cm (one run each).
+- [x] On the robot: completes the route and stops at each bin waypoint (user).
+      (2026-11-18, run `20261118_195156`, carpet. Only bin 2 was centered in its photo; no
+      bin top was in view. Open, see the ledger.)
+- [x] End-of-route position error measured on the robot and recorded.
+      (2026-11-18: 0 cm by tape ("almost exactly back where it started"), EKF 0.6 cm;
+      wheels alone would have ended 22.8 cm / 22.7° off. `results/route/robot_runs.csv`.)
 
 **Known conditions (2026-11-16, may change):** testing on carpet (cardboard later), so expect
 more wheel slip than in the pilot; the robot runs on the current firmware (open-loop PWM map,
-`MIN_DUTY` 0.40, so low speeds come out fast).
+`MIN_DUTY` 0.40, so low speeds come out fast). **Updated 2026-11-18:** the test surface is
+now corrugated plastic sheets, and the firmware has closed-loop wheel speed control.
+
+Plan: [`docs/plans/phase-1-plan.md`](docs/plans/phase-1-plan.md).
 
 **Open decisions**
-- PID in firmware (C) vs. on the computer side.
-- Bin shape in `park.yaml`: the interim paper bags are rectangular (30 × 18 cm footprint), so
-  a cylinder radius no longer describes them (a circumscribed radius of 0.175 m would push
-  the auto offset to about 0.44 m).
-- Acceptable drift, and whether to add markers (e.g. AprilTags at bins, or a known bin
-  position the camera can line up on) to correct it.
+- ~~PID in firmware (C) vs. on the computer side~~ → route control on the computer side
+  (2026-11-16); **plus** closed-loop wheel speed in the firmware (2026-11-18), because the
+  open-loop firmware turned at about 3 rad/s for any command and could not center the bins.
+- ~~Bin shape in `park.yaml`~~ → boxes, wide face toward the square, placed so the whole bin
+  is in frame from the corner (0.83 m out with the placeholder camera; measure the camera).
+- Acceptable drift → 5 cm after 1 lap. Whether markers are needed is decided after the
+  robot runs are measured (drift escalation list in the plan).
 
 ---
 
@@ -142,6 +154,10 @@ Find objects in camera photos and say whether each is trash or recycling.
   the `/x/ask` + `/x/result` pattern.
 - A vocabulary of the fake trash items, and a mapping from item to trash or recycling, in
   config.
+- **Detect the bins too** (added 2026-11-18, moved from Phase 1): at each bin stop, find the
+  bin in the photo and turn until it is centered, instead of trusting the fixed heading from
+  `park.yaml` (Phase 1 turns to the configured bin position, so a misplaced bin ends up off
+  center). Then look for trash around it.
 - Check it on real ESP32-CAM photos first (offline, no driving), then in sim.
 - Detections go to the memory store.
 
@@ -150,6 +166,7 @@ Find objects in camera photos and say whether each is trash or recycling.
       classification accuracy measured and above a target agreed in plan mode.
 - [ ] Runs fast enough on the computer's CPU for use while driving (latency measured).
 - [ ] In sim, detections from the park world are written to the memory store.
+- [ ] At each bin stop the robot centers the detected bin in the frame (sim, then robot).
 
 **Open decisions**
 - Which fake trash items, and their trash/recycling labels.
@@ -262,6 +279,17 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-18 | 1→3 | Phase 1 done: smooth closed-loop motion and route following on the robot. Centering the camera on the bin moves to Phase 3: YOLO detects the bins as well as trash, and the robot centers the detected bin. |
+| 2026-11-18 | 1 | Turns at 1.0–1.5 rad/s, slowest drive 0.08 m/s: below ~0.1 m/s per wheel the motors stick and lurch. Firmware PI retuned (KP 1.0, filter 0.3) in sim against a stiction model fitted to the robot. |
+| 2026-11-18 | 1 | Closed-loop wheel speed (module 7's PI, fixed gains) goes into `walle-pilot/firmware/pico_pilot/drive_control.c` itself, not a new folder (user: the study's original firmware is kept elsewhere). |
+| 2026-11-18 | 1 | Bins are now black plastic boxes: 27.7 cm wide, 21.1 cm deep, 29.2 cm tall (offset 0.71 m). |
+| 2026-11-16 | 1 | Route control runs on the computer side (ROS node on the EKF, built on module 8's `Mover`); firmware unchanged. Firmware wheel PID (module 7) held back as the drift fix. |
+| 2026-11-16 | 1 | Pass: 1 lap, end within 5 cm of the start (sim truth; tape on the robot), every bin wholly in frame at its stop. |
+| 2026-11-16 | 1 | Corners: stop and turn in place, to absolute park headings; sides follow the line between corners. |
+| 2026-11-16 | 1 | Bin stops: on the corner, turn to face the bin's center, wait 15 s. |
+| 2026-11-16 | 1 | Bins are boxes (30 × 18 × 36 cm bags), wide face toward the square, moved out so the camera sees the whole bin from the corner (`frame_from_corner`). Cylinders still supported. |
+| 2026-11-16 | 1 | Drift is a priority: measured per corner and at the end, in sim and on the robot; the follower measures the gyro drift at rest and removes it. |
+| 2026-11-16 | 1 | Safety: the user starts each run and stops it with Ctrl+C; per-move timeouts; Pico watchdog kept. |
 | 2026-11-15 | 0 | Application code lives in a new top-level `walle-app/`. |
 | 2026-11-15 | 0 | Park = 1 m × 1 m square, CCW route, corner 1 = origin and start (facing corner 2). |
 | 2026-11-15 | 0 | Bins sit outside the corners on the diagonal (auto offset keeps the robot clear); up to 4. |

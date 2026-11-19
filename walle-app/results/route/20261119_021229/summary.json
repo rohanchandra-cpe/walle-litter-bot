@@ -1,0 +1,331 @@
+{
+  "run_id": "20261119_021229",
+  "scenario": "default",
+  "laps": 1,
+  "bins": [
+    "bin_1",
+    "bin_2",
+    "bin_3",
+    "bin_4"
+  ],
+  "config": {
+    "feedback_topic": "/odometry/filtered",
+    "command_rate_hz": 20,
+    "status_topic": "/walle/route/status",
+    "laps": 1,
+    "dwell_s": 15.0,
+    "face_bins": true,
+    "side": {
+      "min_speed_mps": 0.08,
+      "max_speed_mps": 0.15,
+      "speed_gain": 1.5,
+      "tolerance_m": 0.005,
+      "cross_track_gain": 4.0,
+      "max_correction_deg": 20.0,
+      "heading_gain": 2.0,
+      "max_turn_rps": 0.5,
+      "timeout_s": 30.0,
+      "correct_tol_m": 0.015,
+      "max_corrections": 2
+    },
+    "turn": {
+      "min_rate_rps": 1.0,
+      "max_rate_rps": 1.5,
+      "tolerance_deg": 1.0,
+      "correct_tol_deg": 3.0,
+      "max_corrections": 2,
+      "settle_s": 0.3
+    },
+    "coast": {
+      "side_s": 0.2,
+      "turn_s": 0.15,
+      "adapt": true,
+      "adapt_gain": 0.5,
+      "max_s": 0.5
+    },
+    "zero_velocity": {
+      "enabled": true,
+      "estimate_bias": true,
+      "start_hold_s": 10.0,
+      "max_move_m": 0.002,
+      "max_turn_deg": 0.2
+    },
+    "log_rate_hz": 10,
+    "camera_url": "http://192.168.1.201/capture",
+    "results_dir": "results/route"
+  },
+  "coast_end_s": {
+    "side": 0.16,
+    "turn": 0.117
+  },
+  "corrections": 8,
+  "zero_velocity_heading_deg": -0.017,
+  "gyro_bias_dps": 0.0004,
+  "holds": [
+    {
+      "seconds": 10.01,
+      "raw_drift_deg": -0.0,
+      "bias_dps": -0.0
+    },
+    {
+      "seconds": 15.0,
+      "raw_drift_deg": 0.015,
+      "bias_dps": 0.0006
+    },
+    {
+      "seconds": 15.0,
+      "raw_drift_deg": 0.04,
+      "bias_dps": 0.0014
+    },
+    {
+      "seconds": 15.01,
+      "raw_drift_deg": -0.001,
+      "bias_dps": 0.001
+    },
+    {
+      "seconds": 15.01,
+      "raw_drift_deg": -0.027,
+      "bias_dps": 0.0004
+    }
+  ],
+  "started_utc": "2026-11-19T02:12:29+00:00",
+  "ended_utc": "2026-11-19T02:14:31+00:00",
+  "status": "done",
+  "reason": null,
+  "source": "robot",
+  "distance_m": 4.007,
+  "start": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "end_poses": {
+    "odom": [
+      0.0015,
+      -0.0032,
+      1.69
+    ],
+    "wheel": [
+      0.1926,
+      -0.1607,
+      23.49
+    ]
+  },
+  "end_errors": {
+    "odom": {
+      "position_m": 0.0035,
+      "dx_m": 0.0015,
+      "dy_m": -0.0032,
+      "heading_deg": 1.69
+    },
+    "wheel": {
+      "position_m": 0.2508,
+      "dx_m": 0.1926,
+      "dy_m": -0.1607,
+      "heading_deg": 23.49
+    }
+  },
+  "events": [
+    {
+      "step": 0,
+      "event": "arrived",
+      "corner": 2,
+      "target": [
+        1.0,
+        0.0
+      ],
+      "poses": {
+        "odom": [
+          0.9956,
+          -0.0003,
+          1.19
+        ],
+        "wheel": [
+          0.9967,
+          0.0103,
+          1.47
+        ]
+      },
+      "distance_m": 0.996,
+      "coast_side_s": 0.174,
+      "coast_turn_s": 0.15,
+      "corrections": 0
+    },
+    {
+      "step": 1,
+      "event": "facing_bin",
+      "corner": 2,
+      "bin": "bin_2",
+      "target_heading_deg": -45.0,
+      "poses": {
+        "odom": [
+          0.9956,
+          -0.0,
+          -44.04
+        ],
+        "wheel": [
+          0.9971,
+          0.0105,
+          -46.58
+        ]
+      },
+      "est_heading_error_deg": 0.96,
+      "photo": "photos/bin_2_step2.jpg",
+      "held_heading_drift_deg": 0.016
+    },
+    {
+      "step": 4,
+      "event": "arrived",
+      "corner": 3,
+      "target": [
+        1.0,
+        1.0
+      ],
+      "poses": {
+        "odom": [
+          0.9991,
+          0.9972,
+          90.74
+        ],
+        "wheel": [
+          0.8828,
+          1.0027,
+          96.9
+        ]
+      },
+      "distance_m": 1.997,
+      "coast_side_s": 0.159,
+      "coast_turn_s": 0.104,
+      "corrections": 2
+    },
+    {
+      "step": 5,
+      "event": "facing_bin",
+      "corner": 3,
+      "bin": "bin_3",
+      "target_heading_deg": 45.0,
+      "poses": {
+        "odom": [
+          0.999,
+          0.9979,
+          45.14
+        ],
+        "wheel": [
+          0.8827,
+          1.0034,
+          49.43
+        ]
+      },
+      "est_heading_error_deg": 0.14,
+      "photo": "photos/bin_3_step6.jpg",
+      "held_heading_drift_deg": 0.031
+    },
+    {
+      "step": 8,
+      "event": "arrived",
+      "corner": 4,
+      "target": [
+        0.0,
+        1.0
+      ],
+      "poses": {
+        "odom": [
+          0.0021,
+          0.9993,
+          -179.47
+        ],
+        "wheel": [
+          -0.0956,
+          0.8005,
+          -167.51
+        ]
+      },
+      "distance_m": 2.997,
+      "coast_side_s": 0.146,
+      "coast_turn_s": 0.134,
+      "corrections": 4
+    },
+    {
+      "step": 9,
+      "event": "facing_bin",
+      "corner": 4,
+      "bin": "bin_4",
+      "target_heading_deg": 135.0,
+      "poses": {
+        "odom": [
+          0.001,
+          0.9994,
+          140.52
+        ],
+        "wheel": [
+          -0.0967,
+          0.8003,
+          148.61
+        ]
+      },
+      "est_heading_error_deg": 5.52,
+      "photo": "photos/bin_4_step10.jpg",
+      "held_heading_drift_deg": -0.021
+    },
+    {
+      "step": 12,
+      "event": "arrived",
+      "corner": 1,
+      "target": [
+        0.0,
+        0.0
+      ],
+      "poses": {
+        "odom": [
+          0.0004,
+          -0.0024,
+          -88.49
+        ],
+        "wheel": [
+          0.1913,
+          -0.1603,
+          -72.14
+        ]
+      },
+      "distance_m": 4.003,
+      "coast_side_s": 0.16,
+      "coast_turn_s": 0.091,
+      "corrections": 8
+    },
+    {
+      "step": 13,
+      "event": "facing_bin",
+      "corner": 1,
+      "bin": "bin_1",
+      "target_heading_deg": -135.0,
+      "poses": {
+        "odom": [
+          0.0002,
+          -0.0035,
+          -136.61
+        ],
+        "wheel": [
+          0.1914,
+          -0.1614,
+          -123.17
+        ]
+      },
+      "est_heading_error_deg": -1.61,
+      "photo": "photos/bin_1_step14.jpg",
+      "held_heading_drift_deg": -0.042
+    }
+  ],
+  "measured": {
+    "dx_cm": 0.0,
+    "dy_cm": 0.0,
+    "heading_deg": 0.0,
+    "faced_bins": {
+      "bin_2": true,
+      "bin_3": false,
+      "bin_4": false,
+      "bin_1": true
+    },
+    "notes": "n",
+    "position_error_cm": 0.0
+  }
+}

@@ -58,12 +58,14 @@ class ParkTests(unittest.TestCase):
             layout = park.load_park("mixed", seed=seed)
             geo = park.Geometry(park.load_yaml(park.PARK_FILE))
             for b in layout["bins"]:
-                x, y = b["position"]
-                self.assertGreater(geo.dist_to_route(x, y) - b["radius_m"], geo.half_width)
+                yaw = math.radians(b["yaw_deg"])
+                self.assertTrue(geo.bin_is_clear(b["position"], yaw))
                 for i in b["spill"] + b["litter"]:
                     foot = geo.footprint(i["item"], i["pose"])
                     self.assertGreater(geo.dist_to_route(*i["position"][:2]) - foot,
                                        geo.half_width)
+                    self.assertGreater(geo.dist_to_bin(*i["position"][:2], b["position"], yaw),
+                                       foot)
             o = layout["obstacle"]
             self.assertLess(geo.dist_to_route(*o["position"][:2]), 1e-9)   # ON the route
             self.assertGreater(geo.dist_to_nearest_corner(*o["position"][:2]), geo.turn_radius)
@@ -100,10 +102,65 @@ class ParkTests(unittest.TestCase):
 
     def test_auto_offset_clears_the_robot(self):
         geo = park.Geometry(park.load_yaml(park.PARK_FILE))
-        perpendicular = geo.bin_offset / math.sqrt(2) - geo.bin_radius
-        self.assertGreaterEqual(perpendicular + 1e-9, geo.half_width + geo.margin)
-        self.assertGreaterEqual(geo.bin_offset - geo.bin_radius + 1e-9,
-                                geo.turn_radius + geo.margin)
+        # Even at the clearance-only offset, every point of the bin's outline is clear of
+        # both side LINES through the corner (the robot may overshoot it) and of the turn.
+        d = geo.bin_clear_offset
+        for x, y in geo.bin_outline((-d / math.sqrt(2),) * 2, math.radians(-135)):
+            self.assertGreaterEqual(min(-x, -y) + 1e-9, geo.half_width + geo.margin)
+            self.assertGreaterEqual(math.hypot(x, y) + 1e-9, geo.turn_radius + geo.margin)
+
+
+class BinShapeTests(unittest.TestCase):
+    def park_with(self, **bins):
+        cfg = park.load_yaml(park.PARK_FILE)
+        cfg["bins"].update(bins)
+        return cfg
+
+    def test_box_bin_faces_the_square_along_the_diagonal(self):
+        b = park.load_park("default", bins=4)["bins"]
+        self.assertEqual([x["shape"] for x in b], ["box"] * 4)
+        self.assertEqual([x["view_heading_deg"] for x in b], [-135.0, -45.0, 45.0, 135.0])
+        cfg = park.load_yaml(park.PARK_FILE)["bins"]
+        self.assertEqual(b[0]["size_m"], [cfg["length_m"], cfg["width_m"], cfg["height_m"]])
+        for x in b:
+            cx, cy = park.load_park("default")["route"]["corners"][x["corner"]]
+            heading = math.degrees(math.atan2(x["position"][1] - cy, x["position"][0] - cx))
+            self.assertAlmostEqual(heading, x["view_heading_deg"], places=1)
+
+    def test_framing_offset_shows_the_whole_bin_from_the_corner(self):
+        geo = park.Geometry(park.load_yaml(park.PARK_FILE))
+        cam = geo.camera
+        near = geo.bin_offset - cam["forward_m"] - geo.bin_width / 2
+        keep = 1 - cam["frame_margin"]
+        top = math.degrees(math.atan2(geo.bin_height - cam["height_m"], near))
+        side = math.degrees(math.atan2(geo.bin_length / 2, near))
+        self.assertLessEqual(top, cam["vertical_fov_deg"] / 2)
+        self.assertLessEqual(math.tan(math.radians(top)),
+                             math.tan(math.radians(cam["vertical_fov_deg"] / 2)) * keep + 1e-9)
+        self.assertLessEqual(side, cam["horizontal_fov_deg"] / 2)
+        self.assertGreater(geo.bin_offset, geo.bin_clear_offset)
+
+    def test_without_framing_the_offset_is_the_clearance(self):
+        geo = park.Geometry(self.park_with(frame_from_corner=False))
+        self.assertEqual(geo.bin_offset, math.ceil(geo.bin_clear_offset * 100 - 1e-9) / 100)
+        self.assertTrue(geo.bin_is_clear((-geo.bin_offset / math.sqrt(2),) * 2,
+                                         math.radians(-135)))
+
+    def test_too_small_offset_is_refused(self):
+        with self.assertRaises(park.ParkError):
+            park.Geometry(self.park_with(offset_m=0.15))
+
+    def test_cylinder_bins_still_load(self):
+        cfg = self.park_with(shape="cylinder", radius_m=0.10, frame_from_corner=False)
+        with tempfile.TemporaryDirectory() as d:
+            pf = os.path.join(d, "park.yaml")
+            with open(pf, "w") as f:
+                yaml.safe_dump(cfg, f)
+            b = park.load_park("mixed", park_file=pf)["bins"][0]
+        self.assertEqual(b["shape"], "cylinder")
+        self.assertEqual(b["radius_m"], 0.10)
+        # the Phase 0 radius rule gave 0.34 m for this bin
+        self.assertAlmostEqual(math.hypot(*b["position"]), 0.34, delta=0.02)
 
 
 if __name__ == "__main__":

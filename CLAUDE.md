@@ -48,7 +48,7 @@ WALL-E is a low-cost inspection rover for a model park. The repository holds two
 
 | Part | Role | Notes |
 |---|---|---|
-| Raspberry Pi Pico 2 W | motor control, encoders, IMU, ultrasonic; micro-ROS over Wi-Fi UDP 8888 | firmware in `walle-pilot/firmware/pico_pilot/` |
+| Raspberry Pi Pico 2 W | motor control, encoders, IMU, ultrasonic; micro-ROS over Wi-Fi UDP 8888 | firmware in `walle-pilot/firmware/pico_pilot/`; closed-loop wheel speed (PI) since 2026-11-18, the RQ1–RQ3 pilot ran open loop |
 | TB6612 driver + 2 geared DC motors | differential drive | 4320 encoder counts per wheel turn |
 | BNO055 IMU | heading | I²C on GP0/GP1 |
 | HC-SR04 ultrasonic | forward range | TRIG GP17, ECHO GP16 through a divider (ECHO is 5 V) |
@@ -88,6 +88,8 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   config/park.yaml   the park: 1 m square route, bins, robot footprint, sim item catalog
   config/scenarios/  test scenarios: which bins, their state, the obstacle
   park.py            park.yaml + scenario (+ overrides) -> layout; shared by sim and robot
+  config/route.yaml  route follower settings
+  route/             route_follower.py (Phase 1: drives the route on the EKF)
 walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
 docs/plans/          approved phase plans (phase-N-plan.md)
 docs/handoff/        start prompts for each phase's session, session summaries
@@ -117,7 +119,15 @@ Park (the WALL-E test world):
 ```bash
 make sim-launch WORLD=park SCENARIO=mixed GUI=false     # BINS=0-4 OBSTACLE=none|random|1-4 SEED=n
 make sim-park-check LOOK_AT="bin_2 obstacle"            # layout vs ground truth, saves photos
-python3 -m unittest discover -s walle-app/tests         # park loader tests (host or container)
+make sim-route-check                                    # Phase 1: drive the route, PASS if <= 5 cm
+                                                        # (launch with PROFILE=plastic_pid: the robot's firmware + surface)
+python3 -m unittest discover -s walle-app/tests         # park + route tests (host or container)
+```
+
+Route follower on the robot (after `make launch`, robot on corner 1 facing corner 2):
+
+```bash
+python3 /workspace/walle-app/route/route_follower.py --scenario default --camera-url http://CAMERA_IP/capture
 ```
 
 To stop a headless launch from outside, `pkill` inside the container with bracketed patterns

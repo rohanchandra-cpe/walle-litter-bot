@@ -31,7 +31,8 @@ sys.path[:0] = [HERE, os.path.join(REPO_DIR, "walle-app")]
 import park  # noqa: E402  walle-app/park.py
 from generate_worlds import FOOTER, TAPE, header, mark, material  # noqa: E402
 
-BIN_RGB = [0.15, 0.45, 0.20]       # green plastic bin
+BIN_RGB = [0.15, 0.45, 0.20]       # green plastic bin (cylinder)
+BAG_RGB = [0.62, 0.48, 0.32]       # brown paper bag (box)
 OPENING_RGB = [0.05, 0.05, 0.05]   # the dark opening seen from above
 START_RGB = [0.2, 0.6, 0.3]
 CORNER_RGB = [0.8, 0.1, 0.1]
@@ -39,22 +40,33 @@ CORNER_RGB = [0.8, 0.1, 0.1]
 
 def bin_model(b):
     x, y = b["position"]
-    r, h = b["radius_m"], b["height_m"]
-    geom = f"<cylinder><radius>{r}</radius><length>{h}</length></cylinder>"
+    h = b["height_m"]
+    yaw = math.radians(b.get("yaw_deg", 0.0))
+    if b.get("shape", "cylinder") == "box":
+        length, width = b["size_m"][0], b["size_m"][1]
+        # box x = depth along the diagonal (outward), y = the wide face toward the square
+        geom = f"<box><size>{width} {length} {h}</size></box>"
+        opening = f"<box><size>{width - 0.016:.4f} {length - 0.016:.4f} 0.001</size></box>"
+        color = BAG_RGB
+    else:
+        r = b["radius_m"]
+        geom = f"<cylinder><radius>{r}</radius><length>{h}</length></cylinder>"
+        opening = f"<cylinder><radius>{r - 0.008:.4f}</radius><length>0.001</length></cylinder>"
+        color = BIN_RGB
     return f"""
     <!-- {b['name']}: {b['state']}{' level %d' % b['overflow_level'] if b['overflow_level'] else ''} -->
     <model name="{b['name']}">
       <static>true</static>
-      <pose>{x:.4f} {y:.4f} {h / 2:.4f} 0 0 0</pose>
+      <pose>{x:.4f} {y:.4f} {h / 2:.4f} 0 0 {yaw:.5f}</pose>
       <link name="link">
         <collision name="collision"><geometry>{geom}</geometry></collision>
         <visual name="visual">
           <geometry>{geom}</geometry>
-          {material(BIN_RGB)}
+          {material(color)}
         </visual>
         <visual name="opening">
           <pose>0 0 {h / 2 + 0.0005:.4f} 0 0 0</pose>
-          <geometry><cylinder><radius>{r - 0.008:.4f}</radius><length>0.001</length></cylinder></geometry>
+          <geometry>{opening}</geometry>
           {material(OPENING_RGB)}
         </visual>
       </link>

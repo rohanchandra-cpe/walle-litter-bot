@@ -12,8 +12,8 @@
 #   open_loop_pwm  a line-for-line copy of firmware/pico_pilot/drive_control.c: wheel speed
 #                  -> PWM duty with a minimum duty and no feedback, so the real speed
 #                  depends on the motors (the pilot measured 0.27 m/s for 0.15 m/s)
-#   pid            per-wheel PI speed control on the encoder counts: a template for
-#                  testing a closed-loop firmware before writing it in C
+#   pid            firmware/pico_pilot/drive_control.c since 2026-11-18: closed-loop wheel
+#                  speed (feed-forward + PI on the encoder counts, module 7's gains)
 #
 # Limits of the Gazebo model (urdf/gazebo_car.urdf.xacro, kept as Module 6 made it):
 # its DiffDrive plugin caps commands at 0.3 m/s and 1.5 rad/s, and its geometry
@@ -28,19 +28,23 @@ defaults:
     wheel_separation_m: 0.145
     wheel_diameter_m: 0.060     # used by the pid model to turn counts into speed
     counts_per_rev: 4320
-    max_wheel_speed_mps: 0.40   # drive_control.c MAX_WHEEL_SPEED_MPS (full PWM)
-    min_duty: 0.40              # drive_control.c MIN_DUTY
+    max_wheel_speed_mps: 0.40   # open_loop_pwm: the old drive_control.c MAX_WHEEL_SPEED_MPS
+    min_duty: 0.40              # open_loop_pwm: the old drive_control.c MIN_DUTY
     max_linear_mps: 0.30
     max_angular_rps: 1.50
     watchdog_s: 0.5             # DRIVE_TIMEOUT_MS
-    kp: 1.2                     # pid model: duty per (m/s) of speed error
-    ki: 6.0                     # pid model: duty per (m) of integrated error
+    kp: 1.0                     # pid: drive_control.c KP, effort per (m/s) of speed error
+    ki: 5.0                     # pid: KI, effort per (m) of integrated speed error
+    pid_min_duty: 0.25          # pid: MIN_DUTY (dead-zone skip)
+    speed_filter: 0.3           # pid: SPEED_FILTER
+    max_accel_mps2: 0.5         # pid: MAX_ACCEL_MPS2 (setpoint ramp)
   motor:
     full_speed_mps: 0.432       # wheel speed at duty 1.0 (pilot: 0.27 m/s at duty 0.625)
     time_constant_s: 0.12       # first-order lag: spin-up and coast
     left_gain: 1.0              # unequal motors or tires: 1.01 / 0.99 drifts the robot
     right_gain: 1.0
     stall_duty: 0.0             # duty below this does not turn the wheel
+    breakaway_duty: 0.0         # a STOPPED wheel needs this duty to start (stiction); 0 = off
   encoder:
     left_scale: 1.0             # counts per true wheel turn, relative (a larger tire > 1)
     right_scale: 1.0
@@ -87,11 +91,47 @@ profiles:
     imu: {gyro_bias_dps: 0.05}
     ultrasonic: {timeout_prob: 0.02}
 
-  # A closed-loop firmware candidate: same hardware, PI wheel-speed control.
+  # The robot's firmware since 2026-11-18: same hardware, closed-loop wheel speed.
+  # max_wheel_speed_mps is the C's feed-forward MAX_WHEEL_SPEED_MPS (0.432).
   pid_firmware:
     firmware: pid
+    firmware_params: {max_wheel_speed_mps: 0.432}
     motor: {left_gain: 1.01, right_gain: 0.99}
     imu: {gyro_bias_dps: 0.05}
+    ultrasonic: {timeout_prob: 0.02}
+
+  # Carpet (WALL-E Phase 1 testing surface): the wheels slip, so the encoders count more
+  # turn than the robot travels; unequal grip pulls it to one side; the pile slows spin-up
+  # and coast. Guessed values, not measured: compare with the robot's route runs.
+  carpet:
+    firmware: open_loop_pwm
+    motor: {left_gain: 1.02, right_gain: 0.98, time_constant_s: 0.16}
+    encoder: {left_scale: 1.03, right_scale: 1.02}
+    imu: {gyro_bias_dps: 0.1}
+    ultrasonic: {timeout_prob: 0.02}
+
+  # The same carpet with a closed-loop wheel-speed firmware (module 7's pico_pid idea,
+  # modeled by the pid firmware): does speed control fix what carpet does to open loop?
+  # stall_duty: on carpet a low duty may not turn a wheel at all; the PI must push past it.
+  carpet_pid:
+    firmware: pid
+    firmware_params: {max_wheel_speed_mps: 0.432}
+    motor: {left_gain: 1.02, right_gain: 0.98, time_constant_s: 0.16, stall_duty: 0.30}
+    encoder: {left_scale: 1.03, right_scale: 1.02}
+    imu: {gyro_bias_dps: 0.1}
+    ultrasonic: {timeout_prob: 0.02}
+
+  # Corrugated plastic sheets (the test surface from 2026-11-18) with the closed-loop
+  # firmware. Stiction fitted to the robot's jerky turns of run 20261119_015242
+  # (breakaway 0.32, stall 0.25: a 0.6 rad/s turn lurched to ~100 deg/s, then swung
+  # 15-50 deg/s). The wheels slip in turns (wheels-only heading was 35 deg off after one lap);
+  # gyro drift measured on the robot is ~0.001 deg/s.
+  plastic_pid:
+    firmware: pid
+    firmware_params: {max_wheel_speed_mps: 0.432}
+    motor: {left_gain: 1.01, right_gain: 0.99, stall_duty: 0.25, breakaway_duty: 0.32}
+    encoder: {left_scale: 1.02, right_scale: 1.03}
+    imu: {gyro_bias_dps: 0.001}
     ultrasonic: {timeout_prob: 0.02}
 
   # Worst plausible session: Wi-Fi stalls, drift, noisy and flaky ultrasonic.

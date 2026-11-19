@@ -15,19 +15,35 @@ route:
   side_m: 1.0                 # length of each side of the square
   start_corner: 1
 
-robot:                        # footprint, for the clearance checks only
+robot:                        # footprint (clearance checks) and camera (bin framing)
   half_width_m: 0.086         # wheel center offset + half the tire width (walle-sim model)
   turn_radius_m: 0.14         # farthest point of the body from the axle center when turning
   margin_m: 0.05              # extra clearance kept from bins, litter, and corners
+  camera:                     # ESP32-CAM on the robot, for framing the bins (MEASURE on the robot)
+    height_m: 0.103           # measured 2026-11-18 on the robot (walle-sim model: 0.10)
+    forward_m: 0.12           # measured 2026-11-18 on the robot, about (walle-sim model: 0.07)
+    vertical_fov_deg: 47      # OV3660 at 4:3; the walle-sim camera is 60 x 46.8 deg
+    horizontal_fov_deg: 60
+    frame_margin: 0.10        # fraction of each half-frame kept free around the bin
 
 bins:
-  radius_m: 0.10              # MEASURE: placeholder (about 20 cm across) until the real bins arrive
-  height_m: 0.20              # MEASURE
+  # Bins: black plastic bins, rectangular, measured 2026-11-18: 29.2 cm tall, 27.7 cm wide,
+  # 21.1 cm deep (they taper a little; modeled as a box). The wide face (length) faces the
+  # square; the depth (width) runs along the corner's diagonal. (Before: 30 x 18 x 36 cm
+  # paper bags.) shape: cylinder (with radius_m) is still supported for round bins.
+  shape: box
+  length_m: 0.277
+  width_m: 0.211
+  height_m: 0.292
+  radius_m: 0.10              # only used when shape is cylinder
   # Bins sit outside each corner, on the line from the square's center through the corner.
   # "auto" = the smallest offset (rounded up to 1 cm) that keeps the bin clear of the robot
-  # on both sides that meet at the corner and while it turns there. A number overrides it;
-  # park.py refuses one that is too small.
+  # on both sides that meet at the corner and while it turns there, and, with
+  # frame_from_corner, far enough that the camera sees the whole bin from the corner
+  # (robot.camera). A number overrides it; park.py refuses one that is too small for
+  # clearance.
   offset_m: auto
+  frame_from_corner: true
   overflow_levels: 3          # level 1 = slightly over the rim ... 3 = heavily overflowing
   litter_max: 6               # most litter items a scenario may put around one bin
 
