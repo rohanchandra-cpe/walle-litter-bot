@@ -1,6 +1,7 @@
 # Route follower settings (walle-app/route/route_follower.py). Phase 1 plan:
-# docs/plans/phase-1-plan.md. Speeds are what the follower COMMANDS; with the current
-# open-loop firmware (MIN_DUTY 0.40) the robot drives faster than commanded at low speeds.
+# docs/plans/phase-1-plan.md. Speeds are what the follower COMMANDS. Since 2026-11-18 the
+# Pico holds them with closed-loop wheel speed control; the old open-loop firmware
+# (MIN_DUTY 0.40) drove much faster than commanded at low speeds.
 
 feedback_topic: /odometry/filtered   # the EKF (wheels + BNO055); /wheel/odom = wheels alone
 command_rate_hz: 20                  # Twist messages per second (the Pico stops after 500 ms)
@@ -12,7 +13,9 @@ face_bins: true
 
 side:                        # following a side from corner to corner
   # Forward speed = gain x distance left, clamped (the RQ1-B stopping rule, pilot.yaml)
-  min_speed_mps: 0.05
+  # The wheels stick and lurch below about 0.1 m/s each (robot, 2026-11-18), so the slowest
+  # approach speed stays near that.
+  min_speed_mps: 0.08
   max_speed_mps: 0.15
   speed_gain: 1.5
   tolerance_m: 0.005         # stop when this close to the corner (along the side)
@@ -27,10 +30,12 @@ side:                        # following a side from corner to corner
   max_corrections: 2
 
 turn:                        # turns in place, to an ABSOLUTE heading (module 8's Mover.turn)
-  # Commanded rates. The open-loop firmware turns at about 3 rad/s for any of these
-  # (MIN_DUTY 0.40; pilot RQ2), which is why the coast and the corrections matter.
-  min_rate_rps: 0.3
-  max_rate_rps: 0.6
+  # Commanded rates; the closed-loop firmware turns at them (the old open-loop firmware
+  # spun at about 3 rad/s for any of them, so corrections overshot by 10-15 deg).
+  # 1.0 rad/s = 0.064 m/s per wheel; 0.3-0.6 rad/s (2-4 cm/s per wheel) made the robot
+  # fidget: the wheels stuck and lurched (run 20261119_015242).
+  min_rate_rps: 1.0
+  max_rate_rps: 1.5
   tolerance_deg: 1.0
   correct_tol_deg: 3.0       # missed by more than this: turn again
   max_corrections: 2
@@ -38,11 +43,12 @@ turn:                        # turns in place, to an ABSOLUTE heading (module 8'
 
 # Coast: after a stop command the robot keeps moving (Wi-Fi, estimate delay, motor
 # spin-down), so each move stops early by (measured speed x coast). Starting values from the
-# robot: sides 0.2 s (pilot.yaml RQ1-B), turns 0.06 s (module 8 squares). With adapt, each
-# move's overshoot updates the coast for the next one (gain x overshoot / speed at the stop).
+# robot: sides 0.2 s (pilot.yaml RQ1-B); turns 0.15 s (what the 1.0-1.5 rad/s turns learn in
+# walle-sim plastic_pid; module 8's 0.06 s was for its slower open-loop turns). With adapt,
+# each move's overshoot updates the coast for the next one (gain x overshoot / speed at stop).
 coast:
   side_s: 0.2
-  turn_s: 0.06
+  turn_s: 0.15
   adapt: true
   adapt_gain: 0.5
   max_s: 0.5

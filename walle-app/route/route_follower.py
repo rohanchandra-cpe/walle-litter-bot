@@ -20,7 +20,8 @@ changed): its feedback subscriptions, send/stop, coast compensation, and turns. 
 - turns go to ABSOLUTE park headings, so turn errors do not add up;
 - coast compensation is learned during the run (separately for sides and turns) from each
   move's overshoot, and a corner or turn that still misses by more than a tolerance gets
-  a short correction move (the open-loop firmware cannot drive slowly: MIN_DUTY 0.40);
+  a short correction move (with the old open-loop firmware these overshot; the
+  closed-loop wheel speed firmware of 2026-11-18 turns slowly enough to land them);
 - the EKF heading drifts with the gyro bias. The follower stands still for a few seconds
   at the start and measures that drift, adds every bin wait to the measurement, removes
   the drift from the heading while driving, and drops what built up during each wait

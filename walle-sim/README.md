@@ -18,8 +18,11 @@ git-ignored `worlds/generated/` at every launch, from `walle-app/config/park.yam
 scenario. See [`walle-app/README.md`](../walle-app/README.md) for scenarios and overrides
 (`make sim-launch WORLD=park SCENARIO=mixed BINS=2 OBSTACLE=none`). `make sim-route-check`
 runs the route follower on it (see the walle-app README); profiles `carpet` and `carpet_pid`
-model the carpet the robot is tested on (guessed values), with the open-loop and the PI
-firmware.
+model the carpet the robot is tested on (guessed values), with the old open-loop and the
+current closed-loop firmware. Since 2026-11-18 the robot runs the closed-loop firmware:
+use `PROFILE=plastic_pid` for the park (the corrugated plastic test surface, with motor
+stiction fitted to the robot), or `pid_firmware` / `carpet_pid`; `pilot_firmware` is the
+firmware the RQ1–RQ3 pilot ran on.
 
 ## How it works
 

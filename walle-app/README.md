@@ -34,18 +34,17 @@ most one per lap.
        ^ start, facing 2
 ```
 
-**Bins** are boxes (`bins.shape: box`): the interim paper bags, 30 × 18 × 36 cm (L × W × H),
-with the wide 30 cm face toward the square. `shape: cylinder` with `radius_m` still works for
-round bins. `bins.offset_m: auto` (distance from the corner to the bin's center, along the
-diagonal) is the larger of:
+**Bins** are boxes (`bins.shape: box`): black plastic bins, 27.7 cm wide, 21.1 cm deep and
+29.2 cm tall (measured 2026-11-18), with the wide face toward the square. `shape: cylinder`
+with `radius_m` still works for round bins. `bins.offset_m: auto` (distance from the corner
+to the bin's center, along the diagonal) is the larger of:
 - **clearance**: every point of the bin clear of the robot driving either side (each side
-  extended past the corner as a full line) and turning on the corner: 0.43 m for the bags;
+  extended past the corner as a full line) and turning on the corner: 0.43 m;
 - **framing** (`frame_from_corner: true`): the robot on the corner, facing the bin, sees the
-  whole bin with `robot.camera.frame_margin` of the frame left free: **0.83 m** for the bags
-  with the placeholder camera (10 cm high, 7 cm ahead of the axle, 47° × 60° field of view).
+  whole bin with `robot.camera.frame_margin` of the frame left free: **0.71 m** with the
+  measured camera (10.3 cm high, 12 cm ahead of the axle; 47° × 60° nominal field of view).
 
-**Measure the camera on the robot** (`robot.camera.height_m`, `forward_m`) and put the bags
-at the offset `python3 walle-app/park.py` prints (bin 1 for example at (−0.587, −0.587)).
+Put the bins at the positions `python3 walle-app/park.py` prints (bin 1 at (−0.502, −0.502)).
 
 ## Scenarios
 
@@ -112,8 +111,11 @@ BNO055) and publishes `/pico/cmd_vel`; the firmware is unchanged. It is built on
 - **absolute headings**: turns go to the park's headings, so turn errors don't add up;
 - **learned coast**: each move stops early by (speed × coast); the coast (separate for sides
   and turns) is updated from each move's overshoot. A corner missed by more than 1.5 cm, or a
-  turn by more than 3°, gets up to 2 short correction moves. Needed because the open-loop
-  firmware cannot drive slowly (MIN_DUTY 0.40: any turn spins at about 3 rad/s);
+  turn by more than 3°, gets up to 2 short correction moves. This needs the closed-loop
+  wheel speed firmware (2026-11-18): the old open-loop firmware turned at about 3 rad/s for
+  any command, so a correction overshot by 10–15°. Turns run at 1.0–1.5 rad/s and the
+  slowest drive speed is 0.08 m/s: below about 0.1 m/s per wheel the motors stick and
+  lurch;
 - **gyro drift**: it stands still 10 s at the start to measure the EKF heading's drift at rest
   (the gyro bias), adds each bin wait to that measurement, removes the drift from the heading
   while driving, and drops what built up during each wait (zero-velocity update, only when the
@@ -129,7 +131,7 @@ measured gyro drift), `layout.json`, and `photos/` (one per bin stop, if a camer
 ### In Gazebo
 
 ```bash
-make sim-launch WORLD=park SCENARIO=default GUI=false PROFILE=pilot_firmware
+make sim-launch WORLD=park SCENARIO=default GUI=false PROFILE=plastic_pid
 make sim-route-check                  # LAPS=1, DWELL=15 (seconds at each bin)
 ```
 
@@ -140,8 +142,9 @@ camera). Results and photos go to `walle-sim/data/<RUN>/route/`.
 
 ### On the robot
 
-1. Mark the start (corner 1) and the four corners on the floor; put the bags at the positions
-   `python3 walle-app/park.py` prints, wide face toward the square.
+1. Mark the start (corner 1) and the four corners on the floor; put the bins at the positions
+   `python3 walle-app/park.py` prints, wide face toward the square. The Pico must run the
+   closed-loop firmware (`walle-pilot/firmware/pico_pilot/build/pico_pilot.uf2`, 2026-11-18).
 2. `make up`, then `make launch` (odometry + EKF). Wait for `/odometry/filtered`.
 3. Put the robot on the start mark facing corner 2, then in another terminal (`make shell`):
 

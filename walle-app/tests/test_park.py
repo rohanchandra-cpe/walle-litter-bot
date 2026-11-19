@@ -120,7 +120,8 @@ class BinShapeTests(unittest.TestCase):
         b = park.load_park("default", bins=4)["bins"]
         self.assertEqual([x["shape"] for x in b], ["box"] * 4)
         self.assertEqual([x["view_heading_deg"] for x in b], [-135.0, -45.0, 45.0, 135.0])
-        self.assertEqual(b[0]["size_m"], [0.30, 0.18, 0.36])
+        cfg = park.load_yaml(park.PARK_FILE)["bins"]
+        self.assertEqual(b[0]["size_m"], [cfg["length_m"], cfg["width_m"], cfg["height_m"]])
         for x in b:
             cx, cy = park.load_park("default")["route"]["corners"][x["corner"]]
             heading = math.degrees(math.atan2(x["position"][1] - cy, x["position"][0] - cx))

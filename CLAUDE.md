@@ -48,7 +48,7 @@ WALL-E is a low-cost inspection rover for a model park. The repository holds two
 
 | Part | Role | Notes |
 |---|---|---|
-| Raspberry Pi Pico 2 W | motor control, encoders, IMU, ultrasonic; micro-ROS over Wi-Fi UDP 8888 | firmware in `walle-pilot/firmware/pico_pilot/` |
+| Raspberry Pi Pico 2 W | motor control, encoders, IMU, ultrasonic; micro-ROS over Wi-Fi UDP 8888 | firmware in `walle-pilot/firmware/pico_pilot/`; closed-loop wheel speed (PI) since 2026-11-18, the RQ1–RQ3 pilot ran open loop |
 | TB6612 driver + 2 geared DC motors | differential drive | 4320 encoder counts per wheel turn |
 | BNO055 IMU | heading | I²C on GP0/GP1 |
 | HC-SR04 ultrasonic | forward range | TRIG GP17, ECHO GP16 through a divider (ECHO is 5 V) |
@@ -120,6 +120,7 @@ Park (the WALL-E test world):
 make sim-launch WORLD=park SCENARIO=mixed GUI=false     # BINS=0-4 OBSTACLE=none|random|1-4 SEED=n
 make sim-park-check LOOK_AT="bin_2 obstacle"            # layout vs ground truth, saves photos
 make sim-route-check                                    # Phase 1: drive the route, PASS if <= 5 cm
+                                                        # (launch with PROFILE=plastic_pid: the robot's firmware + surface)
 python3 -m unittest discover -s walle-app/tests         # park + route tests (host or container)
 ```
 

@@ -79,38 +79,68 @@ class OpenLoopPwmFirmware(FirmwareModel):
         return self.wheel_duty(left) != 0.0 or self.wheel_duty(right) != 0.0
 
 
-class PidFirmware(OpenLoopPwmFirmware):
-    """A closed-loop candidate: the open-loop duty as feedforward, plus a PI correction
-    on each wheel's speed measured from its encoder (what the Pico can see)."""
+class PidFirmware(FirmwareModel):
+    """firmware/pico_pilot/drive_control.c since 2026-11-18 (closed-loop wheel speed),
+    line for line: feed-forward + PI on each wheel's encoder speed, a setpoint ramp, an
+    immediate stop on a zero target, anti-windup, and the MIN_DUTY dead-zone skip. The
+    C runs it every CONTROL_PERIOD_MS (20 ms); the bridge calls update() at 50 Hz."""
 
     def __init__(self, params):
         super().__init__(params)
         self.last_counts = None
+        self.target = [0.0, 0.0]
+        self.setpoint = [0.0, 0.0]
+        self.measured = [0.0, 0.0]
         self.integral = [0.0, 0.0]
-        self.speed = [0.0, 0.0]
+        self.effort = [0.0, 0.0]
         self.m_per_count = math.pi * params["wheel_diameter_m"] / params["counts_per_rev"]
+
+    def command(self, linear, angular):
+        super().command(linear, angular)
+        self.target = list(self.wheel_targets())
+        if self.target == [0.0, 0.0]:
+            self.stop()
 
     def stop(self):
         super().stop()
+        self.target = [0.0, 0.0]
+        self.setpoint = [0.0, 0.0]
         self.integral = [0.0, 0.0]
+        self.effort = [0.0, 0.0]
+
+    def effort_to_duty(self, effort):
+        if abs(effort) < 0.01:
+            return 0.0
+        duty = self.p["pid_min_duty"] + (1.0 - self.p["pid_min_duty"]) * abs(effort)
+        return -duty if effort < 0.0 else duty
 
     def update(self, dt, counts):
-        if self.last_counts is not None and dt > 0:
-            for i in (0, 1):
-                measured = (counts[i] - self.last_counts[i]) * self.m_per_count / dt
-                self.speed[i] += 0.5 * (measured - self.speed[i])   # light smoothing
-        self.last_counts = counts
-        duties = []
-        for i, target in enumerate(self.wheel_targets()):
-            if target == 0.0:
-                self.integral[i] = 0.0
-                duties.append(0.0)
+        if self.last_counts is None or dt <= 0:
+            self.last_counts = counts
+            return 0.0, 0.0
+        p = self.p
+        for i in (0, 1):
+            raw = (counts[i] - self.last_counts[i]) * self.m_per_count / dt
+            self.measured[i] = p["speed_filter"] * self.measured[i] + (1 - p["speed_filter"]) * raw
+            if self.target[i] == 0.0:
+                self.setpoint[i] = self.integral[i] = self.effort[i] = 0.0
                 continue
-            error = target - self.speed[i]
-            self.integral[i] = clamp(self.integral[i] + error * dt, 0.2)
-            duty = self.wheel_duty(target) + self.p["kp"] * error + self.p["ki"] * self.integral[i]
-            duties.append(clamp(duty, 1.0))
-        return tuple(duties)
+            self.setpoint[i] += clamp(self.target[i] - self.setpoint[i], p["max_accel_mps2"] * dt)
+            error = self.setpoint[i] - self.measured[i]
+            integral = self.integral[i] + error * dt
+            u = self.setpoint[i] / p["max_wheel_speed_mps"] + p["kp"] * error + p["ki"] * integral
+            if u > 1.0:
+                u = 1.0
+            elif u < -1.0:
+                u = -1.0
+            else:
+                self.integral[i] = integral
+            self.effort[i] = u
+        self.last_counts = counts
+        return self.effort_to_duty(self.effort[0]), self.effort_to_duty(self.effort[1])
+
+    def driving(self):
+        return self.target != [0.0, 0.0]
 
 
 MODELS = {"ideal": IdealFirmware, "open_loop_pwm": OpenLoopPwmFirmware, "pid": PidFirmware}
@@ -134,12 +164,20 @@ class MotorPlant:
             return 0.0
         return duty * self.m["full_speed_mps"] * gain
 
+    def target_speed(self, i, duty, gain):
+        """Stiction: a STOPPED wheel needs breakaway_duty to start; once it turns, it keeps
+        turning down to stall_duty. With breakaway > stall, slow speeds stick and lurch
+        (measured on the robot 2026-11-18: slow turns jumped between 0 and 3x the target)."""
+        if abs(self.speed[i]) < 0.005 and abs(duty) < self.m.get("breakaway_duty", 0.0):
+            return 0.0
+        return self.steady_speed(duty, gain)
+
     def update(self, dt, duties=None, speeds=None):
         gains = (self.m["left_gain"], self.m["right_gain"])
         if speeds is not None:   # ideal firmware: the target speed is the wheel speed
             targets = speeds
         else:
-            targets = [self.steady_speed(d, g) for d, g in zip(duties, gains)]
+            targets = [self.target_speed(i, d, g) for i, (d, g) in enumerate(zip(duties, gains))]
         tau = self.m["time_constant_s"]
         alpha = 1.0 if tau <= 0 else min(1.0, dt / tau)
         for i, target in enumerate(targets):
