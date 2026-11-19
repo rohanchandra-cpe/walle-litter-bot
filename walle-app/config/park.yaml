@@ -1,0 +1,52 @@
+# The WALL-E park: fixed geometry shared by the robot, the simulator, and (later) the agent.
+#
+# What is IN the park for a given test (which bins, their state, the obstacle) is not here:
+# that is a scenario, in config/scenarios/. See walle-app/README.md.
+#
+# Frame: x forward from the start, y to the left, meters. Corner 1 is the origin and the
+# robot starts there facing +x. The route goes counter-clockwise 1 -> 2 -> 3 -> 4 -> 1.
+#
+#   4 -------- 3
+#   |          |
+#   |          |
+#   1 -------- 2     (robot starts at 1, facing 2)
+
+route:
+  side_m: 1.0                 # length of each side of the square
+  start_corner: 1
+
+robot:                        # footprint, for the clearance checks only
+  half_width_m: 0.086         # wheel center offset + half the tire width (walle-sim model)
+  turn_radius_m: 0.14         # farthest point of the body from the axle center when turning
+  margin_m: 0.05              # extra clearance kept from bins, litter, and corners
+
+bins:
+  radius_m: 0.10              # MEASURE: placeholder (about 20 cm across) until the real bins arrive
+  height_m: 0.20              # MEASURE
+  # Bins sit outside each corner, on the line from the square's center through the corner.
+  # "auto" = the smallest offset (rounded up to 1 cm) that keeps the bin clear of the robot
+  # on both sides that meet at the corner and while it turns there. A number overrides it;
+  # park.py refuses one that is too small.
+  offset_m: auto
+  overflow_levels: 3          # level 1 = slightly over the rim ... 3 = heavily overflowing
+  litter_max: 6               # most litter items a scenario may put around one bin
+
+obstacle:
+  # Where along a side an obstacle may be, as a fraction of the side (0 = its start corner).
+  # park.py also refuses positions so close to a corner that the robot would hit it while
+  # turning.
+  at_range: [0.25, 0.75]
+
+# Items the SIMULATOR can place (litter, overflow, obstacles), with their ground-truth
+# category. This list does NOT limit what the robot can recognize: detection is
+# open-vocabulary (YOLO-World, ROADMAP Phase 3) and decides trash vs. recycling for any
+# object it sees. Add items here only to make new things appear in simulation.
+items:
+  plastic_bottle: {category: recycling, shape: cylinder, radius_m: 0.032, length_m: 0.20,
+                   rgb: [0.55, 0.78, 0.95]}
+  can:            {category: recycling, shape: cylinder, radius_m: 0.033, length_m: 0.12,
+                   rgb: [0.75, 0.76, 0.80]}
+  paper_cup:      {category: trash, shape: cylinder, radius_m: 0.040, length_m: 0.095,
+                   rgb: [0.85, 0.10, 0.10]}
+  wrapper:        {category: trash, shape: sphere, radius_m: 0.025,
+                   rgb: [0.95, 0.85, 0.10]}

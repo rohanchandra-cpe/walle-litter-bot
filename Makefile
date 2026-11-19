@@ -5,7 +5,8 @@ SVC     := pilot
 
 .DEFAULT_GOAL := help
 .PHONY: help up build down restart shell launch fake logs agent-logs ps \
-        sim-up sim-build sim-down sim-shell sim-launch sim-check sim-worlds
+        sim-up sim-build sim-down sim-shell sim-launch sim-check sim-worlds \
+        sim-park sim-park-check
 
 # Gazebo simulator (walle-sim/README.md): a separate Compose project and ROS domain
 SIM_COMPOSE := docker compose -f docker-compose.sim.yml
@@ -13,6 +14,12 @@ WORLD   ?= motion_area
 PROFILE ?= pilot_firmware
 GUI     ?= true
 RUN     ?= default
+# world park only (walle-app/config/scenarios/): "scenario" keeps the file's value
+SCENARIO ?= default
+BINS     ?= scenario
+OBSTACLE ?= scenario
+SEED     ?= scenario
+LOOK_AT  ?=
 
 help:
 	@echo "make up          start the pilot + micro-ROS Agent containers (builds if needed)"
@@ -29,9 +36,12 @@ help:
 	@echo "make sim-up      start the simulator container (builds if needed)"
 	@echo "make sim-shell   open a bash shell in it"
 	@echo "make sim-launch  start Gazebo + simulated Pico + odometry/EKF"
-	@echo "                 WORLD=motion_area|rq1_lane|rq2_protractor|rq3_ranging|rq3_ranging_dim|inspection_room"
+	@echo "                 WORLD=motion_area|rq1_lane|rq2_protractor|rq3_ranging|rq3_ranging_dim|inspection_room|park"
+	@echo "                 park: SCENARIO=default|mixed|obstacle_only  BINS=0-4  OBSTACLE=none|random|1-4  SEED=n"
 	@echo "                 PROFILE=pilot_firmware|ideal|pid_firmware|stress|ultrasonic_dead  GUI=true|false"
 	@echo "make sim-check   is everything publishing? (RUN=name picks the data folder)"
+	@echo "make sim-park    print a park layout (same SCENARIO/BINS/OBSTACLE/SEED) without launching"
+	@echo "make sim-park-check  world park: every bin/item/obstacle in place? LOOK_AT=\"bin_2 obstacle\" saves photos"
 	@echo "make sim-worlds  regenerate walle-sim/worlds/*.sdf after editing generate_worlds.py"
 	@echo "make sim-down    stop the simulator"
 	@echo "Desktop: http://localhost:6080/vnc.html"
@@ -78,10 +88,16 @@ sim-shell:
 	$(SIM_COMPOSE) exec sim bash
 
 sim-launch:
-	$(SIM_COMPOSE) exec sim bash -ic "ros2 launch /workspace/walle-sim/launch/sim.launch.py world:=$(WORLD) profile:=$(PROFILE) gui:=$(GUI)"
+	$(SIM_COMPOSE) exec sim bash -ic "ros2 launch /workspace/walle-sim/launch/sim.launch.py world:=$(WORLD) profile:=$(PROFILE) gui:=$(GUI) scenario:=$(SCENARIO) bins:=$(BINS) obstacle:=$(OBSTACLE) park_seed:=$(SEED)"
 
 sim-check:
 	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) check"
 
 sim-worlds:
 	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/worlds/generate_worlds.py"
+
+sim-park:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-app/park.py --scenario $(SCENARIO) $(if $(filter-out scenario,$(BINS)),--bins $(BINS)) $(if $(filter-out scenario,$(OBSTACLE)),--obstacle $(OBSTACLE)) $(if $(filter-out scenario,$(SEED)),--seed $(SEED))"
+
+sim-park-check:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) park-check $(if $(LOOK_AT),--look-at $(LOOK_AT))"

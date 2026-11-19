@@ -11,6 +11,12 @@ then on the robot.
 | RQ2 | wheel-only vs EKF heading on the same ~90° open-loop turn | `rq2_protractor` or `motion_area` | `rq2`, `motion --only turn` |
 | RQ3 | HC-SR04 vs calibrated monocular depth, 4 objects × 8 distances × 2 angles | `rq3_ranging`, `rq3_ranging_dim` | `rq3`, `range`, `calibrate-depth` |
 | agents | ROSA tools (look, approach, search_for, …) | `inspection_room` | the agents in `walle-pilot/` |
+| WALL-E app | the park: 1 m square route, bins, litter, an obstacle | `park` (built at launch from a scenario) | `park-check` |
+
+The `park` world is not a committed `.sdf`: `worlds/park_world.py` builds it into the
+git-ignored `worlds/generated/` at every launch, from `walle-app/config/park.yaml` and a
+scenario. See [`walle-app/README.md`](../walle-app/README.md) for scenarios and overrides
+(`make sim-launch WORLD=park SCENARIO=mixed BINS=2 OBSTACLE=none`).
 
 ## How it works
 

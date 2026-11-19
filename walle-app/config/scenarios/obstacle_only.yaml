@@ -1,0 +1,8 @@
+# Four ok bins and one obstacle at a random place on the route (change `seed` for another).
+bins:
+  1: {state: ok}
+  2: {state: ok}
+  3: {state: ok}
+  4: {state: ok}
+obstacle: {side: random, at: random, item: random}
+seed: 3

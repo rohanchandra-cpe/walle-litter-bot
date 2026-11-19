@@ -1,0 +1,8 @@
+# Four bins, none overflowing, no litter, no obstacle: the baseline park.
+bins:
+  1: {state: ok}
+  2: {state: ok}
+  3: {state: ok}
+  4: {state: ok}
+obstacle: none
+seed: 1
