@@ -86,6 +86,10 @@ def make_follower_class():
             self.zero_velocity_deg = 0.0     # heading drift removed while standing still
             self.bias = rg.BiasEstimate()    # gyro bias, from the still periods
             self.holds = []
+            # Small heading corrections are timed pulses; their gain is learned too
+            self.pulse_gain = cfg["turn"]["pulse"]["gain_dps"]
+            self.pulses = []
+            self.photo_log = {}              # photo name -> {"tries": n, "error": str|None}
 
         # walle-sim names the robot "walle", not module 8's "course_robot"
         def _on_truth(self, msg):
@@ -206,14 +210,47 @@ def make_follower_class():
 
         def turn_to(self, heading):
             """Turn in place to an absolute park heading, then correct a miss larger than
-            correct_tol_deg with up to max_corrections more turns."""
+            correct_tol_deg with up to max_corrections more moves: a timed pulse for a
+            miss up to pulse_max_deg (a slow turn would stick and lurch), else a turn."""
             tc = self.cfg["turn"]
             self.turn_leg(heading, learn=True)
             for _ in range(tc["max_corrections"]):
-                if abs(rg.wrap(heading - self.park_pose()[2])) <= math.radians(tc["correct_tol_deg"]):
+                err = math.degrees(rg.wrap(heading - self.park_pose()[2]))
+                if abs(err) <= tc["correct_tol_deg"]:
                     break
+                if abs(err) <= tc["pulse_max_deg"]:
+                    if not self.pulse(heading, err):
+                        break                    # the shortest pulse would make it worse
+                else:
+                    self.turn_leg(heading, learn=False)
                 self.corrections += 1
-                self.turn_leg(heading, learn=False)
+
+        def pulse(self, heading, err_deg):
+            """One timed turn pulse toward `heading` (err_deg away). Returns False if no
+            pulse was made because even the shortest would overshoot by more than err."""
+            pc = self.cfg["turn"]["pulse"]
+            dur = rg.plan_pulse(err_deg, self.pulse_gain, pc["dead_s"], pc["min_s"], pc["max_s"])
+            if dur is None:
+                self.pulses.append({"err_deg": round(err_deg, 2), "skipped": True,
+                                    "gain_dps": round(self.pulse_gain, 1)})
+                return False
+            sign = math.copysign(1.0, err_deg)
+            h0 = self.park_pose()[2]
+            # one command, then the stop: the Pico holds a command until the next (500 ms
+            # watchdog), so the pulse length is the time between the two messages
+            self.send(0.0, sign * pc["rate_rps"])
+            time.sleep(dur)
+            self.stop()
+            self.settle()
+            moved = sign * math.degrees(rg.wrap(self.park_pose()[2] - h0))
+            gain0 = self.pulse_gain
+            self.pulse_gain = rg.learn_pulse_gain(self.pulse_gain, dur, moved, pc["dead_s"],
+                                                  pc["adapt_gain"])
+            after = math.degrees(rg.wrap(heading - self.park_pose()[2]))
+            self.pulses.append({"err_deg": round(err_deg, 2), "duration_s": round(dur, 3),
+                                "moved_deg": round(moved, 2), "err_after_deg": round(after, 2),
+                                "gain_dps": round(gain0, 1)})
+            return True
 
         def turn_leg(self, heading, learn):
             """Module 8's Mover.turn, to an absolute heading, with its own learned coast."""
@@ -253,7 +290,7 @@ def make_follower_class():
             raw0, t0 = self.pose("odom")[2], time.monotonic()
             t_end = time.time() + seconds
             time.sleep(min(1.0, seconds))
-            shot = self.photo(photo_name) if photo_name else None
+            shot = self.photo_with_retries(photo_name, t_end) if photo_name else None
             time.sleep(max(0.0, t_end - time.time()))
             w1 = self.pose("wheel")
             zc = self.cfg["zero_velocity"]
@@ -286,22 +323,42 @@ def make_follower_class():
                     out[key] = [round(p[0], 4), round(p[1], 4), round(math.degrees(p[2]), 2)]
             return out
 
-        def photo(self, name):
-            url = self.cfg.get("camera_url")
-            if not url:
+        def photo_with_retries(self, name, t_end):
+            """Up to camera_tries photo requests, all within the wait (ending at t_end)."""
+            if not self.cfg.get("camera_url"):
                 return None
+            timeout = float(self.cfg.get("camera_timeout_s", 5.0))
+            tries = int(self.cfg.get("camera_tries", 1))
+            log = self.photo_log[name] = {"tries": 0, "error": None}
+            for i in range(tries):
+                if i and time.time() + timeout > t_end:
+                    break                        # no time left in the wait
+                log["tries"] += 1
+                shot, error = self.photo(name, timeout)
+                if shot:
+                    log["error"] = None
+                    return shot
+                log["error"] = error
+                print(f"  (no photo, try {i + 1}/{tries}: {error})")
+                time.sleep(min(float(self.cfg.get("camera_retry_gap_s", 3.0)),
+                               max(0.0, t_end - time.time() - timeout)))
+            return None
+
+        def photo(self, name, timeout=5.0):
+            """One photo request. Returns (path relative to the run folder, None) or
+            (None, error)."""
+            url = self.cfg.get("camera_url")
             import urllib.request
             try:
-                with urllib.request.urlopen(url, timeout=5.0) as reply:
+                with urllib.request.urlopen(url, timeout=timeout) as reply:
                     data = reply.read()
             except OSError as e:
-                print(f"  (no photo: {e})")
-                return None
+                return None, str(e)
             path = os.path.join(self.run_dir, "photos", f"{name}.jpg")
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "wb") as f:
                 f.write(data)
-            return os.path.relpath(path, self.run_dir)
+            return os.path.relpath(path, self.run_dir), None
 
         def run(self, steps):
             bins = {b["name"]: b for b in self.layout["bins"]}
@@ -312,7 +369,8 @@ def make_follower_class():
                     print(self.fmt(self.report(state="driving", step=i, corner=c_to)))
                     self.drive_side(a, b, heading)
                     snap = self.snapshot()
-                    ev = {"step": i, "event": "arrived", "corner": c_to, "target": list(b),
+                    ev = {"step": i, "event": "arrived", "t_utc": utc_now(), "corner": c_to,
+                          "target": list(b),
                           "poses": snap, "distance_m": round(self.distance, 3),
                           "coast_side_s": round(self.coast_side, 3),
                           "coast_turn_s": round(self.coast_turn, 3),
@@ -334,6 +392,11 @@ def make_follower_class():
                     shot, drift = self.hold_still(seconds, f"{name}_step{i}")
                     if shot:
                         self.events[-1]["photo"] = shot
+                    tried = self.photo_log.get(f"{name}_step{i}")
+                    if tried:
+                        self.events[-1]["photo_tries"] = tried["tries"]
+                        if tried["error"]:
+                            self.events[-1]["photo_error"] = tried["error"]
                     if drift is not None:
                         self.events[-1]["held_heading_drift_deg"] = drift
                     self.state.pop("bin", None)
@@ -344,7 +407,8 @@ def make_follower_class():
 
         def bin_event(self, i, corner, b, heading):
             snap = self.snapshot()
-            ev = {"step": i, "event": "facing_bin", "corner": corner, "bin": b["name"],
+            ev = {"step": i, "event": "facing_bin", "t_utc": utc_now(), "corner": corner,
+                  "bin": b["name"],
                   "target_heading_deg": round(math.degrees(heading), 2), "poses": snap}
             est = snap["odom"]
             ev["est_heading_error_deg"] = round(rg.wrap(math.radians(est[2]) - heading)
@@ -446,6 +510,8 @@ def parse_args(argv=None):
     p.add_argument("--config", default=ROUTE_CONFIG)
     p.add_argument("--no-measure", action="store_true",
                    help="real robot: do not ask for the tape-measured end position")
+    p.add_argument("--no-memory", action="store_true",
+                   help="do not record the run in the memory store (walle-app/data/memory/)")
     return p.parse_args(argv)
 
 
@@ -529,6 +595,8 @@ def main(argv=None):
                    "coast_end_s": {"side": round(node.coast_side, 3),
                                    "turn": round(node.coast_turn, 3)},
                    "corrections": node.corrections,
+                   "pulse_gain_end_dps": round(node.pulse_gain, 1),
+                   "pulses": node.pulses,
                    "zero_velocity_heading_deg": round(node.zero_velocity_deg, 3),
                    "gyro_bias_dps": round(math.degrees(node.bias.rate), 4),
                    "holds": node.holds}
@@ -557,8 +625,24 @@ def main(argv=None):
         json.dump(layout, f, indent=2)
     if not in_sim and node.anchors:
         print(f"Recorded in {append_robot_row(results_dir, run_id, summary)}")
+    if not a.no_memory and node.anchors:
+        record_in_memory(summary, layout, run_dir)
     print(f"Run log: {run_dir}")
     return 0 if status == "done" else 1
+
+
+def record_in_memory(summary, layout, run_dir):
+    """Add the run and its bin stops to the memory store (ROADMAP Phase 2). Never fails the
+    run: the JSON log above is the record, and import_runs.py can add it later."""
+    try:
+        from memory.route_records import record_route_summary
+        from memory.store import MemoryStore
+        with MemoryStore(summary["source"]) as mem:
+            record_route_summary(mem, summary, layout, run_dir)
+            print(f"Memory: run {summary['run_id']} recorded in {mem.path}")
+    except Exception as e:                      # noqa: BLE001 (the run itself is done)
+        print(f"Memory: run not recorded ({e}); add it later with "
+              "walle-app/memory/import_runs.py")
 
 
 def print_summary(s):
@@ -572,8 +656,17 @@ def print_summary(s):
         else:
             extra = (f", true bearing to bin {ev['true_bearing_error_deg']:+.1f} deg"
                      if "true_bearing_error_deg" in ev else "")
+            photo = ("" if "photo_tries" not in ev else
+                     (f", photo on try {ev['photo_tries']}" if ev["photo_tries"] > 1 else "")
+                     if ev.get("photo") else
+                     f", NO photo ({ev.get('photo_error')})")
             print(f"  {ev['bin']}: heading error (est) {ev['est_heading_error_deg']:+.1f} deg"
-                  + extra)
+                  + extra + photo)
+    made = [p for p in s.get("pulses", []) if not p.get("skipped")]
+    if s.get("pulses"):
+        print(f"  correction pulses: {len(made)} made, {len(s['pulses']) - len(made)} skipped, "
+              f"gain {s.get('pulse_gain_end_dps')} deg/s at the end; "
+              + ", ".join(f"{p['err_deg']:+.1f}->{p['err_after_deg']:+.1f}" for p in made))
     labels = {"odom": "fused EKF", "wheel": "wheels only", "ground_truth": "Gazebo truth"}
     for key, e in s.get("end_errors", {}).items():
         print(f"  end vs start, {labels[key]:12s}: {e['position_m'] * 100:5.1f} cm "

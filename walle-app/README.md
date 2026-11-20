@@ -4,7 +4,8 @@ The WALL-E park inspection robot (see [`ROADMAP.md`](../ROADMAP.md)). It reuses 
 in `walle-pilot/` without changing the frozen research-study files.
 
 This folder holds the park (Phase 0: its geometry, the test scenarios, and the loader that the
-simulator and the robot both use) and the route follower (Phase 1).
+simulator and the robot both use), the route follower (Phase 1), and the memory store
+(Phase 2, [`memory/README.md`](memory/README.md)).
 
 ```
 config/park.yaml        the fixed park: route square, bin size and placement, robot footprint,
@@ -14,6 +15,8 @@ park.py                 loads park.yaml + a scenario (+ overrides) -> the full l
 config/route.yaml       route follower settings: speeds, gains, tolerances, bin wait, coast
 route/route_follower.py drives the route on the EKF (Phase 1); route_geometry.py its math
 results/route/          route runs: one folder per run, robot_runs.csv (one row per robot run)
+memory/                 the memory store (Phase 2): write API, queries, schema, run import
+config/memory.yaml      memory store settings; data/memory/ holds robot.sqlite, sim.sqlite
 tests/                  python3 -m unittest discover -s walle-app/tests
 ```
 
@@ -45,6 +48,10 @@ to the bin's center, along the diagonal) is the larger of:
   measured camera (10.3 cm high, 12 cm ahead of the axle; 47° × 60° nominal field of view).
 
 Put the bins at the positions `python3 walle-app/park.py` prints (bin 1 at (−0.502, −0.502)).
+
+Each bin has a **type** (`bins.types`, 2026-11-18): bins 1 and 3 are trash, bins 2 and 4 are
+recycling. A scenario can override one (`type: recycling`). The memory store uses it to judge
+recycling correctness.
 
 ## Scenarios
 
@@ -110,8 +117,13 @@ BNO055) and publishes `/pico/cmd_vel`; the firmware is unchanged. It is built on
   correction), so a turn that ends a few degrees off is corrected on the next side;
 - **absolute headings**: turns go to the park's headings, so turn errors don't add up;
 - **learned coast**: each move stops early by (speed × coast); the coast (separate for sides
-  and turns) is updated from each move's overshoot. A corner missed by more than 1.5 cm, or a
-  turn by more than 3°, gets up to 2 short correction moves. This needs the closed-loop
+  and turns) is updated from each move's overshoot. A corner missed by more than 1.5 cm gets
+  up to 2 short correction moves; a turn missed by more than 3° gets up to 3 **correction
+  pulses** (2026-11-19). A pulse is one turn command and a stop after a set time; it turns
+  about gain × (time − 0.04 s), and the gain is learned from each pulse (start 110°/s, from
+  walle-sim). A pulse is skipped if even the shortest would overshoot by more than the miss.
+  Slow correction turns stuck and then lurched 8–13° when asked for 4–6° (robot run
+  `20261119_043639`). The summary lists every pulse. This needs the closed-loop
   wheel speed firmware (2026-11-18): the old open-loop firmware turned at about 3 rad/s for
   any command, so a correction overshot by 10–15°. Turns run at 1.0–1.5 rad/s and the
   slowest drive speed is 0.08 m/s: below about 0.1 m/s per wheel the motors stick and
@@ -126,13 +138,17 @@ BNO055) and publishes `/pico/cmd_vel`; the firmware is unchanged. It is built on
 
 Each run writes `results/route/<run>/`: `trajectory.csv` (fused, wheels-only and, in Gazebo,
 true pose at 10 Hz), `summary.json` (events per corner and bin, end errors, learned coasts,
-measured gyro drift), `layout.json`, and `photos/` (one per bin stop, if a camera URL is set).
+measured gyro drift), `layout.json`, and `photos/` (one per bin stop, if a camera URL is set:
+up to 3 tries, 3 s apart, within the bin wait; a failed stop records `photo_error`).
+The run and one bin check per bin stop (photo only, not yet assessed) also go into the
+memory store (`data/memory/sim.sqlite` or `robot.sqlite`; `--no-memory` skips it).
 
 ### In Gazebo
 
 ```bash
 make sim-launch WORLD=park SCENARIO=default GUI=false PROFILE=plastic_pid
 make sim-route-check                  # LAPS=1, DWELL=15 (seconds at each bin)
+make sim-route-check COAST=0.35       # wrong starting coast: turns miss, pulses correct them
 ```
 
 `route-check` puts the robot on the start, runs the follower, and judges it with Gazebo's

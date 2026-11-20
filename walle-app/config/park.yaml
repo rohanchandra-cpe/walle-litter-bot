@@ -44,6 +44,10 @@ bins:
   # clearance.
   offset_m: auto
   frame_from_corner: true
+  # What each corner's bin is for (decided 2026-11-18, Phase 2). The memory store judges
+  # "recycling correctly" by the items seen on top of a bin against its type. A scenario
+  # may override one bin with `type:`.
+  types: {1: trash, 2: recycling, 3: trash, 4: recycling}
   overflow_levels: 3          # level 1 = slightly over the rim ... 3 = heavily overflowing
   litter_max: 6               # most litter items a scenario may put around one bin
 

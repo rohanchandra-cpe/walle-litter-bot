@@ -1,0 +1,26 @@
+# WALL-E memory store (ROADMAP Phase 2). See walle-app/memory/README.md.
+
+# Database files, one per source, under walle-app/ (git-ignored; rebuild the robot one from
+# the committed run logs with memory/import_runs.py). The whole repository is mounted at
+# /workspace in both containers, so the files survive container restarts.
+db_dir: data/memory
+files:
+  robot: robot.sqlite
+  sim: sim.sqlite
+
+busy_timeout_s: 5.0            # a writer waits this long for another writer's lock
+
+# An obstacle report within this distance (m) of an obstacle that is still on the route
+# (same side, when both give one) is the same obstacle seen again.
+obstacle_match_radius_m: 0.10
+
+embed:                         # free-text recall (vector store in the memory_text table)
+  enabled: true
+  model: nomic-embed-text      # an Ollama embedding model (ollama pull nomic-embed-text)
+  # Tried in order: $OLLAMA_URL, then these. Containers reach the host's Ollama through
+  # host.docker.internal; on the host itself it is localhost.
+  urls: [http://host.docker.internal:11434, http://localhost:11434]
+  timeout_s: 5.0
+  on_write: true               # embed each record as it is written (false: embed_pending())
+
+recall_k: 5                    # records returned by recall() by default

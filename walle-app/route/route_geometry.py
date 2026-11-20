@@ -112,3 +112,32 @@ def build_plan(layout, laps=1, dwell_s=15.0, face_bins=True):
             steps.append(("turn", to, nxt))
             here = to
     return steps
+
+
+# ----- small heading corrections: timed pulses -----
+# A small correction can't be a slow turn: below ~0.1 m/s per wheel the wheels stick, the
+# firmware's PI winds up, and the robot lurches 8-13 deg when asked for 4-6 (robot run
+# 20261119_043639). A short pulse at a rate the wheels can hold turns about
+# gain x (duration - dead) degrees, nearly whatever rate is commanded (walle-sim
+# plastic_pid: ~110 deg/s, ~0.04 s dead time). The duration sets the angle.
+
+def plan_pulse(err_deg, gain_dps, dead_s, min_s, max_s):
+    """Duration (s) of a pulse that should turn |err_deg|, or None when even the shortest
+    pulse would overshoot by more than the error (the correction would make it worse)."""
+    need = abs(err_deg)
+    t = dead_s + need / gain_dps
+    if t < min_s:
+        smallest = gain_dps * (min_s - dead_s)
+        if smallest - need >= need - 1e-9:   # would land at least as far off, other side
+            return None
+        t = min_s
+    return min(t, max_s)
+
+
+def learn_pulse_gain(gain_dps, duration_s, moved_deg, dead_s, adapt_gain, lo=30.0, hi=400.0):
+    """Update the pulse gain from one pulse: it turned moved_deg (toward the target)."""
+    active = duration_s - dead_s
+    if active < 0.02 or moved_deg <= 0.5:    # too short to tell, or it didn't break free
+        return gain_dps
+    seen = moved_deg / active
+    return clamp(gain_dps + adapt_gain * (seen - gain_dps), lo, hi)
