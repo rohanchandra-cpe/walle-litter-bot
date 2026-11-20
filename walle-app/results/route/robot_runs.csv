@@ -4,3 +4,5 @@ run_id,started_utc,status,scenario,laps,bins,measured_dx_cm,measured_dy_cm,measu
 20261118_195156,2026-11-18T19:51:57+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.6,4.044,4/4,None
 20261119_015242,2026-11-19T01:52:42+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.2,4.035,2/4,"Robot moved slower, turning was very jerky. Movement in general was jerkier"
 20261119_021229,2026-11-19T02:12:29+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.4,4.007,2/4,n
+20261119_043639,2026-11-19T04:36:39+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.3,4.006,0/4,
+20261120_014029,2026-11-20T01:40:29+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.3,4.008,2/4,

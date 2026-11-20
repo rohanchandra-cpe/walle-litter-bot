@@ -37,9 +37,23 @@ turn:                        # turns in place, to an ABSOLUTE heading (module 8'
   min_rate_rps: 1.0
   max_rate_rps: 1.5
   tolerance_deg: 1.0
-  correct_tol_deg: 3.0       # missed by more than this: turn again
-  max_corrections: 2
+  correct_tol_deg: 3.0       # missed by more than this: correct it
+  max_corrections: 3
   settle_s: 0.3              # pause after each move before the next starts
+  # Corrections up to pulse_max_deg are timed PULSES, not slow turns (2026-11-19): asked
+  # for 4-6 deg, a slow correction turn stuck, then lurched 8-13 deg (run 20261119_043639).
+  # A pulse turns about gain x (duration - dead) deg. The gain is learned from every pulse;
+  # a pulse is skipped if even the shortest one would overshoot by more than the error.
+  # Starting values measured in walle-sim plastic_pid (0.1 s -> 7 deg, 0.2 s -> 19 deg,
+  # 0.3 s -> 29 deg). Bigger misses get a normal turn.
+  pulse:
+    rate_rps: 1.5
+    gain_dps: 110.0
+    dead_s: 0.04
+    min_s: 0.06
+    max_s: 0.30
+    adapt_gain: 0.5
+  pulse_max_deg: 20.0
 
 # Coast: after a stop command the robot keeps moving (Wi-Fi, estimate delay, motor
 # spin-down), so each move stops early by (measured speed x coast). Starting values from the
@@ -68,5 +82,9 @@ zero_velocity:
 
 log_rate_hz: 10              # trajectory.csv rows per second
 camera_url: null             # e.g. http://192.168.1.50/capture: photo at each bin stop
+camera_timeout_s: 5.0        # per photo request
+camera_tries: 3              # tries per bin stop, within the bin wait (a weak 5 V supply
+                             # reset the ESP32-CAM mid-run: run 20261119_043639)
+camera_retry_gap_s: 3.0      # pause between tries (a rebooting ESP32-CAM needs a few s)
                              # (Gazebo: http://localhost:8080/capture, set by route-check)
 results_dir: results/route   # under walle-app/

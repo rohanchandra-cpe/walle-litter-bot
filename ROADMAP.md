@@ -21,9 +21,9 @@ commands. Metrics and an LLM judge are stretch goals.
 
 | # | Phase | Status |
 |---|---|---|
-| 0 | Foundations: sim merged, park defined | 🟨 sim done; real park to measure |
+| 0 | Foundations: sim merged, park defined | ✅ done 2026-11-19 |
 | 1 | Route following | ✅ done 2026-11-18 (bin centering moved to Phase 3) |
-| 2 | Memory store | ⬜ |
+| 2 | Memory store | ✅ done 2026-11-18 |
 | 3 | Object detection and trash/recycling classification | ⬜ |
 | 4 | Servo and bin monitoring | ⬜ |
 | 5 | Obstacle detection and avoidance | ⬜ |
@@ -57,19 +57,19 @@ world that matches it.
       (`walle-app/config/park.yaml` + `walle-app/park.py`)
 - [x] Park world launches in Gazebo with the bins in the configured places.
       (`make sim-park-check`: PASS for `mixed` and for `mixed BINS=2 OBSTACLE=none`)
-- [ ] Real park layout measured and entered (user): real bin size, and the square taped out.
+- [x] Real park layout measured and entered (user): real bin size, and the square taped out.
       (2026-11-16: interim bins are paper bags, 30 × 18 × 36 cm (L × W × H), **entered**
       2026-11-16 as box bins (Phase 1). Plastic bins from Target come later. Square not
       taped yet.) (2026-11-18: now black plastic bins, 27.7 × 21.1 × 29.2 cm (W × D × H),
-      entered; the square is on corrugated plastic sheets. Whether it is taped out is not
-      recorded.)
+      entered; the square is on corrugated plastic sheets.) (2026-11-19: the user confirmed
+      the square is taped out.)
 
 Plan: [`docs/plans/phase-0-plan.md`](docs/plans/phase-0-plan.md).
 
 **Open decisions**
 - ~~Location of the application code~~ → `walle-app/` (decided 2026-11-15).
 - ~~Track shape and size, number of bins~~ → 1 m square, up to 4 bins, one per corner
-  (decided 2026-11-15). Still open: how the real track is marked (tape, none).
+  (decided 2026-11-15). The real track is marked with tape (2026-11-19).
 - ~~Coordinate frame~~ → corner 1 is the origin, start there facing corner 2 (decided
   2026-11-15).
 
@@ -132,16 +132,27 @@ A persistent store of everything the robot observes, so it can answer history qu
 - Sim runs and robot runs kept apart (a `source` field or separate files).
 
 **Done when**
-- [ ] Schema written down and agreed.
-- [ ] Write API used by a test that records a fake run, then the read queries return the
-      expected answers.
-- [ ] The store survives a container restart (lives in the mounted project folder).
+- [x] Schema written down and agreed. (2026-11-18: plan approved; `walle-app/memory/README.md`,
+      `schema.sql`)
+- [x] Write API used by a test that records a fake run, then the read queries return the
+      expected answers. (`walle-app/tests/test_memory.py`: two fake runs from the `mixed`
+      scenario's ground truth; host and both containers, 2026-11-18)
+- [x] The store survives a container restart (lives in the mounted project folder).
+      (2026-11-18: written in `walle-pilot`, container recreated, read back)
+- Also checked: two `make sim-route-check` runs wrote their run and 4 bin checks to
+  `sim.sqlite`; the 3 committed robot runs were imported into `robot.sqlite`. Robot run
+  `20261119_043639` (2026-11-18) recorded itself in `robot.sqlite`: run + 4 bin checks.
+
+Plan: [`docs/plans/phase-2-plan.md`](docs/plans/phase-2-plan.md).
 
 **Open decisions**
-- SQLite vs. something else. Plain tables vs. adding a vector store for free-text recall.
-- Whether photos are stored, and for how long.
-- What "recycling correctly" means in the data: an item seen in or near a bin of the wrong
-  type? That needs bins to have a type (trash / recycling).
+- ~~SQLite vs. something else; vector store~~ → SQLite plus a vector store (Ollama
+  `nomic-embed-text` embeddings in SQLite, cosine in Python) (2026-11-18).
+- ~~Whether photos are stored, and for how long~~ → referenced by repo-relative path, kept with
+  the run folder (2026-11-18).
+- ~~What "recycling correctly" means~~ → items seen **on top of** a bin (above the rim; the
+  robot can't see into the opaque bins) against the bin's type; litter around bins reported
+  separately (2026-11-18).
 
 ---
 
@@ -279,6 +290,12 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-19 | 1 | Small heading corrections (≤ 20°) are timed pulses with a learned gain, skipped if the shortest would overshoot by more than the miss; up to 3 per turn. Slow correction turns stuck and lurched 8–13° on the robot. Photos: up to 3 tries, 3 s apart, within the bin wait. Needed for Phase 3's bin centering. |
+| 2026-11-18 | 2 | Memory store: SQLite (stdlib) + vector store (Ollama `nomic-embed-text`, embeddings in SQLite, cosine in Python; keyword fallback without Ollama). Python API only (`walle-app/memory/store.py`); a `/memory/ask` node only if Phase 6 needs it. |
+| 2026-11-18 | 2 | Sim and robot in separate files (`walle-app/data/memory/{robot,sim}.sqlite`), both git-ignored; `import_runs.py` rebuilds them from the committed run logs. Photos referenced by repo-relative path. Rollback journal (not WAL) for Docker bind mounts. |
+| 2026-11-18 | 2 | Bin types: bins 1, 3 trash; 2, 4 recycling (`park.yaml` `bins.types`, scenario `type:` override). |
+| 2026-11-18 | 2 | The robot can't see into the opaque bins: a bin check records what is above the rim (overflow 0–3, items on top) and the litter around it; outcome overflowing / litter / clean (clean = move on, still recorded). No fill level. Recycling correctness = items above the rim vs the bin's type; litter around bins listed, not judged. |
+| 2026-11-18 | 2 | Current obstacles derived from history (latest sighting present), matched within 0.10 m on the same side; `mark_absent` records a cleared one. |
 | 2026-11-18 | 1→3 | Phase 1 done: smooth closed-loop motion and route following on the robot. Centering the camera on the bin moves to Phase 3: YOLO detects the bins as well as trash, and the robot centers the detected bin. |
 | 2026-11-18 | 1 | Turns at 1.0–1.5 rad/s, slowest drive 0.08 m/s: below ~0.1 m/s per wheel the motors stick and lurch. Firmware PI retuned (KP 1.0, filter 0.3) in sim against a stiction model fitted to the robot. |
 | 2026-11-18 | 1 | Closed-loop wheel speed (module 7's PI, fixed gains) goes into `walle-pilot/firmware/pico_pilot/drive_control.c` itself, not a new folder (user: the study's original firmware is kept elsewhere). |

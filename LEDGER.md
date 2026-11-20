@@ -424,3 +424,225 @@ Work done before the ledger started, summarized from git history:
 - **Decisions:** ROADMAP decision log, 2026-11-18 (Phase 1 done; bin centering → Phase 3).
 - **Open / next:** commit the post-`596ba16` work (firmware, retune, bins, docs) and decide
   whether `walle-app/results/` (robot run logs) is committed. Then Phase 2 in a new session.
+
+### 2026-11-18: Phase 2, memory store (SQLite + recall), built and checked in sim
+
+- **Phase:** 2, Memory store
+- **Branch / commit:** `walle-phase-2` (from `origin/main` @ `b93eec2`, Phase 1 merged in
+  PR #7) @ uncommitted. The user's uncommitted move of the old handoff docs into
+  `docs/handoff/phase0-to-phase1/` and `phase1-to-phase-2/` came along, untouched.
+- **Asked for:** start Phase 2 from `docs/handoff/phase1-to-phase-2/phase-2-prompt.md`; plan
+  mode, settle the open decisions. User answers: SQLite **plus a vector store**; separate
+  files per source; DB git-ignored and rebuilt from the run logs; bins 2 and 4 are recycling.
+  Two corrections to the plan: the robot "will never be able to look into the bin itself"
+  (opaque bins, low camera): only the top and around the bin are visible; and a bin that is
+  not overflowing is checked for litter, and with none the robot "should move on".
+- **Done:**
+  - Memory store: `walle-app/memory/` (`store.py` write API + queries, `schema.sql`,
+    `embed.py` Ollama + fake embedder, `route_records.py`, `import_runs.py`, `README.md`
+    with the schema), `walle-app/config/memory.yaml`; DB files in `walle-app/data/memory/`,
+    git-ignored (`walle-app/.gitignore`).
+  - Bin types: `bins.types` in `walle-app/config/park.yaml`, `type` on each layout bin and
+    a scenario `type:` override in `walle-app/park.py` (random streams unchanged).
+  - Route follower: `t_utc` on each `arrived` / `facing_bin` event; at the end it records the
+    run + one `photo_only` bin check per bin stop (`--no-memory` skips; a store error only
+    prints a warning) (`walle-app/route/route_follower.py`).
+  - 14 new tests (`walle-app/tests/test_memory.py`).
+  - Docs: `walle-app/README.md`, `CLAUDE.md`, `ROADMAP.md` (Phase 2 ticks, decisions),
+    plan in `docs/plans/phase-2-plan.md`.
+- **Verified:**
+  - Unit tests, 34 total, pass on the host (Python 3.13, ResourceWarnings as errors) and in
+    both `walle-pilot` and `walle-sim` (3.10).
+  - Container restart: wrote a fake run to a scratch store from `walle-pilot`,
+    `docker compose up -d --force-recreate pilot`, read it back identical. The scratch file
+    was deleted after.
+  - Sim: `make sim-route-check DWELL=3` on `plastic_pid` / `default`, twice:
+    - The first run (on a Gazebo world launched before bin types existed) passed and was
+      recorded, but exposed a bug I had introduced (`NameError` after recording: `main`'s
+      return line was moved into the new function). Fixed.
+    - The second run (after relaunching the world) passed (end 0.1 cm) with no error, and
+      recorded the run plus 4 bin checks with types in `sim.sqlite`. Embeddings were
+      computed from inside the container through `host.docker.internal`.
+  - `import_runs.py --rebuild` put the 3 committed robot runs (12 bin checks) into
+    `robot.sqlite`. These runs predate bin types, so their `bin_type` is NULL.
+  - Real `nomic-embed-text` recall on the host returns sensible matches (run end errors,
+    bin 3 photos).
+  - Not verified:
+    - a robot run writing to the store by itself (user);
+    - detections, obstacles and assessed bin checks from real producers (Phases 3–5); only
+      the fake runs in the tests exercise them;
+    - concurrency was tested with two connections in one process only, not two processes;
+    - the fake embedder can't tell "bin 4" from "bin 2", so real recall quality was only
+      spot-checked.
+- **Scope:** In scope, with small additions:
+  - `t_utc` on route events (so bin checks carry their own time);
+  - a `meta` table (a file knows its source);
+  - `bin_type` copied onto detections;
+  - `obstacle_history()` and `counts()` reads.
+  - Field naming: the plan's `where` field is called `place` (`where` is an SQL keyword),
+    and the value is `on_bin`, not `in_bin`. The sim world left running 3 days was relaunched
+    with `default` / `plastic_pid`; it is still running headless.
+- **Decisions:** ROADMAP decision log, 2026-11-18, Phase 2 (five rows).
+- **Open / next:**
+  - User: run the follower on the robot once; it should print `Memory: run … recorded in
+    …/robot.sqlite`.
+  - Then commit and close Phase 2. Phase 3 writes detections through `add_detection` (bins:
+    `place='on_bin'`/`around_bin` with `bin_id`) and must also leave them in the run folder so
+    `import_runs.py` can rebuild them (the importer reads only route summaries today).
+
+### 2026-11-18: Correction: the restart check cut the Pico off
+
+- **Phase:** 2, Memory store
+- **Branch / commit:** `walle-phase-2` @ uncommitted
+- **What went wrong:** the container-restart check (previous entry) recreated only
+  `walle-pilot` (`docker compose up -d --force-recreate pilot`). The micro-ROS Agent shares
+  pilot's network (`network_mode: "service:pilot"`), so it was left in the old, dead network
+  namespace. The user's next robot run aborted with "No /odometry/filtered received", because
+  `/pico/wheel_ticks` had 0 publishers.
+- **Fixed:** `docker compose up -d --force-recreate --no-deps micro-ros-agent`. The Pico
+  reconnected without a reset; `/pico/wheel_ticks` has 1 publisher and `/odometry/filtered`
+  publishes.
+- **Lesson:** restart the robot stack as a whole (`make down && make up`, then reset the Pico),
+  never the pilot container alone.
+- **Open / next:** the aborted run left `walle-app/results/route/20261119_043359/` (status
+  aborted, source unknown, not in the memory store); delete it or keep it.
+
+### 2026-11-18: Phase 2 robot check: the run recorded itself; Phase 2 done
+
+- **Phase:** 2, Memory store
+- **Branch / commit:** `walle-phase-2` @ uncommitted
+- **Asked for:** the user ran the follower on the robot (run `20261119_043639`, default
+  scenario) and saw the `Memory: run … recorded` message.
+- **Verified (by query of `robot.sqlite` and the run's files):** the run is recorded: done,
+  4.006 m, EKF end 0.3 cm, tape 0 cm. It has 4 `photo_only` bin checks with types (1, 3
+  trash; 2, 4 recycling) and event times; all 20 sentences are embedded. The aborted
+  `20261119_043359` folder is gone (deleted by the user).
+- **Found, not investigated (not Phase 2):**
+  - No photo at bins 2 and 4: the camera request failed (the reason was printed in the
+    user's terminal, not saved). The records have `photo` NULL there.
+  - Estimated heading error at the bins: bin 2 +5.3°, bin 3 −1.3°, bin 4 −9.4°,
+    bin 1 +0.2°. The previous run had at most 5.5°.
+  - The user marked no bin as centered.
+  - The follower's motion code is unchanged in Phase 2 (only event times and the memory
+    call were added).
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** commit Phase 2. Look into the camera misses and the larger bin heading
+  errors before Phase 3 depends on the bin photos.
+
+### 2026-11-19: Investigation: missed bin photos and bin heading errors (run 20261119_043639)
+
+- **Phase:** 2 (robot check follow-up; the causes belong to Phase 1 and the hardware)
+- **Branch / commit:** `walle-phase-2` @ uncommitted
+- **Asked for:** find out why bins 2 and 4 got no photo and were 5.3° / −9.4° off.
+- **Found:**
+  - **Photos:** the camera answered `timed out` at bin 2 and `Connection refused` at bin 4.
+    Bins 3 and 1 worked, and all 12 photos in the earlier runs had worked. The user believes
+    power was the cause and recharged both supplies: the 9 V motor battery and the 5 V supply
+    for the Pico, HC-SR04 and ESP32-CAM. That fits: a sagging 5 V supply browns out the
+    ESP32-CAM when its Wi-Fi transmits. A low 5 V may also be why the HC-SR04 does not answer
+    (unchecked). Not confirmed: after the recharge the camera did not answer from the host
+    (ping and HTTP), probably because it was not powered on again yet.
+  - **Heading:** the trajectory shows the main bin turn ending 4–6° short. Each correction
+    move then went 8–13° (asked for 4–6°), and the follower kept the last result even when
+    worse: bin 4 was −3.7° after the main turn and −9.4° after two corrections. A correction
+    starts from standstill at 1.0 rad/s (≈0.09 m/s per wheel, below the ~0.1 m/s stiction
+    edge), so it lurches. The same pattern was in the first robot run (−9.8, −10.5, −14.2°).
+    A weak motor battery may have made it worse; it is not the root cause.
+- **Done:** nothing changed in code.
+- **Verified:** read the run's `trajectory.csv` and `summary.json`, the follower's turn code,
+  and the ESP32-CAM sketch (one attempt per photo, 5 s timeout, no retry; the error is not
+  saved in the run log); compared with the three earlier robot runs.
+- **Scope:** In scope (investigation only).
+- **Decisions:** none.
+- **Open / next:** rerun on fresh batteries to confirm the photos; then decide on the
+  proposed fixes: photo retries within the bin wait, and a small-turn correction (a timed
+  pulse; never end worse than it started), sim first. Phase 3 bin centering needs small turns.
+
+### 2026-11-19: Pulse corrections for small turns, and photo retries
+
+- **Phase:** 1 follow-up (found in the Phase 2 robot check). Needed by Phase 3's bin
+  centering.
+- **Branch / commit:** `walle-phase-2` @ uncommitted
+- **Asked for:** "fix both": the bin heading errors (corrections overshooting) and the missed
+  photos. The user found that power caused the camera misses and recharged both supplies.
+- **Done:**
+  - Timed-pulse corrections (`walle-app/route/route_follower.py`, `route_geometry.py`):
+    - `plan_pulse` / `learn_pulse_gain` hold the math.
+    - `turn_to` corrects misses up to 20° with a pulse: one turn command, then a stop after
+      the planned time. Bigger misses still get a normal turn.
+    - A pulse is skipped when even the shortest one would overshoot by more than the miss.
+    - The gain is learned from each pulse.
+    - Up to 3 corrections per turn (was 2).
+    - `pulses` and `pulse_gain_end_dps` go into `summary.json` and the printed summary.
+  - Photo retries: up to 3 tries per bin stop, 3 s apart, all within the bin wait. Each event
+    records `photo_tries` and `photo_error`. Settings in `walle-app/config/route.yaml`.
+  - `route-check --coast-time` / `make sim-route-check COAST=…` (`walle-sim/harness/sim_trials.py`,
+    `Makefile`) to force turn misses.
+  - 3 unit tests (`walle-app/tests/test_route.py`). Docs: `walle-app/README.md`,
+    `CLAUDE.md`, ROADMAP decision log.
+- **Verified:**
+  - Unit tests: 37 pass on the host.
+  - Gazebo `plastic_pid` pulse probe (scratch script, deleted): a pulse turns about
+    110°/s × time, whatever rate is commanded (0.1 s → 7°, 0.2 s → 19–22°, 0.3 s → 29–31°).
+    A single 50 ms command sometimes doesn't break free.
+  - Photo retries in the sim container:
+    - refused connection: 3 tries in 9 s;
+    - timeout: 2 tries in 13 s;
+    - the sim camera: 1 try.
+    All fit within a 15 s wait.
+  - `make sim-route-check DWELL=3`, all PASS:
+    - normal coast: 0.4 cm; 2 pulses, 3.3° → 1.2° and 3.4° → 1.1°.
+    - COAST=0.35: 1.1 cm; pulses −14.6 → 0.0°, +7.9 → −1.1°, −5.8 → +1.2°; worst bin 2.7°.
+    - COAST=0.0: 1.4 cm; +13.9 → −3.5 → +1.0°, −7.9 → −0.9°; worst bin 2.5°.
+    - Baseline, the old slow-turn corrections at COAST=0.35 (`pulse_max_deg` 0 for one run,
+      restored after): PASS 1.2 cm, but 10 corrections and bin 3 left at −5.2°.
+  - **Not verified on the robot.** The sim's stiction doesn't reproduce the robot's
+    8–13° lurches, so the improvement in sim is modest. On the robot the learned gain has to
+    adapt from 110°/s to whatever the lurch gives. The camera fix depends on the recharged
+    5 V supply; the retries only cover short dropouts.
+- **Scope:** Drift, agreed: Phase 1 motion code changed during Phase 2, at the user's
+  request ("fix both").
+- **Decisions:** ROADMAP decision log 2026-11-19 (pulse corrections, photo retries).
+- **Open / next:** user: a robot run on the charged supplies. Check the printed "correction
+  pulses" line, the bin heading errors, and that all 4 photos arrive. Then commit.
+
+### 2026-11-19: Robot run with pulse corrections and charged supplies: good
+
+- **Phase:** 1 follow-up / 2
+- **Branch / commit:** `walle-phase-2` @ uncommitted
+- **Asked for:** the user ran the follower on the robot (run `20261120_014029`): "looks fine";
+  bins not centered "because of my placement". Asked if Phase 3 can start.
+- **Verified (run files and `robot.sqlite`):**
+  - Run: done; EKF end 0.3 cm, tape 0 cm.
+  - 3 pulses, each landing within 0.6°: +5.5 → −0.6°, +3.7 → +0.2°, +3.2 → −0.3°. Learned
+    gain 110 → 118 °/s; the robot's pulses behave like the sim's, with no lurch.
+  - Bin heading errors +2.5 / −0.2 / +0.3 / +1.0° (worst before: +5.3 / −9.4°).
+  - 4 of 4 photos on the first try.
+  - The run recorded itself in `robot.sqlite` (5 runs, 20 bin checks).
+  - Bins 3 and 1 (marked not centered) were faced within 1°. Their photos show each bin at
+    the right edge and much nearer than the planned 0.71 m (it fills the frame's height, no
+    top visible): **placement**, as the user said.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:**
+  - Commit Phase 2 and merge it to `main` (Phase 3 branches from `origin/main`).
+  - Before Phase 3's real-photo set: place the bins at 0.71 m on the diagonal
+    (`python3 walle-app/park.py` prints the positions). Phase 3 centers on the detected bin,
+    but the top of a bin placed too close is out of view.
+
+### 2026-11-19: Phase 0 closed; Phase 2 committed
+
+- **Phase:** 0 and 2
+- **Branch / commit:** `walle-phase-2` @ see git log (PR to `main`)
+- **Asked for:** tick Phase 0's "square taped out" box ("I have it taped out"); commit
+  Phase 2 and open a PR.
+- **Done:** `ROADMAP.md`: Phase 0 ✅ (last box ticked, track marking recorded as tape).
+  Committed the Phase 2 work, the pulse and photo fixes, and the robot run logs
+  `20261119_043639` and `20261120_014029` (the record that `import_runs.py` rebuilds
+  `robot.sqlite` from).
+- **Verified:** the user's statement (not seen).
+- **Scope:** In scope. Not committed: the user's own move of the handoff docs into
+  `docs/handoff/phase0-to-phase1/` and `phase1-to-phase-2/`, plus `.DS_Store` and `.vscode/`.
+- **Decisions:** none.
+- **Open / next:** merge the PR, then Phase 3 in plan mode from `origin/main`.

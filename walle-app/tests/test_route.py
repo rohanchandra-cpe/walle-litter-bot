@@ -68,5 +68,30 @@ class PlanTests(unittest.TestCase):
         self.assertFalse([s for s in plain if s[0] in ("face_bin", "dwell")])
 
 
+class PulseTests(unittest.TestCase):
+    # walle-sim plastic_pid: gain ~110 deg/s, dead ~0.04 s
+    def test_duration_grows_with_error(self):
+        t5 = rg.plan_pulse(5.0, 110.0, 0.04, 0.06, 0.30)
+        t10 = rg.plan_pulse(-10.0, 110.0, 0.04, 0.06, 0.30)
+        self.assertAlmostEqual(t5, 0.04 + 5 / 110)
+        self.assertAlmostEqual(t10, 0.04 + 10 / 110)
+        self.assertEqual(rg.plan_pulse(60.0, 110.0, 0.04, 0.06, 0.30), 0.30)
+
+    def test_skip_when_shortest_pulse_overshoots(self):
+        # shortest pulse turns 110 * 0.02 = 2.2 deg: worth it for 1.5 deg, not for 1.0
+        self.assertEqual(rg.plan_pulse(1.5, 110.0, 0.04, 0.06, 0.30), 0.06)
+        self.assertIsNone(rg.plan_pulse(1.0, 110.0, 0.04, 0.06, 0.30))
+        # a robot that lurches (gain 300): the shortest pulse is 6 deg, skip a 3 deg miss
+        self.assertIsNone(rg.plan_pulse(3.0, 300.0, 0.04, 0.06, 0.30))
+
+    def test_gain_learning(self):
+        # asked 0.1 s at gain 110 (expects 6.6 deg) but it turned 13 deg: gain goes up
+        g = rg.learn_pulse_gain(110.0, 0.10, 13.0, 0.04, 0.5)
+        self.assertAlmostEqual(g, 110 + 0.5 * (13 / 0.06 - 110))
+        self.assertEqual(rg.learn_pulse_gain(110.0, 0.10, 0.2, 0.04, 0.5), 110.0)  # stuck
+        self.assertEqual(rg.learn_pulse_gain(110.0, 0.05, 3.0, 0.04, 0.5), 110.0)  # too short
+        self.assertEqual(rg.learn_pulse_gain(110.0, 0.10, 90.0, 0.04, 0.5), 400.0)  # clamped
+
+
 if __name__ == "__main__":
     unittest.main()

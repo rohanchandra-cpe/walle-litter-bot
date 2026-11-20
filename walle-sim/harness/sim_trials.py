@@ -103,6 +103,8 @@ def parse_args():
                    help="pass if the robot ends within this of the start (Phase 1: 5 cm)")
     p.add_argument("--dwell", type=float, help="seconds at each bin (default route.yaml)")
     p.add_argument("--feedback", help="/odometry/filtered (default) or /wheel/odom")
+    p.add_argument("--coast-time", type=float, help="start both coasts at this (s): a wrong "
+                   "value makes turns miss, to exercise the correction pulses")
     for name in ("shakedown", "rq1", "rq2", "motion"):
         sub.choices[name].add_argument("--bag", action="store_true", help="record ros2 bags")
     return parser.parse_args()
@@ -718,6 +720,8 @@ def cmd_route_check(sim):
         cmd += ["--dwell", str(ARGS.dwell)]
     if ARGS.feedback:
         cmd += ["--feedback", ARGS.feedback]
+    if ARGS.coast_time is not None:
+        cmd += ["--coast-time", str(ARGS.coast_time)]
     code = subprocess.call(cmd)
     summary_path = os.path.join(out_dir, "summary.json")
     if not os.path.exists(summary_path):

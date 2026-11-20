@@ -34,6 +34,7 @@ PARK_FILE = os.path.join(APP_DIR, "config", "park.yaml")
 SCENARIO_DIR = os.path.join(APP_DIR, "config", "scenarios")
 CORNERS = (1, 2, 3, 4)
 STATES = ("ok", "overflowing")
+BIN_TYPES = ("trash", "recycling")
 # Overflow mound: items per layer above the rim, and items spilled at the base, per level
 MOUND_LAYERS = {1: [3], 2: [4, 2], 3: [5, 3, 2]}
 LAYER_STEP_M = 0.035
@@ -322,7 +323,7 @@ class Geometry:
 
 # ===== bins =====
 def build_bin(geo, park, corner, spec, seed):
-    unknown = set(spec) - {"state", "level", "litter"}
+    unknown = set(spec) - {"state", "level", "litter", "type"}
     if unknown:
         raise ParkError(f"Bin {corner}: unknown keys {', '.join(sorted(unknown))}")
     state = spec.get("state", "ok")
@@ -339,6 +340,11 @@ def build_bin(geo, park, corner, spec, seed):
     litter = int(spec.get("litter", 0))
     if not 0 <= litter <= int(park["bins"].get("litter_max", 6)):
         raise ParkError(f"Bin {corner}: litter must be 0-{park['bins'].get('litter_max', 6)}.")
+    types = park["bins"].get("types") or {}
+    bin_type = spec.get("type", types.get(corner, types.get(str(corner))))
+    if bin_type not in BIN_TYPES:
+        raise ParkError(f"Bin {corner}: type must be one of {BIN_TYPES} (bins.types in "
+                        f"park.yaml or `type:` in the scenario), not '{bin_type}'.")
 
     rng = random.Random(f"{seed}-bin-{corner}")
     cx, cy = geo.corner(corner)
@@ -346,7 +352,7 @@ def build_bin(geo, park, corner, spec, seed):
     bx, by = cx + geo.bin_offset * ux, cy + geo.bin_offset * uy
     yaw = math.atan2(uy, ux)
     name = f"bin_{corner}"
-    out = {"id": corner, "name": name, "corner": corner,
+    out = {"id": corner, "name": name, "corner": corner, "type": bin_type,
            "position": [round(bx, 4), round(by, 4)],
            "shape": geo.bin_shape, "height_m": geo.bin_height,
            # box: length = the wide face toward the square, width = depth along the diagonal
@@ -444,7 +450,7 @@ def summary(layout):
                  f"rim, {len(b['spill'])} spilled)" if b["state"] == "overflowing" else "ok")
         litter = ", ".join(f"{i['item']}" for i in b["litter"]) or "none"
         size = " x ".join(f"{v * 100:.0f}" for v in b["size_m"])
-        lines.append(f"  {b['name']} at ({b['position'][0]:.3f}, {b['position'][1]:.3f}), "
+        lines.append(f"  {b['name']} ({b.get('type', '?')}) at ({b['position'][0]:.3f}, {b['position'][1]:.3f}), "
                      f"{b['shape']} {size} cm, face it at {b['view_heading_deg']:.0f} deg: "
                      f"{state}; litter: {litter}")
     o = layout["obstacle"]

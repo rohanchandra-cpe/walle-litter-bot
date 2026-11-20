@@ -90,6 +90,8 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   park.py            park.yaml + scenario (+ overrides) -> layout; shared by sim and robot
   config/route.yaml  route follower settings
   route/             route_follower.py (Phase 1: drives the route on the EKF)
+  memory/            memory store (Phase 2): SQLite + recall; config/memory.yaml
+  data/memory/       robot.sqlite, sim.sqlite (git-ignored; rebuilt by memory/import_runs.py)
 walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
 docs/plans/          approved phase plans (phase-N-plan.md)
 docs/handoff/        start prompts for each phase's session, session summaries
@@ -120,8 +122,10 @@ Park (the WALL-E test world):
 make sim-launch WORLD=park SCENARIO=mixed GUI=false     # BINS=0-4 OBSTACLE=none|random|1-4 SEED=n
 make sim-park-check LOOK_AT="bin_2 obstacle"            # layout vs ground truth, saves photos
 make sim-route-check                                    # Phase 1: drive the route, PASS if <= 5 cm
+                                                        # (COAST=0.35 forces turn misses: tests pulses)
                                                         # (launch with PROFILE=plastic_pid: the robot's firmware + surface)
-python3 -m unittest discover -s walle-app/tests         # park + route tests (host or container)
+python3 -m unittest discover -s walle-app/tests         # park, route, memory tests (host or container)
+python3 walle-app/memory/import_runs.py --rebuild       # rebuild robot.sqlite from results/route/
 ```
 
 Route follower on the robot (after `make launch`, robot on corner 1 facing corner 2):

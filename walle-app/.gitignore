@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# Memory store databases (rebuild with memory/import_runs.py)
+data/memory/*.sqlite*
