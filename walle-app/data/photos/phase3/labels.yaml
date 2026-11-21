@@ -414,3 +414,110 @@ photos:
   t_utc: '2026-11-20T19:05:06+00:00'
   note: empty carpet
   light: day
+- id: 43
+  file: shot_43.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: on_bin}
+  t_utc: '2026-11-21T15:20:40+00:00'
+  note: repeat of shot 7
+  light: day
+- id: 44
+  file: shot_44.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: milk_jug, place: on_bin}
+  t_utc: '2026-11-21T15:22:20+00:00'
+  note: repeat of shot 8
+  light: day
+- id: 45
+  file: shot_45.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  - {label: plastic_bag, place: on_bin}
+  t_utc: '2026-11-21T15:23:01+00:00'
+  note: repeat of shot 9 (grocery bag)
+  light: day
+- id: 46
+  file: shot_46.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: can, place: on_bin}
+  t_utc: '2026-11-21T15:23:50+00:00'
+  note: repeat of shot 10
+  light: day
+- id: 47
+  file: shot_47.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  - {label: plastic_bag, place: on_bin}
+  t_utc: '2026-11-21T15:24:42+00:00'
+  note: repeat of shot 11 (spinach bag)
+  light: day
+- id: 48
+  file: shot_48.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: yogurt_container, place: on_bin}
+  t_utc: '2026-11-21T15:25:19+00:00'
+  note: repeat of shot 12
+  light: day
+- id: 49
+  file: shot_49.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: on_bin}
+  - {label: foil, place: on_bin}
+  t_utc: '2026-11-21T15:26:12+00:00'
+  note: repeat of shot 13
+  light: day
+- id: 50
+  file: shot_50.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: paper_bag, place: on_bin}
+  - {label: plastic_bag, place: on_bin}
+  t_utc: '2026-11-21T15:28:00+00:00'
+  note: repeat of shot 14
+  light: day
+- id: 51
+  file: shot_51.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: milk_jug, place: on_bin}
+  - {label: plastic_bag, place: around_bin}
+  t_utc: '2026-11-21T15:29:01+00:00'
+  note: repeat of shot 25
+  light: day
+- id: 52
+  file: shot_52.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  - {label: foil, place: around_bin}
+  - {label: paper_towel, place: around_bin}
+  t_utc: '2026-11-21T15:30:06+00:00'
+  note: repeat of shot 28 (spinach bag on top)
+  light: day

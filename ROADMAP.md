@@ -24,7 +24,7 @@ commands. Metrics and an LLM judge are stretch goals.
 | 0 | Foundations: sim merged, park defined | ✅ done 2026-11-19 |
 | 1 | Route following | ✅ done 2026-11-18 (bin centering moved to Phase 3) |
 | 2 | Memory store | ✅ done 2026-11-18 |
-| 3 | Object detection and trash/recycling classification | 🟨 plan approved 2026-11-19 |
+| 3 | Object detection and trash/recycling classification | 🟨 all done but item accuracy, carried into Phase 4 (2026-11-21) |
 | 4 | Servo and bin monitoring | ⬜ |
 | 5 | Obstacle detection and avoidance | ⬜ |
 | 6 | WALL-E ROSA agent | ⬜ |
@@ -175,6 +175,10 @@ Find objects in camera photos and say whether each is trash or recycling.
 **Done when**
 - [ ] On a labeled set of real ESP32-CAM photos of the fake trash: detection and
       classification accuracy measured and above a target agreed in plan mode.
+      Measured 2026-11-21 on 52 photos (`results/detect/20261121_154929`): daylight recall
+      0.91 / precision 0.84, lamp light 0.69 / 0.70, all 0.787 / 0.768 (target 0.80);
+      category 0.945, bins 1.0, median 8.1 s. **Carried into Phase 4** (user, 2026-11-21):
+      the tilted camera changes the view that fails.
 - [x] Runs fast enough on the computer's CPU for use while driving (latency measured).
       (2026-11-20: median 5.1 s night / 8.1 s day per photo, p90 ≤ 11 s, with YOLO-World
       for bins + qwen3.5:4b in Ollama for items; target ≤ 15 s agreed with the user. The
@@ -215,6 +219,9 @@ Tilt the camera up at a bin, estimate how full it is, and count litter around it
 - [ ] Servo moves to a commanded angle on the robot and in sim.
 - [ ] In sim: bins set to empty / full / overflowing / litter-around are classified correctly.
 - [ ] On the robot: the same states with the real bins, accuracy recorded (user).
+- [ ] Item accuracy carried from Phase 3: on labeled ESP32-CAM photos taken with the tilted
+      camera at the bin stops, recall and precision ≥ 0.80 and category ≥ 0.90, in daylight
+      and under the room lamps (`detect/eval_photos.py`).
 
 **Open decisions**
 - **Firmware limit:** micro-ROS is at 3 publishers / 2 subscriptions, all used. Options:
@@ -310,6 +317,8 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-21 | 3→4 | Phase 3's item-accuracy box stays open and its target (recall and precision ≥ 0.80, category ≥ 0.90) is checked again in Phase 4 with the tilted camera, in daylight and lamp light. Measured on 52 photos: daylight 0.91 / 0.84, lamp light 0.69 / 0.70, all 0.787 / 0.768 (user's choice). |
+| 2026-11-21 | 3 | The zoomed second search over the bin's rim runs only in good light (photo color cast, red − blue ≤ 9; the user's lamps measure 11–22). On the on-bin setups it lifted daylight recall 0.73 → 0.93 but cut lamp-light recall 0.75 → 0.56 (user's choice). |
 | 2026-11-21 | 1/3 | The route follower stops and waits when the Pico's ticks or IMU are > 0.4 s old, and afterwards re-anchors the fused estimate on the wheels' motion across the gap (robot run 20261121_041923: the EKF spun on with no data and the follower made a real 73° pulse at the ghost heading). `route.yaml` `sensor_guard`; walle-sim `/sim/blackout` tests it. |
 | 2026-11-20 | 3 | Latency target for detection: median ≤ 15 s per photo (was ≤ 1 s, set for YOLO-World alone). User: "I am not expecting sub 1 second performance" with local models. Bins sit 0.88 m out from their corner (`park.yaml` `offset_m`, confirmed by the user); the auto offset stays tested on its own. |
 | 2026-11-20 | 3 | Grocery and spinach bags are one label, `plastic_bag` (user's choice; both trash). The model could not tell them apart (spinach bags 0/9). |
