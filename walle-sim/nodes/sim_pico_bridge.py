@@ -38,7 +38,7 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, qos_profile_sensor_data
 from sensor_msgs.msg import Imu, JointState, PointCloud2
-from std_msgs.msg import Float32MultiArray, Int32, Int32MultiArray, String
+from std_msgs.msg import Float32, Float32MultiArray, Int32, Int32MultiArray, String
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from firmware_models import MotorPlant, make_firmware  # noqa: E402
@@ -150,6 +150,11 @@ class SimPicoBridge(Node):
         self.create_subscription(PointCloud2, "/sim/ultrasonic/points", self.on_points,
                                  qos_profile_sensor_data)
         self.create_subscription(Float32MultiArray, "/pico/imu/std", self.on_std, 10)
+        # A Wi-Fi blackout on demand: /sim/blackout (seconds) drops every /pico/wheel_ticks
+        # and /pico/imu/data message for that long (commands still get through), as on the
+        # robot in run 20261121_041923. Tests the route follower's sensor guard.
+        self.blackout_until = -1.0
+        self.create_subscription(Float32, "/sim/blackout", self.on_blackout, 10)
         self.last_loop = None
         self.create_timer(LOOP_S, self.loop)
         self.get_logger().info(
@@ -159,6 +164,10 @@ class SimPicoBridge(Node):
 
     def now(self):
         return self.get_clock().now().nanoseconds * 1e-9
+
+    def on_blackout(self, msg):
+        self.blackout_until = self.now() + float(msg.data)
+        self.get_logger().info(f"blackout: no ticks or IMU for {msg.data:.1f} s")
 
     # ----- firmware: commands, watchdog, motors -----
     def on_cmd(self, msg):
@@ -195,7 +204,8 @@ class SimPicoBridge(Node):
         self.ping(now)
         ticks = Int32MultiArray()
         ticks.data = [int(self.counts[0]), int(self.counts[1]), self.ping_seq, self.echo_us]
-        self.ticks_link.send(now, ticks)
+        if now >= self.blackout_until:
+            self.ticks_link.send(now, ticks)
 
     def set_status(self, status, now):
         if status != self.status:
@@ -288,7 +298,8 @@ class SimPicoBridge(Node):
         out.orientation_covariance = diagonal(math.radians(self.std[0]) ** 2)
         out.angular_velocity_covariance = diagonal(self.std[1] ** 2)
         out.linear_acceleration_covariance = diagonal(self.std[2] ** 2)
-        self.imu_link.send(now, out)
+        if now >= self.blackout_until:
+            self.imu_link.send(now, out)
 
 
 def main():

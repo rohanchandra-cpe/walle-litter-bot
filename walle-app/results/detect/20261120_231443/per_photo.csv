@@ -1,0 +1,14 @@
+id,file,true_items,reported_items,found,category_right,category_matchable,has_bin,bin_found,bin_bearing_deg,expected_bearing_deg,rim_visible,place_right,place_checked,seconds
+30,shot_30.jpg,2,2,2,2,2,True,True,0.62,0.0,True,1,2,9.148
+31,shot_31.jpg,1,1,1,1,1,False,,,,,0,0,4.927
+32,shot_32.jpg,1,1,0,1,1,False,,,,,0,0,5.282
+33,shot_33.jpg,2,2,2,2,2,False,,,,,0,0,7.912
+34,shot_34.jpg,2,2,2,2,2,False,,,,,0,0,8.067
+35,shot_35.jpg,1,0,0,0,0,False,,,,,0,0,11.466
+36,shot_36.jpg,2,2,2,2,2,False,,,,,0,0,8.043
+37,shot_37.jpg,2,2,2,2,2,False,,,,,0,0,8.241
+38,shot_38.jpg,2,2,2,2,2,False,,,,,0,0,9.135
+39,shot_39.jpg,3,3,3,3,3,False,,,,,0,0,11.819
+40,shot_40.jpg,2,2,2,2,2,False,,,,,0,0,8.562
+41,shot_41.jpg,0,0,0,0,0,False,,,,,0,0,5.2
+42,shot_42.jpg,0,1,0,0,0,False,,,,,0,0,4.886

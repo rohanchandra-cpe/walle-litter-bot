@@ -646,3 +646,476 @@ Work done before the ledger started, summarized from git history:
   `docs/handoff/phase0-to-phase1/` and `phase1-to-phase-2/`, plus `.DS_Store` and `.vscode/`.
 - **Decisions:** none.
 - **Open / next:** merge the PR, then Phase 3 in plan mode from `origin/main`.
+
+### 2026-11-19: Phase 2 merged; Phase 3 handoff
+
+- **Phase:** 2 → 3
+- **Branch / commit:** `walle-phase-2` (merged to `main` in PR #8, `2a42319`, by the user)
+  @ uncommitted
+- **Asked for:** a summary of this session and a start prompt for the Phase 3 agent,
+  structured like the documents in `docs/handoff/phase0-to-phase1/` and
+  `docs/handoff/phase1-to-phase-2/`.
+- **Done:** `docs/handoff/phase2-to-phase-3/session-2026-11-18-summary.md` and
+  `docs/handoff/phase2-to-phase-3/phase-3-prompt.md`.
+- **Verified:** documentation only. Facts were checked against the code (`camera_node.py`,
+  `vision_node.py`, `sim_camera_server.py`, `park_world.py`, the ESP32-CAM sketch, the route
+  follower), the run files, and the containers' Python packages (2026-11-19: torch 2.14 CPU,
+  numpy 2.2.6, no ultralytics; the sim's apt OpenCV fails with numpy 2).
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** Phase 3 in a new session from `origin/main`. Neither this entry nor the
+  handoff folder is committed yet.
+
+### 2026-11-19: Phase 3 started: plan, detector stack, photo-set tools
+
+- **Phase:** 3 (Object detection and trash/recycling classification)
+- **Branch / commit:** `walle-phase-3` (from `origin/main` `2a42319`, no upstream set) @ uncommitted
+- **Asked for:** start Phase 3 from `docs/handoff/phase2-to-phase-3/phase-3-prompt.md`: plan
+  mode, settle the open decisions, then build. The user asked that the photo set be taken with
+  the ESP32-CAM (answer: yes, never a phone, for the scored set) and that Claude guide it.
+- **Done:**
+  - Plan approved; copied to `docs/plans/phase-3-plan.md`. Decisions in the ROADMAP log;
+    Phase 3 marked 🟨 with the agreed targets.
+  - Both Dockerfiles: libGL, pip 26.3 (needed to build CLIP from git), setuptools < 80
+    (colcon), torchvision 0.29.2 from the CPU index (the PyPI build breaks with torch
+    2.14.1+cpu: "torchvision::nms does not exist"), ultralytics 8.4.215, opencv-python
+    5.1.0.95, CLIP pinned to a commit; `yolo settings sync=False`; `~/.cache/clip` → 
+    `walle-app/models/clip`. Images rebuilt; containers recreated with `make down && make up`
+    and `make sim-down && make sim-up`.
+  - `walle-app/config/detect.yaml`: model, thresholds, bin prompts, the user's item labels,
+    sim-only prompts, centering and place settings, eval targets.
+  - `walle-app/detect/`: `detector.py` (YOLO-World, prompt → label → category),
+    `geometry.py` (bearing, cut-off bins, on_bin/around_bin, ground-plane obj_xy),
+    `probe_prompts.py`, `capture_set.py`, `eval_photos.py`.
+  - `walle-app/data/photos/phase3/shots.yaml`: 42-shot list (6 bin-only incl. measured
+    sideways shifts of 10/20 deg, 24 at bin stops, 10 on the route/carpet, 2 empty).
+  - `make detect-eval`; `walle-app/models/` git-ignored; `CLAUDE.md` layout/commands.
+  - `walle-app/tests/test_detect.py` (14 tests incl. one with the model).
+- **Verified:**
+  - Both containers import numpy 2.2.6, cv2 5.1.0 (pip build shadows the sim's apt one),
+    torch 2.14.1+cpu, torchvision 0.29.2+cpu, ultralytics 8.4.215, clip; rclpy still works.
+  - Tests: 60 pass in both containers; on the host 59 + 1 skipped (no ultralytics).
+  - Latency on the 18 robot bin photos, container CPU, 640 px: S median 0.32 s, M 0.77 s.
+  - Bin prompts probed alone on those 18 photos (bins too close, tops cut off): "black bin"
+    best, 11/18 at conf 0.10 with S (M 1/18); its best box lay on the bin in 16/18. Bin
+    `min_conf` set to 0.03 (a bin is known to be there at a stop). **Not settled**: needs the
+    new photos with the bins at 0.71 m.
+  - `capture_set.py` dry-run against a fake local camera (take, retake, skip, resume);
+    `eval_photos.py` dry-run on 4 old photos with made-up labels (runs, scores, writes report).
+  - **Not done:** no labeled photos yet, so no accuracy measured; no follower, memory, node
+    or sim work yet (plan steps 5–7).
+- **Scope:** In scope. `setuptools` < 80 and the pip upgrade are image changes beyond the
+  listed packages, needed to install them.
+- **Decisions:** ROADMAP decision log 2026-11-19 (Phase 3, five rows).
+- **Open / next:** user: take the 42 shots with `capture_set.py` (robot on 5 V only, bins at
+  0.71 m); then `make detect-eval`, tune prompts, settle the bin prompt. Meanwhile: follower
+  centering, `detections.json`, importer, `detect_node.py`, sim prompts and check.
+
+### 2026-11-19: Phase 3: follower centering + detections, memory import, sim stand-in; lens FOV doubt
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** while the user takes the photo set, build the robot side (plan step 5–6).
+- **Done:**
+  - `route_follower.py`: `center_bin()` after `face_bin` (photo, detect, pulse/turn toward
+    the detected bin, ≤ 3 corrections, ≤ 25° from the configured heading, no bin = keep the
+    heading and record why; detector errors never abort the run); detection on the dwell
+    photo; `<run>/detections.json`; `centering` and `detected` in `summary.json`;
+    `--no-detect`, `--truth-layout`; `route.yaml` `detect`, `center_bins`.
+  - `route_geometry.centering_target()`; `memory/route_records.py` reads `detections.json`
+    (so `import_runs.py --rebuild` keeps detections).
+  - `detect/detect_node.py` (`/detect/ask` → `/detect/result`).
+  - **Scope change (user agreed, replaces the plan's "sim prompts"):** YOLO-World sees
+    nothing in the Gazebo park (flat-colored shapes; no prompt > 0.05 on 4 bin photos, not
+    even a bin filling the frame). `detect/sim_truth.py` is a ground-truth stand-in: it
+    projects the true bins/items through the sim camera (0.10 m high, 0.07 m ahead,
+    60 × 46.8°, from the URDF), hides items behind a bin, and boxes items resting on top only
+    above the near rim. `detect.yaml` `sim:` now holds the sim camera, not prompts.
+  - `sim_trials.py route-check --misplace-deg` (`make sim-route-check MISPLACE=12`): the
+    follower is told each bin is swung round its corner; checks centering (truth), detected
+    bin, places, ground positions (≤ 15 cm), and detections in `sim.sqlite`. The world's
+    layout is saved as `layout_truth.json` (the follower's own `layout.json` overwrote it in
+    the first run).
+  - `capture_set.py`: a shot counts as done only if its photo exists (the user deleted
+    `shot_01.jpg`; it would have been skipped).
+- **Verified:**
+  - Tests: 66 (host: 65 + 1 skipped); containers all pass (before the last test was added:
+    65 in both).
+  - `detect_node.py` live in walle-sim (camera_node on the sim camera): answered in 0.31 s.
+  - Gazebo `plastic_pid`, mixed, OBSTACLE=none, DWELL=3, MISPLACE=12: run 1 FAIL (bin 2's
+    overhanging bottles called around_bin: stand-in occlusion bug, fixed); run
+    `20261120_031658` **PASS**, 15/15 checks: bins centered to +0.6 / −0.5 / −0.0 / −1.0°
+    true bearing in 2–3 looks (9–13° from the configured heading); places all right; ground
+    positions ≤ 5.2 cm off; 15 detections in `sim.sqlite` = `detections.json`; end 1.5 cm.
+  - `import_runs.py --source sim --rebuild` into a temp file: both sim runs' 30 detections
+    rebuilt from the run folders.
+  - **Not verified:** nothing on the robot; YOLO-World accuracy (no labeled photos yet).
+- **Lens:** the user's `shot_01.jpg` (bin at 0.71 m) has the bin's top cut off. With the
+  nominal 60 × 47° FOV the top should be ~25 px inside the frame. The bin's bottom row and
+  widths fit ~53 × 41° (typical ~66° diagonal ESP32-CAM lens). With that, `park.py`'s
+  framing rule would put the bins at ~0.79–0.81 m. Not changed yet: waiting for two
+  tape-measure photos to measure the FOV (and any camera tilt).
+- **Scope:** Drift, agreed: sim uses a ground-truth stand-in instead of sim prompts. Pending
+  (needs the user's agreement): moving the bins farther out if the measured FOV confirms.
+- **Decisions:** sim stand-in (ROADMAP log, below).
+- **Open / next:** FOV photos → `park.yaml` camera FOV, bin offset, shot list shifts → user
+  takes the photo set → `make detect-eval`. ROADMAP: "in sim, detections written to the
+  memory store" met (stand-in); sim centering met, robot centering not yet.
+
+### 2026-11-20: Phase 3: photo set done; YOLO-World fails on items; VLM detector (gemma4) tried
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** the user finished the 42-shot set (29 at night, 13 in daylight; corrected
+  labels themselves) and chose "Option 2" (a vision model names items). "Accuracy first,
+  slower is fine."
+- **Done:**
+  - `capture_set.py --light`; labels carry `light` (1–29 night, 30–42 day).
+  - Plan amendment (`docs/plans/phase-3-plan.md`) and ROADMAP decision row: two-step item
+    detection, tune on shots 1–29, report 30–42 as unseen.
+  - `detector.py`: `VLMDetector` (bins by YOLO-World; items FOUND by gemma4 on the whole
+    photo, free-form name + box, then each crop NAMED by gemma4: describe, then a label or
+    not_trash) and `make_detector()`; `detect.yaml` `method: vlm`, `vlm:` (model, url,
+    per-label descriptions). Follower and `eval_photos.py` (`--method`, `--vlm-model`,
+    `--ids`) use it.
+  - `detect.yaml` `eval.latency_median_s` 1.0 → 15.0 (user: accuracy first). **To confirm
+    with the user.**
+  - `park.yaml` (previous turn, user unconfirmed): `offset_m: 0.88`, camera `forward_m:
+    0.125`; shot list shifts for 0.755 m; `eval.bin_distance_m: 0.755`. 2 park tests fail
+    on it (they assume the auto offset).
+- **Verified (all on shots 1–29, night; 30–42 not scored yet, kept unseen):**
+  - YOLO-World S, item prompts: 0/36 items at conf 0.25; bins 29/29.
+  - YOLO-World S, generic prompts as a finder: drawn on all 29; misses foil, most bags,
+    floor towels, the paper bag. Not usable as the find step.
+  - gemma4 one call with a label list: recall 0.28, precision 0.26 ("foil" everywhere).
+  - gemma4 find (asked for "trash") + name crops: recall 0.28, precision 0.48, category
+    1.0 (clean jugs/cans/tubs never found).
+  - gemma4 find ("loose, movable objects") + name crops: **recall 0.47, precision 0.46,
+    category 0.89, bins 1.0, median 5.0 s (p90 11.3 s)**. Spinach bags 0/9 (called
+    plastic_bag; both trash); with the two bag labels merged: recall 0.65, precision 0.64.
+    Items on top of a bin are missed most.
+  - qwen3.5:4b boxes were misplaced (other coordinate order; not pursued).
+  - Tests: 66 run; 2 park failures (above); the rest pass on host and walle-pilot.
+  - Reports: `walle-app/results/detect/20261120_19*/`.
+- **Scope:** Drift, agreed in direction: "Option 2" became gemma4 for both finding and
+  naming (YOLO-World could not find the items). Latency target relaxed (to confirm).
+- **Decisions:** ROADMAP 2026-11-20 (two-step item detection).
+- **Open / next:** user: labels for shots 31/32 (the bin from shot 30, with the milk jug,
+  shows in the background); retake shot 7; confirm the bin distance (2 park tests), the
+  latency target, and which way to push accuracy (see the session's options).
+
+### 2026-11-20: Bag labels merged, qwen3.5:4b as the item model, unseen day shots scored
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** the user retook shots 7, 31 and 32, agreed to merge the grocery and spinach
+  bag labels, then "continue with what you were doing". Asked whether a remote (cloud)
+  vision model could be used; after discussing it, shelved it as a possible alternative for
+  the paper.
+- **Done:**
+  - `spinach_bag` merged into `plastic_bag`: `detect.yaml` (items, prompts, describe),
+    `labels.yaml`, `shots.yaml`, `capture_set.py` header, `tests/test_detect.py`.
+  - `VLMDetector.box_order()`: `detect.yaml` `vlm.box_order` is now `{default: yxyx, qwen:
+    xyxy}` (matched on the model name's start); qwen reports x first whatever it's asked.
+  - `detect.yaml` `vlm.model`: gemma4 → `qwen3.5:4b`.
+  - ROADMAP decision rows: bag merge; remote models shelved.
+- **Verified:**
+  - Retaken shots 7, 31, 32 look right (31 has a small yellowish object far back by the TV
+    stand, left unlabeled).
+  - Night shots 1–29 (tuning set), merged labels: gemma4 recall 0.581, precision 0.581,
+    category 0.895, median 5.2 s (`results/detect/20261120_230527`); qwen3.5:4b recall
+    0.698, precision 0.714, category 0.892, median 5.1 s (`20261120_231243`). Both FAIL the
+    0.8 targets. Items on top of bins and the paper bag are still the weak spots.
+  - Day shots 30–42, unseen, scored once with qwen3.5:4b: recall 0.90, precision 0.90,
+    category 1.0, bin 1/1, median 8.1 s: PASS (`20261120_231443`). Caveat: these shots are
+    mostly items on the floor with no bin (only shot 30 has a bin); they are easier than
+    the night bin shots. All 42 together: about 48/63 items found (0.76), still under 0.8.
+  - Tests on the host: 66 run, only the 2 known `test_park` failures (bin distance).
+- **Scope:** In scope. A remote-model detector was discussed, not built (user shelved it).
+- **Decisions:** ROADMAP 2026-11-20 rows (bag merge; remote models shelved). Model switch to
+  qwen3.5:4b recorded here and in `detect.yaml`.
+- **Open / next:** the accuracy checkbox is NOT ticked: on-bin night shots are at ~0.70.
+  Optional ~10 daylight repeats of night bin setups would show whether light or the bin
+  setting causes the gap. Still to confirm with the user: latency target 15 s, bin distance
+  (2 park tests). Then the robot centering run.
+
+### 2026-11-20: Latency target and bin distance confirmed; sim re-checked at 0.88 m
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** the user confirmed the 15 s latency target ("not expecting sub 1 second
+  performance") and that the bins were placed 0.88 m out on the diagonal, though for many
+  photos the robot was moved back or aside to get the bin's top and sides in view. The
+  daylight repeats wait until tomorrow.
+- **Done:**
+  - `tests/test_park.py`: the two auto-offset tests now set `offset_m: auto` themselves
+    (park.yaml fixes 0.88 m).
+  - ROADMAP: latency box ticked; decision row (15 s target, 0.88 m bins); centering note.
+  - `detect.yaml` latency comment marked confirmed.
+  - Found the running Gazebo world was built before the 0.88 m change (bins at 0.71 m), so
+    the 2026-11-19 sim pass was at 0.71 m. Relaunched the park world (bins now 0.88 m).
+- **Verified:**
+  - Tests: all pass on the host, in walle-pilot and in walle-sim (1 model test skipped on
+    the host).
+  - `make sim-route-check RUN=phase3 DWELL=3 MISPLACE=12` at 0.88 m: PASS 15/15. Bins
+    centered within 2.5° true bearing (2–3 looks), bins 0.34–0.41 wide / 0.60–0.64 tall
+    of the half-frame, places right, ground error ≤ 6.3 cm, 16 detections in `sim.sqlite`
+    (`walle-sim/data/phase3/route/20261120_232353`).
+- **Scope:** In scope.
+- **Decisions:** ROADMAP 2026-11-20 (latency ≤ 15 s; bins at 0.88 m).
+- **Open / next:** the photo set's bin distances vary (robot moved for framing), so the
+  bin-bearing numbers on shots 3–6 are a rough check only. Tomorrow: ~10 daylight repeats
+  of night on-bin setups (shots 43-52 added to shots.yaml: `capture_set.py --light day`), then
+  decide on the accuracy box. Then the robot centering run.
+  Nothing committed.
+
+### 2026-11-20: Zoomed rim search (tried, left off); detect_node uses make_detector
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** "go ahead with the zoomed search above the bin fix and the detection-node
+  fix" while the user sets up the robot centering run.
+- **Done:**
+  - `detector.py`: `VLMDetector.find()` (FIND on the whole photo or a zoomed region),
+    `rim_region()` (window over the biggest bin's top), `merge_boxes()`/`overlap()`;
+    `VLM_ZOOM_PROMPT`. Switch `detect.yaml` `vlm.zoom_bin_top` (enabled: false).
+    `eval_photos.py --zoom` turns it on for one run. Result shape unchanged (adds
+    `zoom_region` when used).
+  - `detect_node.py`: `make_detector` (config method, default vlm), `-p method:=yolo`;
+    its log handles `conf` None.
+  - `tests/test_detect.py`: `TestZoom` (window, no-bin case, merge).
+- **Verified:**
+  - Tests: host 69 OK (1 skipped), walle-pilot OK. detect_node not run under ROS.
+  - Shots 1–29 with `--zoom`: recall 0.674, precision 0.674, category 0.892, median 8.5 s,
+    p90 14.2 s (`results/detect/20261120_234001`); without: 0.698 / 0.714, 5.1 s. Per on-bin
+    item: the zoom finds something on the rim more often (shot 8 jug) but the naming step
+    gets on-bin items wrong at night (jug → plastic_bag/plastic_bottle, can →
+    yogurt_container, grocery bag → paper_towel). Shots 14 and 28: nothing found on the rim
+    either way. So at night the limit is naming on-bin items, not finding them.
+  - The robot run had not started when this scoring ran (as far as known), so Ollama was
+    not shared with it.
+- **Scope:** In scope. The zoom stays off (no gain, slower).
+- **Decisions:** none (zoom off pending the day repeats).
+- **Open / next:** score shots 43–52 with and without `--zoom`; the user's robot centering
+  run (bins 2 and 3 slid ~10 cm; items: bin 1 none, bin 2 jug on top, bin 3 towel + foil on
+  the floor, bin 4 grocery bag on top + can on the floor).
+
+### 2026-11-21: First robot run with centering and detection (20261121_000650), reviewed
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** the user ran the follower on the robot (bins 0.88 m out, bins 2 and 3 slid
+  ~10 cm; items: bin 1 none, bin 2 milk jug on top, bin 3 towel + foil on the floor, bin 4
+  grocery bag on top + can on the floor) and asked "What do you think of the run?". User's
+  notes: EKF good, ended ~1 cm from the start; bin 2 bad (jug cut off and against a white
+  wall, clutter behind, centering wandered); bins 1, 3, 4 good.
+- **Done:** review only (no code changed). Re-ran YOLO-World on the run's photos to see the
+  bin boxes; rebuilt the robot store into a scratch file to compare.
+- **Verified (from summary.json, detections.json, photos, robot.sqlite):**
+  - Route: done; EKF end error 1.1 cm, heading -1.1 deg; user measured 1.0 cm, 0 deg.
+  - Centering: bin 4 centered in 1 look (-0.4 deg); bin 1 in 2 looks (+2.75 deg). Bin 3
+    NOT within 3 deg by the code (-15.1 -> +13.4 -> -10.3 -> +4.2, "still +4.2 off after 3
+    corrections"), though the final photo looks fine. Bin 2 failed (ended +24.6 off; final
+    photo shows the bin's edge at the left).
+  - Cause 1, bin 2 (detection): look 0 did not detect the (cut-off) bin and took a tiny
+    0.24-conf box (16 x 26 px, under the side table) as the bin; look 2 had the real bin
+    (conf 0.21, ~-3 deg) but `pick_bin` chose a 0.03-conf, 46 px box at -17.6 deg because it
+    was nearer the EXPECTED bearing (-20 deg from the config, as the robot had already turned
+    toward the real bin). Then it turned -26.7 deg away.
+  - Cause 2, bins 1 and 3 (turning): every correction overshoots. Per look pair, the bin
+    moves in the camera ~1.6x the heading change the EKF reports (bin 3: 28.5 / 17.7, 23.7 /
+    14.7, 14.5 / 9.0; bin 1: 6.1 / 3.7; bin 2's real-bin pair: 7.9 / 4.9). Camera parallax
+    (camera 12.5 cm ahead of the axle, bin ~0.88 m) explains ~1.17x; the rest (~1.37x) means
+    short pulses turn more than the EKF records 0.3 s after them. The bin's pixel width
+    (253 px at ~0.65 m) matches the 60 deg FOV, so the FOV is not the cause. In sim the ratio
+    was 1.1-1.5 too (2-3 looks).
+  - Detections (4 recorded, 3 right): bin 1 nothing (right); bin 3 paper_towel + foil,
+    around_bin, obj_xy plausible in front of the bin (right); bin 4 can, around_bin (right)
+    but the grocery bag on top was missed: the bin's top is at the frame's top edge, the bag
+    is cut off. Bin 2: milk jug missed (above the frame) and a false "can" (the orange object
+    on the side table, at the frame's top).
+  - Memory: 4 rows in `robot.sqlite`; `import_runs.py --rebuild` into a scratch store gives
+    the same 4 rows and 6 runs.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** centering on the robot is NOT done. Proposed fixes: drop bin boxes far
+  smaller than the expected bin (not cut at an edge) before picking; learn the camera's
+  bearing change per degree of turn during centering and divide by it. Items on top at 0.88 m
+  are cut off: the servo (Phase 4) is the real answer; record as a limit.
+
+### 2026-11-21: Centering fixes from the robot run; backing-up fallback noted for Phase 4
+
+- **Phase:** 3 (and a Phase 4 note)
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** "fix the bugs and check in the sim", and whether the robot could back up to
+  see the bin's top if the servo can't be made to work.
+- **Done:**
+  - `detect/geometry.py`: `plausible_bin()` (box at least `min_size_frac` 0.5 of the bin's
+    expected px width and height; a box cut at a side edge judged on height, at the top on
+    width); `pick_bin()` now takes the most confident plausible box, ties to the nearest
+    expected bearing (was: nearest expected bearing). `analyze_bin_stop()` takes
+    `expected_bin_px` as (width, height) (a lone number = width only, no size check).
+  - `route/route_geometry.py`: `parallax_factor()`, `learn_turn_scale()`.
+  - `route/route_follower.py`: `centering_cfg()` (sim override), expected bin height passed
+    in; each correction asks for bearing / (parallax x turn_scale); turn_scale learned from
+    each pair of looks, kept across bins; recorded per look and as
+    `centering_turn_scale_end` in summary.json.
+  - `config/detect.yaml` centering: `min_size_frac`, `turn_scale` 1.35 (robot run),
+    `turn_scale_limits`, `turn_scale_gain`; `sim.centering.turn_scale` 1.0.
+  - Tests: pick (confidence first, ties), the robot run's junk and real boxes, side-cut bin,
+    parallax, turn-scale learning (from bin 3's numbers), wrong-way and tiny turns ignored.
+  - ROADMAP: Phase 4 open decision gains the backing-up fallback (geometry: ~0.35–0.45 m
+    back to see 25 cm above the rim); Phase 3 centering note updated.
+- **Verified:**
+  - Tests: host 76 OK (1 skipped); walle-pilot OK.
+  - Replay with YOLO-World on saved photos: photo set bins found 30/30 (shift bearings
+    unchanged); run 20261121_000650 bin_2 look 2 now picks the real bin (-3.1 deg, conf 0.21);
+    looks 0 and 3 (only junk boxes) now give "no bin". Bins 1, 3, 4 picks unchanged.
+  - `make sim-route-check RUN=phase3 DWELL=3 MISPLACE=12` (bins 0.88 m): PASS 15/15, bins
+    within 1.4 deg true bearing in 2–3 looks; learned turn_scale stays ~1.03 in sim (EKF and
+    camera agree there; the sim's first overshoot is the pulse itself, which the EKF sees).
+    `walle-sim/data/phase3/route/20261121_034633`.
+  - NOT verified on the robot.
+- **Scope:** In scope; the backing-up idea is recorded, not built.
+- **Decisions:** none new (Phase 4 option recorded as open).
+- **Open / next:** robot re-run of centering. Known gap: if the first look finds no bin
+  (e.g. bin cut off at the frame edge and not detected), centering stops and keeps the
+  configured heading; a small search turn (look ±15 deg) would cover it.
+
+### 2026-11-21: Robot re-run after the centering fixes (20261121_035910), reviewed
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** review of the re-run. User: "Still some issues with Bin 2, but it got closer
+  to the center of the bin. It still struggled to identify the milk jug."
+- **Done:** review only. Re-ran YOLO-World on the bin 2 photos (default and extra prompts).
+- **Verified (summary.json, detections.json, photos, robot.sqlite):**
+  - Route: done; EKF end 0.6 cm, -2.2 deg; user measured 0 cm, 0 deg.
+  - Bins 1 and 4: centered on the first look (+2.2, -1.8 deg). Bin 3: centered in 3 looks
+    (-18.3 -> +15.1 -> -2.1). The learned turn scale came out 1.345, then 1.362 (start 1.35),
+    so the robot run's ~1.37 is confirmed. Bin 3's swing was the first PULSE itself: asked
+    -11.6, the EKF recorded -21.4 (pulse gain had been pulled down to 72.5 deg/s by two tiny
+    route-correction pulses), not the camera/EKF mismatch.
+  - Bin 2: "no bin detected" on the first look, so centering stopped and kept the configured
+    heading (as designed after the fix; no junk chased this time). The bin is plainly in the
+    photo but cut off at the left edge; YOLO-World scores it 0.016-0.024 (below 0.03), with
+    a cushion at 0.011. From the visible edge, bin 2 sits ~20 deg left of the camera axis,
+    i.e. ~17-18 deg (~27 cm along its face) from its configured heading; run 1 agrees (real
+    bin at heading ~-27 vs configured -45).
+  - Milk jug on bin 2: entirely above the frame (bin rim at y ~25 px of 480). It cannot be
+    detected at 0.88 m with a level camera; not a detector failure. Bin 2's false "can" is a
+    metal bowl under the side table.
+  - Detections: bin 1 none (right), bin 3 paper_towel + foil around_bin (right), bin 4 can
+    (right; bag on top cut off), bin 2 false can. Same 4 rows in robot.sqlite.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** search turn when the first look finds no bin (look toward the side a
+  cut-off dark box suggests, or +-15 deg); ask the user whether bin 2 was placed ~27 cm off
+  on purpose. Items on top at 0.88 m need the servo or the backing-up fallback (Phase 4).
+
+### 2026-11-21: Search turn when bin centering finds no bin
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** "Yes, add it" (a search turn when the first look finds no bin; run
+  20261121_035910's bin 2 was cut off at the frame edge and not detected).
+- **Done:**
+  - `detect/geometry.py` `search_order()`: offsets +-`search_deg` from the configured bin
+    heading; the side where a bin-tall box (any confidence) is cut off at the frame edge goes
+    first, else left first.
+  - `route/route_follower.py` `center_bin()`: no bin before any was found -> turn to each
+    search offset and look again (search looks don't count as corrections); none found ->
+    "no bin detected (searched ...)" and the record keeps `searched_deg`. `--sim-hide-cut-bins`.
+  - `detect/sim_truth.py`: `hide_cut_bins` (miss a bin whose box runs off the frame's side,
+    as YOLO-World did on the robot). Harness `--hide-cut-bins`, `make sim-route-check HIDE_CUT=1`.
+  - `config/detect.yaml` centering `search_deg: 15.0`.
+  - Tests: search order (the run's real boxes: bin cut left at 0.016 beats a cushion cut
+    right at 0.011), sim hiding.
+- **Verified:**
+  - Tests: host 78 OK (1 skipped), walle-pilot OK.
+  - `make sim-route-check RUN=phase3 DWELL=3 MISPLACE=20 HIDE_CUT=1`: PASS 15/15. Bins 1, 2,
+    3 not seen on the first look; found by the search (bin 2 on +15, bins 1 and 3 on -15
+    after +15); all 4 within 1.2 deg true bearing, 3-4 looks
+    (`walle-sim/data/phase3/route/20261121_041117`).
+  - `make sim-route-check RUN=phase3 DWELL=3 MISPLACE=12`: PASS, no searches, 2 looks each
+    (`20261121_041248`).
+  - NOT run on the robot. Correction found while checking: YOLO-World was asked only for
+    boxes >= 0.03, so the 0.017 cut-off box never reached the hint. Added `bin.hint_conf:
+    0.01` (`detector.py`: fainter bin boxes come back in low_conf only, never used as the
+    bin). Replay of the run's bin 2 look 0 now: no bin chosen, hint box (0.017, cut at the
+    left) -> search +15 (left) first, toward the real bin. walle-pilot tests OK after it.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** robot run to check bin 2 (and the others) with the search.
+
+### 2026-11-21: Robot run with the search turn (20261121_041923): all bins centered
+
+- **Phase:** 3
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** review of the run. User: all 4 bins faced; ended ~2 cm from the start;
+  "a slight jerk when it got to Bin 4 where it jerked left, but then it corrected itself."
+- **Done:** review only. ROADMAP: robot centering box ticked.
+- **Verified (summary.json, detections.json, trajectory.csv, photos, robot.sqlite):**
+  - Route: done; EKF end 0.07 cm, +0.1 deg; user measured 2 cm, 0 deg.
+  - Centering, all 4 within 3 deg: bin 2 none on look 0, search +15 (left, as the hint
+    said), then +0.74 deg; bin 3 -18.1 -> +0.5 (one correction); bin 4 +1.2 (first look);
+    bin 1 +4.3 -> +0.7. Learned turn scale 1.348 -> 1.399 (start 1.35).
+  - Detections: bin 1 none (right); bin 3 paper_towel + foil around_bin (right); bin 4 can
+    around_bin (right; the bag on top cut off by the frame); bin 2: the bottom of the milk
+    jug shows as a white strip at the frame's top edge, reported as yogurt_container,
+    on_bin, recycling (place and category right, label wrong). No false bowl this time.
+    4 rows in robot.sqlite.
+  - The jerk at bin 4: after the turn to face bin 4 (wheels: stopped at ~141 deg by t=115.2 s),
+    the FUSED heading kept turning at about the last turn rate (128 -> 58 deg by 116.15 s,
+    later 139 -> -153 deg over 118.7-121.8 s) while the wheel odometry did not move. That is
+    the EKF predicting on with no new sensor data (most likely a Wi-Fi/UDP gap in
+    /pico/imu/data and /pico/wheel_ticks; not confirmed, the log has no message times). The
+    follower acted on the ghost heading: a real pulse of ~+73 deg by the wheels (the pulse
+    record: asked -12.9, "moved" 46.1), then corrections back. It recovered when data
+    returned (re-anchor at 122.1 s); the bin was then centered at +1.2 deg. The pulse gain
+    was knocked to 264 deg/s by that outlier and relearned over 4 pulses.
+- **Scope:** In scope (review). The dropout handling is Phase 1 route code; not changed.
+- **Decisions:** none.
+- **Open / next:** a stale-sensor guard in the follower (stop and wait instead of turning
+  when /pico/wheel_ticks or /pico/imu/data are older than ~0.3 s; skip pulse-gain learning
+  on outliers). Phase 3 left: the accuracy box (daylight shots 43-52 tomorrow).
+
+### 2026-11-21: Sensor guard in the route follower (stop on stale Pico data, repair the estimate)
+
+- **Phase:** 3 (fixes Phase 1 route code, found in the Phase 3 robot run)
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** "Go ahead and add the guard" (after run 20261121_041923: the EKF heading
+  spun on with no sensor data and the follower made a real 73 deg pulse at it). Also asked
+  whether Phase 4 can start before the Phase 3 daylight photos (answered in the session).
+- **Done:**
+  - `route/route_follower.py` (RouteFollower; `walle-pilot` Mover untouched): stamps
+    `/pico/wheel_ticks` and `/pico/imu/data` arrivals; `send()` turns any motion command into
+    a stop while a stream is older than `max_age_s` and waits until both are fresh for
+    `resume_after_s` (gives up after `give_up_s`: the run ends); waits don't count against
+    side/turn timeouts. `repair_estimate()`: after a gap, re-anchors the fused estimate at
+    the pose from just before the gap moved by the wheels' motion across it
+    (`rg.bridge_gap`; encoder counts are cumulative). Pulses with a gap or an outlier move
+    (`rg.pulse_outlier`, > 2.5x or < 1/2.5 of plan) don't teach the pulse gain; centering
+    doesn't learn turn_scale across a gap; still periods with a gap don't feed the gyro bias.
+    summary.json: `sensor_gaps`, `sensor_guard_waits`, `estimate_repairs`; pulses flagged
+    `sensor_gap` / `outlier`.
+  - `config/route.yaml` `sensor_guard` (enabled, max_age_s 0.4, resume_after_s 0.6,
+    give_up_s 20, pulse_outlier 2.5).
+  - walle-sim: `sim_pico_bridge.py` `/sim/blackout` (Float32 s: drop all ticks and IMU for
+    that long; commands still pass); harness `--blackout EVERY FOR` + a check that the guard
+    acted; `make sim-route-check BLACKOUT="20 1.5"`.
+  - Tests: pulse outlier (the run's 46 deg pulse), gaps_in, bridge_gap.
+- **Verified:**
+  - Tests: host OK, walle-pilot OK.
+  - Sim, first try (guard without the repair), `BLACKOUT="20 1.5" MISPLACE=12`: FAIL, ended
+    8.1 cm off: the robot stopped, but the EKF carried the estimate on ~8 cm at the last
+    speed, so it thought it reached corner 4. Added the repair.
+  - Sim with the repair, same settings: PASS 16/16; 6 gaps, 2 waits while driving (1.7 s
+    each), repairs removed 11.2 and 8.8 cm of ghost motion; end 3.9 cm; all bins centered
+    within 1.4 deg (`walle-sim/data/phase3/route/20261121_043326`).
+  - Sim without blackouts: PASS, no gaps seen, end 0.3 cm (`20261121_043459`).
+  - NOT run on the robot. The robot gaps are inferred (no message times were logged); the
+    next run's `sensor_gaps` will show them.
+- **Scope:** Drift (agreed): Phase 1 route robustness fixed during Phase 3.
+- **Decisions:** none.
+- **Open / next:** robot run to see the guard on real Wi-Fi. Phase 3: daylight shots.

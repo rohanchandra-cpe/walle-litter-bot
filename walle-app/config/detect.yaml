@@ -1,0 +1,126 @@
+# Object detection settings (ROADMAP Phase 3, docs/plans/phase-3-plan.md).
+# Used by walle-app/detect/detector.py, the route follower's bin stops, and eval_photos.py.
+#
+# YOLO-World is open-vocabulary: each PROMPT below becomes one class for the model, and every
+# prompt maps back to its LABEL and the label's CATEGORY. To recognize a new thing, add a
+# label (or a prompt to an existing label); nothing else has to change. A detection whose
+# label isn't listed here can't happen, but code that reads detections treats a missing
+# category as "unknown".
+#
+# Labels shared with park.yaml `items` (the simulator's catalog) must have the same category
+# there and here (tests/test_detect.py checks this). The simulator's list does not limit
+# what the robot can recognize.
+
+model: yolov8s-worldv2.pt     # in walle-app/models/ (downloaded on first use); m = more accurate, ~2.4x slower
+imgsz: 640                    # the ESP32-CAM sends 640 x 480
+min_conf: 0.25                # item detections below this are dropped (kept in detections.json)
+iou: 0.5                      # overlap at which two boxes are the same object
+max_latency_s: 1.0            # budget per photo (median); a slower call is logged
+
+bin:
+  label: bin
+  # Probed alone on the 18 robot bin photos (2026-11-19, bins too close, tops cut off):
+  # "black bin" found 11/18 at 0.10 with S (M: 1/18); its best box was on the bin in 16/18
+  # even when scored lower. At a bin stop a bin IS there, so a low threshold plus "nearest
+  # the expected bearing" picks it. Re-check on the phase-3 photo set (bins at 0.71 m).
+  prompts: [black bin, wastebasket, waste bin, trash can]
+  min_conf: 0.03
+  hint_conf: 0.01             # fainter bin boxes kept in low_conf only (search direction hint)
+
+# The fake trash (user's labels, 2026-11-19). Trash: crumpled paper towels, plastic bags
+# (grocery and spinach bags: one label since 2026-11-20, the user's choice). Recycling: aluminum coffee can, milk jug, yogurt container, crumpled foil,
+# crumpled Chipotle paper bag. Extras (not in the scored set): carton, tissue box, egg carton.
+items:
+  paper_towel:      {category: trash,     prompts: [crumpled paper towel, paper towel, tissue paper]}
+  plastic_bag:      {category: trash,     prompts: [plastic grocery bag, plastic bag, salad bag]}
+  can:              {category: recycling, prompts: [aluminum can, coffee can, tin can]}
+  milk_jug:         {category: recycling, prompts: [milk jug, plastic gallon jug]}
+  yogurt_container: {category: recycling, prompts: [yogurt container, plastic tub]}
+  foil:             {category: recycling, prompts: [crumpled aluminum foil, ball of foil]}
+  paper_bag:        {category: recycling, prompts: [crumpled paper bag, brown paper bag]}
+  carton:           {category: recycling, prompts: [food carton, broth carton]}
+  tissue_box:       {category: recycling, prompts: [tissue box]}
+  egg_carton:       {category: recycling, prompts: [egg carton]}
+  # also in park.yaml items (the simulator can place these)
+  plastic_bottle:   {category: recycling, prompts: [plastic bottle, water bottle]}
+  paper_cup:        {category: trash,     prompts: [paper cup, coffee cup]}
+  wrapper:          {category: trash,     prompts: [candy wrapper, chip bag]}
+
+# Items by a vision-language model (2026-11-20, plan amendment). YOLO-World named 0/36 items
+# on the night photos and, with generic prompts, still missed most of them; gemma4 found
+# and boxed foil, towels and bags on the whole photo. method: vlm = YOLO-World finds the
+# BIN, the VLM finds and names the ITEMS; yolo = YOLO-World alone (the original plan).
+method: vlm
+vlm:
+  model: qwen3.5:4b           # 2026-11-20: beat gemma4 on shots 1-29 (recall 0.70 vs 0.58), same speed
+  url: null                   # null = OLLAMA_URL, else http://host.docker.internal:11434
+  timeout_s: 120
+  # How each model family orders a box's 0-1000 numbers (matched on the model name's start):
+  # gemma [ymin, xmin, ymax, xmax]; qwen [xmin, ymin, xmax, ymax] whatever the prompt asks.
+  box_order: {default: yxyx, qwen: xyxy}
+  # Second FIND on a zoomed crop over the biggest bin's rim (items on top were missed most).
+  # Window, in bin-box sizes: `above` its top edge, `below` it (the rim), `side` each way.
+  # Off: on shots 1-29 it found more on the rim but those were misnamed; recall 0.674 vs 0.698
+  # without, median 8.5 s vs 5.1 s (2026-11-20). Re-check on the daylight shots 43-52 (--zoom).
+  zoom_bin_top: {enabled: false, above: 1.0, below: 0.3, side: 0.25, min_side: 448}
+  # What the model is told each label looks like (it answers with the label).
+  describe:
+    paper_towel: crumpled white paper towel or tissue
+    plastic_bag: plastic film bag (grocery bag with handles, or a clear / printed salad or spinach bag)
+    can: metal drink or coffee can
+    milk_jug: plastic milk jug (gallon)
+    yogurt_container: white plastic yogurt tub or cup, with or without its lid
+    foil: crumpled aluminum foil (shiny silver)
+    paper_bag: crumpled brown paper takeout bag (printed)
+    carton: food or broth carton (paperboard box)
+    tissue_box: tissue box
+    egg_carton: gray molded-pulp egg carton
+    plastic_bottle: plastic bottle
+    paper_cup: paper cup
+    wrapper: candy wrapper or chip bag
+
+# Simulator (source sim). YOLO-World sees nothing in the park world: its bins and items are
+# flat-colored boxes and cylinders, and no prompt scored above 0.05 on Gazebo photos, not even
+# a bin filling the frame (2026-11-19). So in Gazebo the follower uses detect/sim_truth.py, a
+# ground-truth stand-in that projects the true bins and items into the camera; the code after
+# the model is the same. Accuracy is judged on real photos only (decided with the user).
+sim:
+  camera:                     # the walle-sim camera (urdf/gazebo_car.urdf.xacro), over park.yaml's
+    height_m: 0.10
+    forward_m: 0.07
+    vertical_fov_deg: 46.8
+  centering:                  # over centering: below, in Gazebo
+    turn_scale: 1.0
+
+# Bin centering at each bin stop (route follower, between face_bin and dwell).
+centering:
+  tolerance_deg: 3.0          # bin center within this of the image center: done
+  max_corrections: 3
+  max_offset_deg: 25.0        # never turn farther than this from the configured bin heading
+  edge_px: 4                  # a box this close to the frame edge is cut off there
+  min_overlap: 0.3            # item over a bin: at least this much of its width over the bin's box
+  min_size_frac: 0.5          # a bin box smaller than this x the expected bin size is not the bin
+  # No bin on a look: try search_deg each side of the configured heading (the side where a
+  # bin-tall box is cut off at the frame edge first), before giving up. 0 = no search.
+  search_deg: 15.0
+  # Turning to the bin: the camera sees it move parallax x turn_scale x the turn the EKF
+  # records (parallax from the camera being ahead of the axle). turn_scale is learned from
+  # each pair of looks; this is where it starts. Robot run 20261121_000650: ~1.37 (short
+  # pulses turn more than the EKF records 0.3 s later). The sim starts at 1.0 (sim: below).
+  turn_scale: 1.35
+  turn_scale_limits: [0.7, 2.5]
+  turn_scale_gain: 0.6        # how far each new measurement moves the learned value
+
+place:
+  rim_margin_px: 8            # an item whose bottom is above the bin box's top + this is on_bin
+  max_ground_range_m: 3.0     # farther ground-plane estimates are dropped (obj_xy = none)
+
+# Phase 3 targets on the labeled ESP32-CAM set (data/photos/phase3/, agreed 2026-11-19).
+# detect/eval_photos.py prints PASS only if all are met.
+eval:
+  recall: 0.80                # true items found (matched by label and count per photo)
+  precision: 0.80             # reported items that are real
+  category: 0.90              # trash/recycling right, of the items found (by category count)
+  bin_found: 0.95             # photos with a bin in which a bin is detected
+  latency_median_s: 15.0      # was 1.0 (YOLO-World alone); 2026-11-20 the user put accuracy first (VLM); confirmed by the user
+  bin_distance_m: 0.755       # camera to bin center at a bin stop (0.88 - 0.125), for bin_shift_cm bearings

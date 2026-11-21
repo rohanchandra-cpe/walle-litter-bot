@@ -105,6 +105,18 @@ def parse_args():
     p.add_argument("--feedback", help="/odometry/filtered (default) or /wheel/odom")
     p.add_argument("--coast-time", type=float, help="start both coasts at this (s): a wrong "
                    "value makes turns miss, to exercise the correction pulses")
+    p.add_argument("--misplace-deg", type=float, default=0.0,
+                   help="Phase 3: tell the follower each bin is this far round its corner "
+                   "from where it really is (alternating sides), so it must center on the "
+                   "bin it detects")
+    p.add_argument("--hide-cut-bins", action="store_true",
+                   help="Phase 3: the ground-truth detector misses bins cut off at the frame's "
+                   "side (as on the robot), so centering must search")
+    p.add_argument("--blackout", type=float, nargs=2, metavar=("EVERY_S", "FOR_S"),
+                   help="sensor-guard test: every EVERY_S s drop all ticks and IMU for FOR_S s "
+                   "(/sim/blackout)")
+    p.add_argument("--center-tol-deg", type=float, default=3.0,
+                   help="Phase 3: a centered bin is within this of straight ahead (truth)")
     for name in ("shakedown", "rq1", "rq2", "motion"):
         sub.choices[name].add_argument("--bag", action="store_true", help="record ros2 bags")
     return parser.parse_args()
@@ -693,6 +705,79 @@ def bin_in_frame(b, pose):
     return worst_h, worst_v
 
 
+def misplace_bins(layout, deg):
+    """A copy of the layout with each bin swung `deg` round its corner (bin 1 +deg, bin 2
+    -deg, ...): where the follower THINKS the bins are, to test bin centering."""
+    out = json.loads(json.dumps(layout))
+    corners = {int(k): v for k, v in out["route"]["corners"].items()}
+    for i, b in enumerate(out["bins"]):
+        a = math.radians(deg if i % 2 == 0 else -deg)
+        cx, cy = corners[int(b["corner"])][:2]
+        dx, dy = b["position"][0] - cx, b["position"][1] - cy
+        b["position"] = [round(cx + dx * math.cos(a) - dy * math.sin(a), 4),
+                         round(cy + dx * math.sin(a) + dy * math.cos(a), 4)]
+        b["view_heading_deg"] = round(b["view_heading_deg"] + math.degrees(a), 3)
+        b["yaw_deg"] = round(b.get("yaw_deg", 0.0) + math.degrees(a), 3)
+    return out
+
+
+def detection_checks(summary, layout, out_dir):
+    """Phase 3 checks on a run with detection (sim: the ground-truth stand-in): each bin
+    centered within --center-tol-deg (truth), the detected bin is the right one, items have
+    the right place (mound = on_bin, spill / litter = around_bin), around-bin positions within
+    15 cm, and every detection reached the memory store (sim.sqlite)."""
+    path = os.path.join(out_dir, "detections.json")
+    stops = [ev for ev in summary["events"] if ev["event"] == "facing_bin"]
+    if not os.path.exists(path):
+        if any("centering" in ev for ev in stops):
+            return [("detections.json written", False, "missing")]
+        return []                                  # detection off for this run
+    with open(path) as f:
+        dets = json.load(f)
+    checks = []
+    for ev in stops:
+        c = ev.get("centering") or {}
+        err = ev.get("true_bearing_error_deg")
+        checks.append((f"{ev['bin']} centered", bool(c.get("centered")) and err is not None
+                       and abs(err) <= ARGS.center_tol_deg,
+                       f"true bearing {err:+.1f} deg, {len(c.get('looks', []))} looks, "
+                       f"{c.get('offset_from_config_deg', 0):+.1f} deg from the configured "
+                       "heading" + (f" ({c['reason']})" if c.get("reason") else "")))
+    groups = {"mound": "on_bin", "spill": "around_bin", "litter": "around_bin"}
+    truth_xy = {it["name"]: it["position"][:2] for b in layout["bins"]
+                for g in groups for it in b.get(g, [])}
+    n_items = 0
+    for photo in dets.get("photos", []):
+        bd = photo.get("bin_detection") or {}
+        wrong_place, xy_err = [], []
+        for d in photo["items"]:
+            n_items += 1
+            if groups.get(d.get("truth_group")) != d["place"]:
+                wrong_place.append(f"{d.get('truth')} as {d['place']}")
+            if d.get("obj_xy") and d.get("truth") in truth_xy:
+                t = truth_xy[d["truth"]]
+                xy_err.append(math.hypot(d["obj_xy"][0] - t[0], d["obj_xy"][1] - t[1]))
+        checks.append((f"{photo['bin']} detections", bd.get("truth") == photo["bin"]
+                       and not wrong_place and all(e <= 0.15 for e in xy_err),
+                       f"bin seen: {bd.get('truth')}, {len(photo['items'])} items "
+                       f"({sum(d['place'] == 'on_bin' for d in photo['items'])} on top)"
+                       + (f", wrong place: {', '.join(wrong_place)}" if wrong_place else "")
+                       + (f", ground position error max {max(xy_err) * 100:.1f} cm"
+                          if xy_err else "")))
+    db = os.path.join(REPO_DIR, "walle-app", "data", "memory", "sim.sqlite")
+    try:
+        import sqlite3
+        con = sqlite3.connect(db)
+        stored = con.execute("SELECT COUNT(*) FROM detections WHERE run_id = ?",
+                             (summary["run_id"],)).fetchone()[0]
+        con.close()
+    except Exception as e:
+        stored = f"unreadable ({e})"
+    checks.append(("detections in the memory store", stored == n_items,
+                   f"{stored} in {os.path.relpath(db, REPO_DIR)}, {n_items} in detections.json"))
+    return checks
+
+
 def cmd_route_check(sim):
     layout = sim.world.info.get("park")
     if layout is None:
@@ -704,7 +789,8 @@ def cmd_route_check(sim):
     rtf = warn_rtf(sim)
     out_dir = os.path.join(RUN_DIR, "route", time.strftime("%Y%m%d_%H%M%S"))
     os.makedirs(out_dir, exist_ok=True)
-    layout_path = os.path.join(out_dir, "layout.json")
+    # the world's real layout; the follower writes its own (maybe misplaced) layout.json
+    layout_path = os.path.join(out_dir, "layout_truth.json")
     with open(layout_path, "w") as f:
         json.dump(layout, f, indent=2)
 
@@ -713,16 +799,39 @@ def cmd_route_check(sim):
     time.sleep(2.0)                   # let the estimates settle on the new pose
     print(f"{sim.describe(rtf)}  scenario '{layout['scenario']}', "
           f"{len(layout['bins'])} bins, {ARGS.laps} lap(s)")
-    cmd = [sys.executable, ROUTE_FOLLOWER, "--layout-json", layout_path, "--run-dir", out_dir,
+    follower_layout = layout_path
+    if ARGS.misplace_deg:
+        follower_layout = os.path.join(out_dir, "layout_follower.json")
+        with open(follower_layout, "w") as f:
+            json.dump(misplace_bins(layout, ARGS.misplace_deg), f, indent=2)
+        print(f"Follower told each bin is {ARGS.misplace_deg:.0f} deg round its corner from "
+              "where it is (centering must find it).")
+    cmd = [sys.executable, ROUTE_FOLLOWER, "--layout-json", follower_layout,
+           "--truth-layout", layout_path, "--run-dir", out_dir,
            "--laps", str(ARGS.laps), "--camera-url", "http://localhost:8080/capture",
            "--no-measure"]
     if ARGS.dwell is not None:
         cmd += ["--dwell", str(ARGS.dwell)]
+    if getattr(ARGS, "hide_cut_bins", False):
+        cmd += ["--sim-hide-cut-bins"]
     if ARGS.feedback:
         cmd += ["--feedback", ARGS.feedback]
     if ARGS.coast_time is not None:
         cmd += ["--coast-time", str(ARGS.coast_time)]
-    code = subprocess.call(cmd)
+    blackouts = None
+    if getattr(ARGS, "blackout", None):
+        every, hold = ARGS.blackout
+        blackouts = subprocess.Popen(
+            ["bash", "-c", f"sleep 25; while true; do ros2 topic pub --once /sim/blackout "
+                           f"std_msgs/msg/Float32 '{{data: {hold}}}' >/dev/null 2>&1; "
+                           f"sleep {every}; done"])
+        print(f"Blackouts: every ~{every:.0f} s, no ticks or IMU for {hold:.1f} s "
+              "(first after 25 s).")
+    try:
+        code = subprocess.call(cmd)
+    finally:
+        if blackouts:
+            blackouts.terminate()
     summary_path = os.path.join(out_dir, "summary.json")
     if not os.path.exists(summary_path):
         raise SystemExit(f"FAIL: the route follower wrote no summary (exit {code}).")
@@ -753,6 +862,14 @@ def cmd_route_check(sim):
                            f"bearing to bin {ev.get('true_bearing_error_deg', float('nan')):+.1f} deg, "
                            f"extent {h:.2f} wide / {v:.2f} tall of the half-frame"
                            + (f", photo {ev['photo']}" if ev.get("photo") else "")))
+    checks += detection_checks(summary, layout, out_dir)
+    if getattr(ARGS, "blackout", None):
+        gaps, waits = summary.get("sensor_gaps", []), summary.get("sensor_guard_waits", [])
+        bad = [p for p in summary.get("pulses", []) if p.get("sensor_gap") or p.get("outlier")]
+        checks.append(("sensor guard acted on the blackouts", bool(gaps) and bool(waits),
+                       f"{len(gaps)} gaps seen, {len(waits)} waits (stopped "
+                       f"{sum(w['seconds'] for w in waits):.1f} s in all), {len(bad)} pulses "
+                       "kept out of the gain"))
     faced = {ev["bin"] for ev in summary["events"] if ev["event"] == "facing_bin"}
     for name in bins:
         if name not in faced:

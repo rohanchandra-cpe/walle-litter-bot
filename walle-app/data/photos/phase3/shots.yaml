@@ -1,0 +1,104 @@
+# Phase 3 labeled photo set: the shot list (ROADMAP Phase 3, docs/plans/phase-3-plan.md).
+# Shots 1-42 taken 2026-11-19/20 (1-29 night, 30-42 day); 43-52 are daylight repeats.
+#
+# Take every photo with the robot's ESP32-CAM, never a phone. Power only the 5 V side (Pico
+# + camera) so the motors can't move. Then, from the repository root on the host:
+#
+#     python3 walle-app/detect/capture_set.py --camera-url http://192.168.1.201/capture
+#
+# It walks through these shots, saves shot_NN.jpg here, and writes labels.yaml from this
+# list. If what you placed differs from a shot, edit that shot's entry in labels.yaml.
+#
+# WHERE THE ROBOT SITS
+#   corner: on the bin's corner of the taped square, facing the bin, as at a bin stop. The
+#           bin's center is 0.88 m out on the corner's diagonal, measured from the CORNER
+#           (the robot's axle), not the camera (`python3 walle-app/park.py` prints the
+#           positions); its wide face toward the square. Bin center to camera ~0.755 m.
+#   route:  on the tape line, facing along the side; items 30-60 cm ahead of the camera.
+#   carpet: on the carpet off the mat, facing away from the square.
+#
+# PLACES (the label for each item)
+#   on_bin:     on top of the bin, resting on the rim or sticking up out of it, so the camera
+#               sees it ABOVE the rim. The bins are 29 cm tall: put something inside to raise
+#               an item if it would sink below the rim.
+#   around_bin: on the floor next to or in front of the bin.
+#   route:      on the floor with no bin in view.
+#
+# bin_shift_cm: slide the bin sideways along its wide face by this much, measured with a
+# tape (+ = to the robot's left, - = to its right). At 0.755 m, 13.3 cm = 10 deg and
+# 27.5 cm = 20 deg: these shots measure the lens's angle and check the bin's bearing.
+# If the room can't fit 0.88 m, tell Claude the distance used: these shifts change with it.
+#
+# ITEMS. Trash: paper_towel (crumpled paper towels), plastic_bag (grocery bag with handles, or a
+# spinach bag: one label since 2026-11-20). Recycling: can (aluminum coffee can), milk_jug, yogurt_container (with lid),
+# foil (crumpled aluminum foil), paper_bag (crumpled Chipotle bag).
+# Every item must be wholly in the frame unless the shot says otherwise.
+
+shots:
+  # --- bins alone: bin detection and bearing (6) ---
+  - {id: 1,  where: corner, bin: 1, items: [], note: "bin 1 where park.py puts it"}
+  - {id: 2,  where: corner, bin: 2, items: [], note: "bin 2 where park.py puts it"}
+  - {id: 3,  where: corner, bin: 1, bin_shift_cm: 13.3, items: []}
+  - {id: 4,  where: corner, bin: 1, bin_shift_cm: -13.3, items: []}
+  - {id: 5,  where: corner, bin: 1, bin_shift_cm: 27.5, items: []}
+  - {id: 6,  where: corner, bin: 1, bin_shift_cm: -27.5, items: []}
+
+  # --- items on top of a bin (8) ---
+  - {id: 7,  where: corner, bin: 1, items: [[paper_towel, on_bin]]}
+  - {id: 8,  where: corner, bin: 2, items: [[milk_jug, on_bin]]}
+  - {id: 9,  where: corner, bin: 1, items: [[plastic_bag, on_bin]]}
+  - {id: 10, where: corner, bin: 2, items: [[can, on_bin]]}
+  - {id: 11, where: corner, bin: 3, items: [[plastic_bag, on_bin]]}
+  - {id: 12, where: corner, bin: 4, items: [[yogurt_container, on_bin]]}
+  - {id: 13, where: corner, bin: 3, items: [[paper_towel, on_bin], [foil, on_bin]]}
+  - {id: 14, where: corner, bin: 4, items: [[paper_bag, on_bin], [plastic_bag, on_bin]]}
+
+  # --- items on the floor around a bin (10) ---
+  - {id: 15, where: corner, bin: 1, items: [[paper_towel, around_bin]], note: "in front of the bin, a little left"}
+  - {id: 16, where: corner, bin: 1, items: [[can, around_bin]], note: "beside the bin, right"}
+  - {id: 17, where: corner, bin: 2, items: [[plastic_bag, around_bin]]}
+  - {id: 18, where: corner, bin: 2, items: [[foil, around_bin]]}
+  - {id: 19, where: corner, bin: 3, items: [[plastic_bag, around_bin], [yogurt_container, around_bin]]}
+  - {id: 20, where: corner, bin: 3, items: [[paper_bag, around_bin]]}
+  - {id: 21, where: corner, bin: 4, items: [[milk_jug, around_bin], [paper_towel, around_bin]]}
+  - {id: 22, where: corner, bin: 4, items: [[plastic_bag, around_bin], [plastic_bag, around_bin]]}
+  - {id: 23, where: corner, bin: 1, items: [[can, around_bin], [paper_towel, around_bin], [foil, around_bin]]}
+  - {id: 24, where: corner, bin: 2, items: [[plastic_bag, around_bin]], note: "close, ~25 cm from the camera"}
+
+  # --- on top and around (6) ---
+  - {id: 25, where: corner, bin: 1, items: [[milk_jug, on_bin], [plastic_bag, around_bin]]}
+  - {id: 26, where: corner, bin: 2, items: [[paper_towel, on_bin], [can, around_bin]]}
+  - {id: 27, where: corner, bin: 3, items: [[plastic_bag, on_bin], [paper_bag, around_bin]]}
+  - {id: 28, where: corner, bin: 4, items: [[plastic_bag, on_bin], [foil, around_bin], [paper_towel, around_bin]]}
+  - {id: 29, where: corner, bin: 1, items: [[yogurt_container, on_bin], [plastic_bag, around_bin]]}
+  - {id: 30, where: corner, bin: 2, items: [[paper_towel, on_bin], [milk_jug, around_bin]]}
+
+  # --- on the route, no bin (10) ---
+  - {id: 31, where: route, items: [[paper_towel, route]], note: "40 cm ahead, center"}
+  - {id: 32, where: route, items: [[plastic_bag, route]], note: "50 cm ahead, left"}
+  - {id: 33, where: route, items: [[plastic_bag, route], [paper_bag, route]], note: "35 cm ahead"}
+  - {id: 34, where: route, items: [[can, route], [yogurt_container, route]], note: "40 cm ahead"}
+  - {id: 35, where: route, items: [[milk_jug, route]], note: "60 cm ahead"}
+  - {id: 36, where: route, items: [[yogurt_container, route], [paper_towel, route]]}
+  - {id: 37, where: route, items: [[foil, route], [plastic_bag, route]]}
+  - {id: 38, where: carpet, items: [[paper_bag, route], [plastic_bag, route]]}
+  - {id: 39, where: carpet, items: [[paper_towel, route], [can, route], [plastic_bag, route]]}
+  - {id: 40, where: carpet, items: [[plastic_bag, route], [milk_jug, route]]}
+
+  # --- nothing to find (2) ---
+  - {id: 41, where: route, items: [], note: "empty route ahead"}
+  - {id: 42, where: carpet, items: [], note: "empty carpet"}
+
+  # --- daylight repeats of night on-bin setups (10, added 2026-11-20) ---
+  # Same setups as the night shots named in each note, in daylight: do the misses on top of
+  # the bin come from the light or from the place? Take with --light day.
+  - {id: 43, where: corner, bin: 1, items: [[paper_towel, on_bin]], note: "repeat of shot 7"}
+  - {id: 44, where: corner, bin: 2, items: [[milk_jug, on_bin]], note: "repeat of shot 8"}
+  - {id: 45, where: corner, bin: 1, items: [[plastic_bag, on_bin]], note: "repeat of shot 9 (grocery bag)"}
+  - {id: 46, where: corner, bin: 2, items: [[can, on_bin]], note: "repeat of shot 10"}
+  - {id: 47, where: corner, bin: 3, items: [[plastic_bag, on_bin]], note: "repeat of shot 11 (spinach bag)"}
+  - {id: 48, where: corner, bin: 4, items: [[yogurt_container, on_bin]], note: "repeat of shot 12"}
+  - {id: 49, where: corner, bin: 3, items: [[paper_towel, on_bin], [foil, on_bin]], note: "repeat of shot 13"}
+  - {id: 50, where: corner, bin: 4, items: [[paper_bag, on_bin], [plastic_bag, on_bin]], note: "repeat of shot 14"}
+  - {id: 51, where: corner, bin: 1, items: [[milk_jug, on_bin], [plastic_bag, around_bin]], note: "repeat of shot 25"}
+  - {id: 52, where: corner, bin: 4, items: [[plastic_bag, on_bin], [foil, around_bin], [paper_towel, around_bin]], note: "repeat of shot 28 (spinach bag on top)"}

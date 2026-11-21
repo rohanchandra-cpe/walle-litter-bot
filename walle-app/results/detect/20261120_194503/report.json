@@ -1,0 +1,2960 @@
+{
+ "summary": {
+  "photos": 29,
+  "recall": 0.465,
+  "precision": 0.455,
+  "category": 0.892,
+  "bin_found": 1.0,
+  "place": 0.7,
+  "latency_median_s": 5.017,
+  "latency_p90_s": 11.32,
+  "per_label": {
+   "can": {
+    "true": 4,
+    "found": 3,
+    "reported": 6
+   },
+   "foil": {
+    "true": 4,
+    "found": 2,
+    "reported": 2
+   },
+   "milk_jug": {
+    "true": 3,
+    "found": 1,
+    "reported": 1
+   },
+   "paper_bag": {
+    "true": 3,
+    "found": 1,
+    "reported": 3
+   },
+   "paper_towel": {
+    "true": 8,
+    "found": 6,
+    "reported": 13
+   },
+   "plastic_bag": {
+    "true": 9,
+    "found": 5,
+    "reported": 16
+   },
+   "spinach_bag": {
+    "true": 9,
+    "found": 0,
+    "reported": 0
+   },
+   "wrapper": {
+    "true": 0,
+    "found": 0,
+    "reported": 1
+   },
+   "yogurt_container": {
+    "true": 3,
+    "found": 2,
+    "reported": 2
+   }
+  },
+  "bin_bearing_abs_error_deg": {
+   "median": 3.42,
+   "max": 26.16
+  },
+  "checks": {
+   "recall": {
+    "value": 0.465,
+    "target": 0.8,
+    "pass": false
+   },
+   "precision": {
+    "value": 0.455,
+    "target": 0.8,
+    "pass": false
+   },
+   "category": {
+    "value": 0.892,
+    "target": 0.9,
+    "pass": false
+   },
+   "bin_found": {
+    "value": 1.0,
+    "target": 0.95,
+    "pass": true
+   },
+   "latency_median_s": {
+    "value": 5.017,
+    "target": 15.0,
+    "pass": true
+   }
+  },
+  "pass": false,
+  "model": "yolov8s-worldv2.pt+gemma4",
+  "ids": "1-29",
+  "set": "data/photos/phase3",
+  "config": {
+   "min_conf": 0.25,
+   "iou": 0.5,
+   "imgsz": 640,
+   "bin_min_conf": 0.03
+  }
+ },
+ "photos": [
+  {
+   "id": 1,
+   "file": "shot_01.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 3.54,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 2.239
+  },
+  {
+   "id": 2,
+   "file": "shot_02.jpg",
+   "true": {},
+   "reported": {
+    "can": 1,
+    "paper_bag": 1
+   },
+   "true_items": 0,
+   "reported_items": 2,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 0.43,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [
+    "can",
+    "paper_bag"
+   ],
+   "seconds": 7.797
+  },
+  {
+   "id": 3,
+   "file": "shot_03.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 14.61,
+   "expected_bearing_deg": 9.99,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.714
+  },
+  {
+   "id": 4,
+   "file": "shot_04.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -9.51,
+   "expected_bearing_deg": -9.99,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.641
+  },
+  {
+   "id": 5,
+   "file": "shot_05.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 20.12,
+   "expected_bearing_deg": 20.01,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.626
+  },
+  {
+   "id": 6,
+   "file": "shot_06.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -17.62,
+   "expected_bearing_deg": -20.01,
+   "rim_visible": false,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.632
+  },
+  {
+   "id": 7,
+   "file": "shot_07.jpg",
+   "true": {
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -4.69,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.768
+  },
+  {
+   "id": 8,
+   "file": "shot_08.jpg",
+   "true": {
+    "milk_jug": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 2.62,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "milk_jug"
+   ],
+   "extra": [],
+   "seconds": 1.647
+  },
+  {
+   "id": 9,
+   "file": "shot_09.jpg",
+   "true": {
+    "plastic_bag": 1
+   },
+   "reported": {
+    "paper_towel": 2
+   },
+   "true_items": 1,
+   "reported_items": 2,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 1.0,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "plastic_bag"
+   ],
+   "extra": [
+    "paper_towel",
+    "paper_towel"
+   ],
+   "seconds": 7.245
+  },
+  {
+   "id": 10,
+   "file": "shot_10.jpg",
+   "true": {
+    "can": 1
+   },
+   "reported": {
+    "can": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 6.81,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.759
+  },
+  {
+   "id": 11,
+   "file": "shot_11.jpg",
+   "true": {
+    "spinach_bag": 1
+   },
+   "reported": {
+    "wrapper": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.52,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag"
+   ],
+   "extra": [
+    "wrapper"
+   ],
+   "seconds": 4.911
+  },
+  {
+   "id": 12,
+   "file": "shot_12.jpg",
+   "true": {
+    "yogurt_container": 1
+   },
+   "reported": {
+    "yogurt_container": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 3.39,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.621
+  },
+  {
+   "id": 13,
+   "file": "shot_13.jpg",
+   "true": {
+    "paper_towel": 1,
+    "foil": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 2,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 1.74,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [
+    "foil"
+   ],
+   "extra": [],
+   "seconds": 4.602
+  },
+  {
+   "id": 14,
+   "file": "shot_14.jpg",
+   "true": {
+    "paper_bag": 1,
+    "plastic_bag": 1
+   },
+   "reported": {},
+   "true_items": 2,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 1.22,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "paper_bag",
+    "plastic_bag"
+   ],
+   "extra": [],
+   "seconds": 6.508
+  },
+  {
+   "id": 15,
+   "file": "shot_15.jpg",
+   "true": {
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 2
+   },
+   "true_items": 1,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 5.07,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 7.148
+  },
+  {
+   "id": 16,
+   "file": "shot_16.jpg",
+   "true": {
+    "can": 1
+   },
+   "reported": {
+    "can": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 5.12,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.571
+  },
+  {
+   "id": 17,
+   "file": "shot_17.jpg",
+   "true": {
+    "plastic_bag": 2
+   },
+   "reported": {
+    "paper_bag": 1
+   },
+   "true_items": 2,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 0.25,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "plastic_bag",
+    "plastic_bag"
+   ],
+   "extra": [
+    "paper_bag"
+   ],
+   "seconds": 5.017
+  },
+  {
+   "id": 18,
+   "file": "shot_18.jpg",
+   "true": {
+    "foil": 1
+   },
+   "reported": {
+    "foil": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 0.34,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.389
+  },
+  {
+   "id": 19,
+   "file": "shot_19.jpg",
+   "true": {
+    "spinach_bag": 1,
+    "yogurt_container": 1
+   },
+   "reported": {
+    "plastic_bag": 1,
+    "yogurt_container": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.7,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [
+    "spinach_bag"
+   ],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 7.322
+  },
+  {
+   "id": 20,
+   "file": "shot_20.jpg",
+   "true": {
+    "paper_bag": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.76,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "paper_bag"
+   ],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 4.847
+  },
+  {
+   "id": 21,
+   "file": "shot_21.jpg",
+   "true": {
+    "milk_jug": 1,
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 2,
+    "milk_jug": 1
+   },
+   "true_items": 2,
+   "reported_items": 3,
+   "found": 2,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.44,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 2,
+   "place_checked": 2,
+   "missed": [],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 10.195
+  },
+  {
+   "id": 22,
+   "file": "shot_22.jpg",
+   "true": {
+    "plastic_bag": 2,
+    "spinach_bag": 2
+   },
+   "reported": {
+    "plastic_bag": 4
+   },
+   "true_items": 4,
+   "reported_items": 4,
+   "found": 2,
+   "category_right": 4,
+   "category_matchable": 4,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.51,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 2,
+   "place_checked": 2,
+   "missed": [
+    "spinach_bag",
+    "spinach_bag"
+   ],
+   "extra": [
+    "plastic_bag",
+    "plastic_bag"
+   ],
+   "seconds": 13.679
+  },
+  {
+   "id": 23,
+   "file": "shot_23.jpg",
+   "true": {
+    "can": 1,
+    "paper_towel": 2,
+    "foil": 1
+   },
+   "reported": {
+    "can": 1,
+    "foil": 1,
+    "plastic_bag": 1
+   },
+   "true_items": 4,
+   "reported_items": 3,
+   "found": 2,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -26.16,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": false,
+   "place_right": 2,
+   "place_checked": 2,
+   "missed": [
+    "paper_towel",
+    "paper_towel"
+   ],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 9.955
+  },
+  {
+   "id": 24,
+   "file": "shot_24.jpg",
+   "true": {
+    "spinach_bag": 3
+   },
+   "reported": {
+    "plastic_bag": 3
+   },
+   "true_items": 3,
+   "reported_items": 3,
+   "found": 0,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.42,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag",
+    "spinach_bag",
+    "spinach_bag"
+   ],
+   "extra": [
+    "plastic_bag",
+    "plastic_bag",
+    "plastic_bag"
+   ],
+   "seconds": 11.32
+  },
+  {
+   "id": 25,
+   "file": "shot_25.jpg",
+   "true": {
+    "milk_jug": 1,
+    "plastic_bag": 2
+   },
+   "reported": {
+    "plastic_bag": 3,
+    "paper_towel": 1
+   },
+   "true_items": 3,
+   "reported_items": 4,
+   "found": 2,
+   "category_right": 2,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -5.39,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 2,
+   "place_checked": 2,
+   "missed": [
+    "milk_jug"
+   ],
+   "extra": [
+    "paper_towel",
+    "plastic_bag"
+   ],
+   "seconds": 13.949
+  },
+  {
+   "id": 26,
+   "file": "shot_26.jpg",
+   "true": {
+    "paper_towel": 1,
+    "can": 1
+   },
+   "reported": {
+    "paper_towel": 1,
+    "plastic_bag": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.87,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [
+    "can"
+   ],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 7.653
+  },
+  {
+   "id": 27,
+   "file": "shot_27.jpg",
+   "true": {
+    "plastic_bag": 1,
+    "paper_bag": 1
+   },
+   "reported": {
+    "paper_bag": 1,
+    "plastic_bag": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 2,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -4.93,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 2,
+   "missed": [],
+   "extra": [],
+   "seconds": 7.769
+  },
+  {
+   "id": 28,
+   "file": "shot_28.jpg",
+   "true": {
+    "spinach_bag": 1,
+    "foil": 1,
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 2,
+    "can": 1,
+    "plastic_bag": 1
+   },
+   "true_items": 3,
+   "reported_items": 4,
+   "found": 1,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.75,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [
+    "foil",
+    "spinach_bag"
+   ],
+   "extra": [
+    "can",
+    "paper_towel",
+    "plastic_bag"
+   ],
+   "seconds": 13.187
+  },
+  {
+   "id": 29,
+   "file": "shot_29.jpg",
+   "true": {
+    "yogurt_container": 1,
+    "spinach_bag": 1
+   },
+   "reported": {
+    "plastic_bag": 1,
+    "can": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 0,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -2.0,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": false,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag",
+    "yogurt_container"
+   ],
+   "extra": [
+    "can",
+    "plastic_bag"
+   ],
+   "seconds": 6.878
+  }
+ ],
+ "detections": {
+  "shot_01.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.354,
+     "bbox": [
+      160.8,
+      46.9,
+      410.6,
+      341.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.13,
+     "bbox": [
+      442.9,
+      0.0,
+      552.8,
+      64.4
+     ]
+    }
+   ],
+   "seconds": 2.239,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.915
+  },
+  "shot_02.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.475,
+     "bbox": [
+      188.2,
+      32.2,
+      443.4,
+      338.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      155.5,
+      9.1,
+      373.1,
+      65.8
+     ],
+     "vlm_name": "cans",
+     "vlm_description": "The object is a metallic, silver-colored, cylindrical can with a smooth, reflective shine."
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      245.1,
+      51.4,
+      373.1,
+      65.8
+     ],
+     "vlm_name": "packaging",
+     "vlm_description": "The object is a crumpled, light brown paper bag."
+    }
+   ],
+   "seconds": 7.797,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 7.474
+  },
+  "shot_03.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.735,
+     "bbox": [
+      44.3,
+      46.6,
+      306.8,
+      348.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.272,
+     "bbox": [
+      452.8,
+      0.0,
+      563.1,
+      59.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.041,
+     "bbox": [
+      558.7,
+      0.0,
+      640.0,
+      43.3
+     ]
+    }
+   ],
+   "seconds": 1.714,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.378
+  },
+  "shot_04.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.644,
+     "bbox": [
+      279.8,
+      31.3,
+      545.9,
+      344.8
+     ]
+    }
+   ],
+   "seconds": 1.641,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.306
+  },
+  "shot_05.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.664,
+     "bbox": [
+      0.0,
+      65.2,
+      233.8,
+      340.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.062,
+     "bbox": [
+      596.2,
+      210.9,
+      639.9,
+      333.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.044,
+     "bbox": [
+      632.3,
+      275.1,
+      640.0,
+      329.7
+     ]
+    }
+   ],
+   "seconds": 1.626,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.302
+  },
+  "shot_06.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.362,
+     "bbox": [
+      352.0,
+      0.5,
+      640.0,
+      353.2
+     ]
+    }
+   ],
+   "seconds": 1.632,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.316
+  },
+  "shot_07.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.722,
+     "bbox": [
+      234.2,
+      34.8,
+      496.8,
+      345.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.051,
+     "bbox": [
+      558.1,
+      0.0,
+      640.0,
+      41.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.044,
+     "bbox": [
+      597.1,
+      205.3,
+      640.0,
+      331.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.037,
+     "bbox": [
+      451.4,
+      0.0,
+      563.5,
+      55.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      252.2,
+      8.2,
+      412.2,
+      48.0
+     ],
+     "vlm_name": "white paper",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of paper with a matte finish."
+    }
+   ],
+   "seconds": 4.768,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.457
+  },
+  "shot_08.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.353,
+     "bbox": [
+      189.7,
+      11.6,
+      399.5,
+      319.4
+     ]
+    }
+   ],
+   "seconds": 1.647,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.321
+  },
+  "shot_09.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.246,
+     "bbox": [
+      210.1,
+      81.9,
+      410.5,
+      307.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.033,
+     "bbox": [
+      27.7,
+      149.0,
+      80.4,
+      256.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      163.2,
+      123.4,
+      411.5,
+      195.4
+     ],
+     "vlm_name": "crumpled paper",
+     "vlm_description": "It is a piece of crumpled white paper."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      265.0,
+      195.4,
+      411.5,
+      284.2
+     ],
+     "vlm_name": "white paper",
+     "vlm_description": "It is a flat, white piece of paper with a matte finish."
+    }
+   ],
+   "seconds": 7.245,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 6.926
+  },
+  "shot_10.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.481,
+     "bbox": [
+      152.0,
+      85.2,
+      355.6,
+      315.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      181.8,
+      67.7,
+      309.8,
+      96.0
+     ],
+     "vlm_name": "can",
+     "vlm_description": "The object is a cylindrical, light-colored metal can with a matte finish."
+    }
+   ],
+   "seconds": 4.759,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.425
+  },
+  "shot_11.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.583,
+     "bbox": [
+      0.0,
+      177.0,
+      49.2,
+      280.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.563,
+     "bbox": [
+      228.4,
+      75.5,
+      421.6,
+      295.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "wrapper",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      193.9,
+      18.7,
+      384.0,
+      91.7
+     ],
+     "vlm_name": "person",
+     "vlm_description": "The object is a crumpled, multi-toned piece of material, appearing somewhat dull and irregularly shaped."
+    }
+   ],
+   "seconds": 4.911,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.589
+  },
+  "shot_12.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.762,
+     "bbox": [
+      183.1,
+      78.9,
+      391.2,
+      316.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.159,
+     "bbox": [
+      0.3,
+      0.0,
+      110.5,
+      80.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.054,
+     "bbox": [
+      0.0,
+      0.0,
+      146.7,
+      219.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "yogurt_container",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      195.2,
+      9.6,
+      289.9,
+      96.0
+     ],
+     "vlm_name": "cup",
+     "vlm_description": "It is a white, smooth, cylindrical object with a matte finish."
+    }
+   ],
+   "seconds": 4.621,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.281
+  },
+  "shot_13.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.64,
+     "bbox": [
+      214.1,
+      93.2,
+      392.3,
+      295.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.632,
+     "bbox": [
+      0.0,
+      186.9,
+      37.4,
+      286.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.09,
+     "bbox": [
+      157.7,
+      438.0,
+      417.9,
+      480.0
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      196.5,
+      318.2,
+      388.5,
+      390.2
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled piece of white paper with a matte finish."
+    }
+   ],
+   "seconds": 4.602,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.267
+  },
+  "shot_14.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.639,
+     "bbox": [
+      204.4,
+      80.9,
+      412.0,
+      319.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.18,
+     "bbox": [
+      6.2,
+      0.0,
+      115.9,
+      83.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.051,
+     "bbox": [
+      0.0,
+      216.2,
+      48.3,
+      275.5
+     ]
+    }
+   ],
+   "seconds": 6.508,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      168.3,
+      99.4,
+      410.9,
+      317.8
+     ],
+     "vlm_name": "crumpled paper",
+     "vlm_description": "It is a dark gray, irregularly shaped, matte object."
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      168.3,
+      99.4,
+      410.9,
+      317.8
+     ],
+     "vlm_name": "crumpled paper",
+     "vlm_description": "It is a dark gray, irregularly shaped, matte object."
+    }
+   ],
+   "vlm_seconds": 6.165
+  },
+  "shot_15.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.341,
+     "bbox": [
+      494.7,
+      0.0,
+      597.0,
+      80.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.302,
+     "bbox": [
+      150.1,
+      52.7,
+      391.5,
+      335.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.047,
+     "bbox": [
+      462.1,
+      0.3,
+      639.8,
+      220.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.037,
+     "bbox": [
+      621.5,
+      212.6,
+      640.0,
+      314.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      0.0,
+      262.6,
+      224.0,
+      384.0
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled, white, matte-surfaced piece of paper."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      133.8,
+      244.3,
+      305.3,
+      348.0
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of paper with a matte finish."
+    }
+   ],
+   "seconds": 7.148,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 6.827
+  },
+  "shot_16.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.329,
+     "bbox": [
+      494.0,
+      0.0,
+      594.7,
+      80.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.104,
+     "bbox": [
+      149.4,
+      52.6,
+      391.3,
+      336.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.063,
+     "bbox": [
+      460.8,
+      0.0,
+      639.8,
+      220.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.04,
+     "bbox": [
+      590.5,
+      0.0,
+      640.0,
+      66.2
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      273.3,
+      279.8,
+      444.2,
+      344.2
+     ],
+     "vlm_name": "can",
+     "vlm_description": "It is a cylindrical, matte silver metal can."
+    }
+   ],
+   "seconds": 4.571,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.253
+  },
+  "shot_17.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.478,
+     "bbox": [
+      215.2,
+      80.7,
+      419.9,
+      298.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.083,
+     "bbox": [
+      616.8,
+      186.5,
+      640.0,
+      313.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.064,
+     "bbox": [
+      0.0,
+      239.7,
+      11.9,
+      295.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.046,
+     "bbox": [
+      0.0,
+      239.6,
+      29.5,
+      295.6
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      64.6,
+      190.1,
+      394.9,
+      341.8
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, light brown/tan, irregularly shaped object with a matte finish."
+    }
+   ],
+   "seconds": 5.017,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.686
+  },
+  "shot_18.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.445,
+     "bbox": [
+      214.1,
+      81.0,
+      419.3,
+      316.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.063,
+     "bbox": [
+      616.7,
+      182.6,
+      640.0,
+      314.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.031,
+     "bbox": [
+      0.0,
+      238.7,
+      26.0,
+      295.5
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      131.2,
+      262.6,
+      339.8,
+      343.2
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "The object is a crumpled, shiny, silver piece of material."
+    }
+   ],
+   "seconds": 4.389,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.071
+  },
+  "shot_19.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.593,
+     "bbox": [
+      392.6,
+      201.8,
+      497.3,
+      313.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.334,
+     "bbox": [
+      0.0,
+      177.4,
+      81.1,
+      284.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.162,
+     "bbox": [
+      622.9,
+      200.9,
+      640.0,
+      287.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.136,
+     "bbox": [
+      259.3,
+      83.2,
+      452.4,
+      238.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.037,
+     "bbox": [
+      95.6,
+      183.1,
+      141.5,
+      271.2
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      131.8,
+      191.5,
+      428.8,
+      326.9
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, multi-colored plastic bag with a printed logo."
+    },
+    {
+     "kind": "item",
+     "label": "yogurt_container",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      394.9,
+      205.9,
+      493.4,
+      310.6
+     ],
+     "vlm_name": "cup",
+     "vlm_description": "It is a white, cylindrical, matte-finished container."
+    }
+   ],
+   "seconds": 7.322,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 6.994
+  },
+  "shot_20.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.533,
+     "bbox": [
+      0.0,
+      177.9,
+      78.3,
+      284.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.482,
+     "bbox": [
+      255.7,
+      82.8,
+      457.2,
+      321.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.224,
+     "bbox": [
+      95.4,
+      182.4,
+      138.9,
+      274.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.036,
+     "bbox": [
+      621.4,
+      200.8,
+      640.0,
+      285.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      257.3,
+      190.6,
+      464.0,
+      318.2
+     ],
+     "vlm_name": "crumpled paper",
+     "vlm_description": "It is a crumpled piece of light-colored paper with a matte finish."
+    }
+   ],
+   "seconds": 4.847,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.521
+  },
+  "shot_21.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.093,
+     "bbox": [
+      81.4,
+      0.0,
+      180.6,
+      87.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.056,
+     "bbox": [
+      252.9,
+      84.8,
+      453.8,
+      250.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.038,
+     "bbox": [
+      0.1,
+      0.0,
+      85.2,
+      77.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.033,
+     "bbox": [
+      0.0,
+      0.0,
+      219.0,
+      221.0
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      186.2,
+      350.4,
+      339.8,
+      382.6
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled piece of white paper with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      339.8,
+      392.2,
+      414.1,
+      432.0
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled piece of white paper with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "milk_jug",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      394.9,
+      304.8,
+      542.1,
+      423.4
+     ],
+     "vlm_name": "white jug",
+     "vlm_description": "It is a white, opaque, jug-shaped object with a smooth, matte finish."
+    }
+   ],
+   "seconds": 10.195,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 9.864
+  },
+  "shot_22.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.156,
+     "bbox": [
+      81.1,
+      0.0,
+      180.0,
+      88.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.061,
+     "bbox": [
+      252.9,
+      83.4,
+      455.0,
+      202.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.036,
+     "bbox": [
+      0.1,
+      0.0,
+      83.8,
+      76.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      17.3,
+      177.1,
+      410.9,
+      378.7
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, translucent plastic bag with various printed graphics and text on it."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      23.7,
+      288.0,
+      254.1,
+      378.7
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a somewhat crumpled, dark green and white plastic bag with some visible text and a moderate shine."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      394.9,
+      308.2,
+      480.0,
+      382.1
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "The object appears to be a light-colored, somewhat amorphous, and slightly dull-looking mass."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      400.0,
+      368.2,
+      635.5,
+      476.6
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, white, irregularly shaped object with a matte finish."
+    }
+   ],
+   "seconds": 13.679,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 13.351
+  },
+  "shot_23.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.214,
+     "bbox": [
+      544.5,
+      0.0,
+      640.0,
+      76.4
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      181.1,
+      288.0,
+      356.5,
+      358.6
+     ],
+     "vlm_name": "cans",
+     "vlm_description": "It is a cylindrical, matte beige object with a smooth, slightly dull finish."
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      0.0,
+      273.1,
+      187.5,
+      363.4
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "It is a shiny, crumpled piece of silver material."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      304.0,
+      166.6,
+      556.8,
+      356.2
+     ],
+     "vlm_name": "bags",
+     "vlm_description": "It is a crumpled, white, irregularly shaped object with a matte finish."
+    }
+   ],
+   "seconds": 9.955,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 9.625
+  },
+  "shot_24.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.161,
+     "bbox": [
+      260.2,
+      100.1,
+      446.0,
+      240.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      0.0,
+      313.4,
+      341.8,
+      414.7
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a translucent, somewhat crinkled plastic bag with visible printed graphics in red and green."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      296.3,
+      191.5,
+      640.0,
+      399.8
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a translucent, crinkled plastic bag with a blue and white printed design."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      192.0,
+      381.6,
+      640.0,
+      473.8
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "The object appears to be a crumpled, somewhat translucent plastic bag with visible printed graphics in shades of green and white."
+    }
+   ],
+   "seconds": 11.32,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 10.986
+  },
+  "shot_25.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.678,
+     "bbox": [
+      261.6,
+      73.3,
+      482.9,
+      219.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      211.2,
+      350.4,
+      407.7,
+      364.8
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "The object is a crumpled, tan-colored bag with a dull finish."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      294.4,
+      190.6,
+      375.7,
+      233.8
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "The object appears to be a crumpled, dull gray or dark-colored bag with an irregular, soft shape and no noticeable shine."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      375.7,
+      195.4,
+      535.7,
+      350.4
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, white and red plastic bag with a somewhat shiny texture."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      510.1,
+      161.8,
+      638.1,
+      349.0
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, white, irregularly shaped object with a matte finish."
+    }
+   ],
+   "seconds": 13.949,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 13.62
+  },
+  "shot_26.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.279,
+     "bbox": [
+      223.5,
+      77.2,
+      433.4,
+      317.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      195.2,
+      142.6,
+      442.9,
+      207.8
+     ],
+     "vlm_name": "white paper",
+     "vlm_description": "The object is a piece of white paper with an irregular, somewhat crumpled shape and a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      195.2,
+      195.4,
+      442.9,
+      284.2
+     ],
+     "vlm_name": "white plastic",
+     "vlm_description": "It is a white, somewhat irregularly shaped piece of plastic with a dull finish."
+    }
+   ],
+   "seconds": 7.653,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 7.344
+  },
+  "shot_27.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.287,
+     "bbox": [
+      0.0,
+      177.7,
+      101.4,
+      282.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.11,
+     "bbox": [
+      568.7,
+      198.3,
+      640.0,
+      276.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.066,
+     "bbox": [
+      380.8,
+      448.6,
+      593.9,
+      480.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.055,
+     "bbox": [
+      568.2,
+      199.8,
+      591.9,
+      275.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.053,
+     "bbox": [
+      258.2,
+      82.4,
+      477.5,
+      316.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      254.1,
+      187.7,
+      478.1,
+      315.4
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, light brown, irregularly shaped object with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      219.5,
+      9.1,
+      496.0,
+      102.7
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, white, irregularly shaped object with a somewhat dull finish."
+    }
+   ],
+   "seconds": 7.769,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 7.432
+  },
+  "shot_28.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.193,
+     "bbox": [
+      122.0,
+      0.0,
+      210.2,
+      100.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.178,
+     "bbox": [
+      264.7,
+      92.6,
+      447.9,
+      259.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      200.3,
+      291.4,
+      361.0,
+      336.0
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of paper with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      341.1,
+      200.2,
+      501.1,
+      323.0
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of material with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      283.5,
+      51.4,
+      443.5,
+      111.8
+     ],
+     "vlm_name": "cans",
+     "vlm_description": "It is a dull, grayish-brown, irregularly shaped object with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      373.1,
+      80.2,
+      456.3,
+      111.8
+     ],
+     "vlm_name": "bags",
+     "vlm_description": "The object appears to be a crumpled, light-colored, somewhat amorphous mass with a dull finish."
+    }
+   ],
+   "seconds": 13.187,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 12.857
+  },
+  "shot_29.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.053,
+     "bbox": [
+      616.0,
+      224.2,
+      640.0,
+      315.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.048,
+     "bbox": [
+      508.0,
+      0.0,
+      604.2,
+      112.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.046,
+     "bbox": [
+      139.3,
+      89.8,
+      547.0,
+      355.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.041,
+     "bbox": [
+      287.2,
+      0.1,
+      391.5,
+      93.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      136.3,
+      169.4,
+      550.4,
+      352.8
+     ],
+     "vlm_name": "bag",
+     "vlm_description": "It is a crumpled, multi-colored, and somewhat shiny plastic bag."
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      337.3,
+      176.2,
+      456.3,
+      262.6
+     ],
+     "vlm_name": "cans",
+     "vlm_description": "It is a dull, metallic, cylindrical object."
+    }
+   ],
+   "seconds": 6.878,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 6.558
+  }
+ }
+}

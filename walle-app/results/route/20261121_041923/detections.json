@@ -1,0 +1,330 @@
+{
+ "run_id": "20261121_041923",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 2,
+   "t_utc": "2026-11-21T04:20:30+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step2.jpg",
+   "pose": [
+    0.9948,
+    0.0006,
+    -28.11
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.366,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.067,
+    "bbox": [
+     179.5,
+     36.7,
+     445.6,
+     348.2
+    ]
+   },
+   "bin_bearing_deg": 0.77,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "yogurt_container",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      229.8,
+      0.0,
+      437.8,
+      34.6
+     ],
+     "vlm_name": "white plastic yogurt tub or cup",
+     "vlm_description": "The object is made of white plastic, has a cylindrical shape with a slightly tapered top, and exhibits a slight sheen.",
+     "place": "on_bin",
+     "obj_xy": null
+    }
+   ],
+   "low_conf": []
+  },
+  {
+   "step": 6,
+   "t_utc": "2026-11-21T04:21:19+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step6.jpg",
+   "pose": [
+    0.9987,
+    0.997,
+    34.2
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 7.264,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.183,
+    "bbox": [
+     184.7,
+     40.9,
+     445.4,
+     342.8
+    ]
+   },
+   "bin_bearing_deg": 0.51,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      40.3,
+      232.8,
+      190.1,
+      398.9
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white object with a soft, matte texture and no shine, consistent in appearance with paper tissue.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.324,
+      1.378
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      179.2,
+      288.0,
+      384.0,
+      420.0
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "A crumpled object made of shiny silver material, likely aluminum foil.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.351,
+      1.263
+     ]
+    }
+   ],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.021,
+     "bbox": [
+      0.0,
+      189.7,
+      106.3,
+      314.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.016,
+     "bbox": [
+      0.0,
+      67.4,
+      194.1,
+      316.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.015,
+     "bbox": [
+      135.1,
+      55.1,
+      175.0,
+      82.4
+     ]
+    }
+   ]
+  },
+  {
+   "step": 10,
+   "t_utc": "2026-11-21T04:22:00+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step10.jpg",
+   "pose": [
+    0.0454,
+    0.9807,
+    132.81
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.667,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.813,
+    "bbox": [
+     169.0,
+     33.0,
+     448.3,
+     354.9
+    ]
+   },
+   "bin_bearing_deg": 1.17,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      246.4,
+      176.2,
+      351.4,
+      388.8
+     ],
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a white label and blue rim, featuring text that reads 'COLORADO VANILLA OAT L...', standing upright on a light-colored surface.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.31,
+      1.343
+     ]
+    }
+   ],
+   "low_conf": []
+  },
+  {
+   "step": 14,
+   "t_utc": "2026-11-21T04:22:46+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step14.jpg",
+   "pose": [
+    0.0002,
+    -0.0,
+    -131.51
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.648,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.518,
+    "bbox": [
+     175.5,
+     27.1,
+     450.9,
+     350.8
+    ]
+   },
+   "bin_bearing_deg": 0.7,
+   "rim_visible": true,
+   "items": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.021,
+     "bbox": [
+      532.1,
+      0.3,
+      640.0,
+      307.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.018,
+     "bbox": [
+      158.8,
+      215.8,
+      198.5,
+      264.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.015,
+     "bbox": [
+      159.3,
+      215.8,
+      197.4,
+      239.4
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      174.7,
+      32.6,
+      451.2,
+      345.1
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black plastic container with a smooth, slightly curved rectangular shape and no visible shine."
+    }
+   ]
+  }
+ ]
+}

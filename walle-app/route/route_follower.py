@@ -66,7 +66,9 @@ def utc_now():
 def make_follower_class():
     """Import ROS only when a run starts, so the geometry and tests need no ROS."""
     from move_test import Mover, yaw
-    from std_msgs.msg import String
+    from rclpy.qos import qos_profile_sensor_data
+    from sensor_msgs.msg import Imu
+    from std_msgs.msg import Int32MultiArray, String
 
     class RouteFollower(Mover):
         def __init__(self, cfg, layout, run_dir):
@@ -90,6 +92,120 @@ def make_follower_class():
             self.pulse_gain = cfg["turn"]["pulse"]["gain_dps"]
             self.pulses = []
             self.photo_log = {}              # photo name -> {"tries": n, "error": str|None}
+            # Phase 3: YOLO-World (detect/detector.py), set by main() when detection is on
+            self.detector = None
+            self.detect_cfg = None
+            self.detections = []             # one entry per bin-stop photo -> detections.json
+            self.truth_bins = {}             # Gazebo: where the bins really are (--truth-layout)
+            self.turn_scale = None           # centering: learned at the first bin (centering_cfg)
+            # Sensor guard: when each Pico stream last arrived, the gaps seen, the waits made
+            self.guard = cfg.get("sensor_guard", {"enabled": False})
+            self.last_seen = {}              # topic -> monotonic time of the last message
+            self.gaps = []                   # (start, end, topic) of every gap > max_age_s
+            self.guard_waits = []
+            self.waited_s = 0.0              # total time spent waiting for sensor data
+            self.last_good = None            # (raw odom, raw wheel, t) at the last fresh tick
+            self.gap_start = None            # last_good when the first unrepaired gap began
+            self.repairs = []
+            self.create_subscription(Int32MultiArray, "/pico/wheel_ticks",
+                                     lambda m: self._seen("/pico/wheel_ticks"),
+                                     qos_profile_sensor_data)
+            self.create_subscription(Imu, "/pico/imu/data", lambda m: self._seen("/pico/imu/data"),
+                                     qos_profile_sensor_data)
+
+        # ----- sensor guard -----
+        def _seen(self, topic):
+            now = time.monotonic()
+            odom, wheel = self.pose("odom"), self.pose("wheel")
+            with self.lock:
+                last = self.last_seen.get(topic)
+                gap = last is not None and now - last > float(self.guard.get("max_age_s", 0.3))
+                if gap:
+                    self.gaps.append((last, now, topic))
+                    if self.gap_start is None and self.last_good is not None:
+                        self.gap_start = self.last_good
+                elif topic == "/pico/wheel_ticks" and odom is not None and wheel is not None:
+                    self.last_good = (odom, wheel, now)
+                self.last_seen[topic] = now
+
+        def repair_estimate(self):
+            """After a sensor gap: put the fused estimate back at the pose it had when the
+            data stopped, moved by what the wheels measured across the gap (bridge_gap)."""
+            with self.lock:
+                start, self.gap_start = self.gap_start, None
+            if start is None or "odom" not in self.anchors or self.stale_topics():
+                return
+            odom0, wheel0, t0 = start
+            anchor = self.anchors["odom"]
+            before = anchor.to_park(odom0, t0)
+            now_est = self.park_pose()
+            target = rg.bridge_gap(before, wheel0, self.pose("wheel"))
+            t = time.monotonic()
+            self.anchors["odom"] = rg.Anchor(self.pose("odom"), target, t, anchor.heading_rate)
+            jump = (math.hypot(now_est[0] - target[0], now_est[1] - target[1]) * 100,
+                    math.degrees(rg.wrap(now_est[2] - target[2])))
+            self.repairs.append({"moved_back_cm": round(jump[0], 1),
+                                 "turned_back_deg": round(jump[1], 1),
+                                 "state": self.state.get("state"),
+                                 "corner": self.state.get("corner")})
+            print(f"  estimate repaired after the gap: {jump[0]:.1f} cm, {jump[1]:+.1f} deg "
+                  "of motion that did not happen removed")
+
+        def stale_topics(self):
+            """Pico streams older than max_age_s (only streams seen at least once)."""
+            if not self.guard.get("enabled"):
+                return []
+            now, age = time.monotonic(), float(self.guard.get("max_age_s", 0.3))
+            with self.lock:
+                return [t for t, last in self.last_seen.items() if now - last > age]
+
+        def gaps_since(self, t0):
+            """Sensor gaps overlapping [t0, now], the one still open included."""
+            now = time.monotonic()
+            with self.lock:
+                done = rg.gaps_in(self.gaps, t0, now)
+            return done + [(now, now, t) for t in self.stale_topics()]
+
+        def wait_for_sensors(self, stale):
+            """Stop and wait until every Pico stream has been fresh for resume_after_s."""
+            t0 = time.monotonic()
+            Mover.stop(self)
+            print(f"  sensor gap ({', '.join(stale)}): stopped, waiting for data")
+            g = self.guard
+            fresh_since = None
+            while True:
+                now = time.monotonic()
+                if now - t0 > float(g.get("give_up_s", 20.0)):
+                    self.guard_waits.append({"stale": stale, "seconds": round(now - t0, 2),
+                                             "gave_up": True})
+                    raise RuntimeError(f"no data from {', '.join(stale)} for "
+                                       f"{g.get('give_up_s', 20.0)} s")
+                if self.stale_topics():
+                    fresh_since = None
+                elif fresh_since is None:
+                    fresh_since = now
+                elif now - fresh_since >= float(g.get("resume_after_s", 0.6)):
+                    break
+                time.sleep(0.05)
+            self.guard_waits.append({"stale": stale, "seconds": round(time.monotonic() - t0, 2),
+                                     "state": self.state.get("state"),
+                                     "corner": self.state.get("corner")})
+            self.waited_s += time.monotonic() - t0
+            print(f"  sensor data back after {time.monotonic() - t0:.1f} s, carrying on")
+            self.repair_estimate()
+
+        def send(self, v, w):
+            """Mover.send, except that a motion command while a Pico stream is stale stops
+            the robot and waits for the data instead (stop commands always go out)."""
+            if v or w:
+                stale = self.stale_topics()
+                if stale:
+                    self.wait_for_sensors(stale)
+                    return                   # the caller's loop re-reads the pose
+                if self.gap_start is not None:    # a gap ended while the robot stood still
+                    self.repair_estimate()
+                    return
+            Mover.send(self, v, w)
 
         # walle-sim names the robot "walle", not module 8's "course_robot"
         def _on_truth(self, msg):
@@ -178,8 +294,9 @@ def make_follower_class():
             sign = 1 if remaining >= 0 else -1          # -1: overshot, back up
             self.coast_time = self.coast_side
             v_stop = 0.0
+            waited0 = self.waited_s
             while True:
-                if time.time() > end:
+                if time.time() > end + (self.waited_s - waited0):
                     self.stop()
                     raise RuntimeError(f"side to {b} not finished in {sc['timeout_s']} s")
                 p = self.park_pose()
@@ -235,21 +352,42 @@ def make_follower_class():
                                     "gain_dps": round(self.pulse_gain, 1)})
                 return False
             sign = math.copysign(1.0, err_deg)
+            stale = self.stale_topics()
+            if stale:                        # don't start a pulse on a stale heading
+                self.wait_for_sensors(stale)
+                err_deg = math.degrees(rg.wrap(heading - self.park_pose()[2]))
+                sign = math.copysign(1.0, err_deg)
+                dur = rg.plan_pulse(err_deg, self.pulse_gain, pc["dead_s"], pc["min_s"],
+                                    pc["max_s"])
+                if dur is None:
+                    return False
             h0 = self.park_pose()[2]
+            t0 = time.monotonic()
             # one command, then the stop: the Pico holds a command until the next (500 ms
             # watchdog), so the pulse length is the time between the two messages
             self.send(0.0, sign * pc["rate_rps"])
             time.sleep(dur)
             self.stop()
             self.settle()
+            gaps = self.gaps_since(t0)
+            if gaps:                         # let the estimate catch up before reading it
+                self.wait_for_sensors(sorted({g[2] for g in gaps}))
             moved = sign * math.degrees(rg.wrap(self.park_pose()[2] - h0))
             gain0 = self.pulse_gain
-            self.pulse_gain = rg.learn_pulse_gain(self.pulse_gain, dur, moved, pc["dead_s"],
-                                                  pc["adapt_gain"])
+            outlier = rg.pulse_outlier(gain0, dur, pc["dead_s"], moved,
+                                       float(self.guard.get("pulse_outlier", 2.5)))
+            if not gaps and not outlier:
+                self.pulse_gain = rg.learn_pulse_gain(self.pulse_gain, dur, moved,
+                                                      pc["dead_s"], pc["adapt_gain"])
             after = math.degrees(rg.wrap(heading - self.park_pose()[2]))
-            self.pulses.append({"err_deg": round(err_deg, 2), "duration_s": round(dur, 3),
-                                "moved_deg": round(moved, 2), "err_after_deg": round(after, 2),
-                                "gain_dps": round(gain0, 1)})
+            rec = {"err_deg": round(err_deg, 2), "duration_s": round(dur, 3),
+                   "moved_deg": round(moved, 2), "err_after_deg": round(after, 2),
+                   "gain_dps": round(gain0, 1)}
+            if gaps:
+                rec["sensor_gap"] = True
+            if outlier:
+                rec["outlier"] = True
+            self.pulses.append(rec)
             return True
 
         def turn_leg(self, heading, learn):
@@ -262,7 +400,8 @@ def make_follower_class():
             dt = 1.0 / self.cfg["command_rate_hz"]
             self.coast_time = self.coast_turn
             w_stop = 0.0
-            while time.time() < end:
+            waited0 = self.waited_s
+            while time.time() < end + (self.waited_s - waited0):
                 err = rg.wrap(heading - self.park_pose()[2])
                 with self.lock:
                     w_now = self.rates[1]
@@ -288,6 +427,7 @@ def make_follower_class():
             Returns (photo path or None, heading drift in deg or None)."""
             p0, w0 = self.park_pose(), self.pose("wheel")
             raw0, t0 = self.pose("odom")[2], time.monotonic()
+            tg = t0
             t_end = time.time() + seconds
             time.sleep(min(1.0, seconds))
             shot = self.photo_with_retries(photo_name, t_end) if photo_name else None
@@ -299,6 +439,11 @@ def make_follower_class():
             moved = math.hypot(w1[0] - w0[0], w1[1] - w0[1])
             turned = abs(rg.wrap(w1[2] - w0[2]))
             if moved > zc["max_move_m"] or turned > math.radians(zc["max_turn_deg"]):
+                return shot, None
+            if self.gaps_since(tg):          # the EKF drifted on no data: not gyro bias
+                self.holds.append({"seconds": round(time.monotonic() - tg, 2),
+                                   "skipped": "sensor gap"})
+                self.repair_estimate()
                 return shot, None
             raw1, t1 = self.pose("odom")[2], time.monotonic()
             drift = math.degrees(rg.wrap(self.park_pose()[2] - p0[2]))
@@ -384,7 +529,16 @@ def make_follower_class():
                     print(self.fmt(self.report(state="facing_bin", step=i, corner=corner,
                                                bin=name)))
                     self.turn_to(heading)
-                    self.events.append(self.bin_event(i, corner, bins[name], heading))
+                    try:
+                        centering = self.center_bin(i, bins[name], heading)
+                    except Exception as e:      # detection must never abort the drive
+                        self.stop()
+                        centering = {"centered": False, "reason": f"error: {e}"}
+                        print(f"  centering {name}: error, keeping the heading: {e}")
+                    ev = self.bin_event(i, corner, bins[name], heading)
+                    if centering:
+                        ev["centering"] = centering
+                    self.events.append(ev)
                 elif kind == "dwell":
                     _, corner, name, seconds = step
                     print(self.fmt(self.report(state="at_bin", step=i, corner=corner, bin=name))
@@ -399,11 +553,201 @@ def make_follower_class():
                             self.events[-1]["photo_error"] = tried["error"]
                     if drift is not None:
                         self.events[-1]["held_heading_drift_deg"] = drift
+                    if shot and self.detector:
+                        try:
+                            self.events[-1]["detected"] = self.detect_at_bin(i, bins[name], shot)
+                        except Exception as e:
+                            self.events[-1]["detect_error"] = str(e)
+                            print(f"  detection at {name} failed: {e}")
                     self.state.pop("bin", None)
                 elif kind == "turn":
                     _, corner, heading = step
                     print(self.fmt(self.report(state="turning", step=i, corner=corner)))
                     self.turn_to(heading)
+
+        # ----- Phase 3: detection at the bin stops -----
+        def camera_settings(self):
+            """park.yaml robot.camera; in Gazebo with detect.yaml's sim camera on top."""
+            from detect.sim_truth import camera_settings
+            if self.detector and self.detector.source == "sim":
+                return camera_settings(self.detect_cfg)
+            return park.load_yaml(park.PARK_FILE)["robot"]["camera"]
+
+        def centering_cfg(self):
+            """detect.yaml centering; in Gazebo with detect.yaml's sim centering on top."""
+            cc = dict(self.detect_cfg["centering"])
+            if self.detector and self.detector.source == "sim":
+                cc.update(self.detect_cfg.get("sim", {}).get("centering", {}))
+            return cc
+
+        def camera_model(self, size):
+            from detect.geometry import Camera
+            return Camera.from_park(self.camera_settings(), *size)
+
+        def expected_bin(self, b):
+            """The bin's bearing from the camera axis (deg, left +) on the current estimate,
+            and its distance from the camera (m)."""
+            x, y, h = self.park_pose()
+            dx, dy = b["position"][0] - x, b["position"][1] - y
+            bearing = math.degrees(rg.wrap(math.atan2(dy, dx) - h))
+            return bearing, max(math.hypot(dx, dy) - self.camera_settings()["forward_m"], 0.1)
+
+        def analyze(self, shot, b):
+            """Detect in a saved photo and sort what is seen for bin b. Returns (analysis,
+            detector result, pose [x, y, heading_deg])."""
+            from detect import geometry as dg
+            with open(os.path.join(self.run_dir, shot), "rb") as f:
+                res = self.detector.detect(f.read(), keep_low=True)
+            cam = self.camera_model(res["size"])
+            bearing, dist = self.expected_bin(b)
+            width_m = b["size_m"][0] if b.get("shape") == "box" else 2 * b.get("radius_m", 0.1)
+            height_m = b.get("height_m") or (b["size_m"][2] if b.get("size_m") else 0.29)
+            p = self.park_pose()
+            pose = [round(p[0], 4), round(p[1], 4), round(math.degrees(p[2]), 2)]
+            an = dg.analyze_bin_stop(res["detections"], cam, pose=pose,
+                                     expected_bearing_deg=bearing,
+                                     expected_bin_px=(cam.width_px(width_m, dist),
+                                                      cam.fy * height_m / dist),
+                                     cfg=self.detect_cfg)
+            an["expected_bearing_deg"] = round(bearing, 2)
+            an["expected_dist_m"] = round(dist, 3)
+            an["expected_bin_px"] = (cam.width_px(width_m, dist), cam.fy * height_m / dist)
+            an["search_order"] = dg.search_order(
+                [d for d in res["detections"] + res.get("low_conf", []) if d["kind"] == "bin"],
+                cam, self.detect_cfg["centering"].get("edge_px", 4), an["expected_bin_px"],
+                self.centering_cfg().get("search_deg", 15.0))
+            return an, res, pose
+
+        def look(self, name, b):
+            """One photo + detection. Returns (photo path, analysis, detector result) or
+            (None, None, error string)."""
+            shot, error = self.photo(name, float(self.cfg.get("camera_timeout_s", 5.0)))
+            if not shot:
+                return None, None, error
+            an, res, _ = self.analyze(shot, b)
+            return shot, an, res
+
+        def center_bin(self, i, b, heading):
+            """Turn until the DETECTED bin is in the middle of the frame (Phase 3): photo,
+            detect, pulse (or turn) by the bin's bearing, up to max_corrections times, never
+            farther than max_offset_deg from the configured heading. No bin on the first
+            look: try search_deg each side of the configured heading (search_order); still
+            none: keep the heading and say so. Returns the record for summary.json, or None
+            if off."""
+            if not (self.detector and self.cfg.get("center_bins", True)):
+                return None
+            cc = self.centering_cfg()
+            if self.turn_scale is None:
+                self.turn_scale = float(cc.get("turn_scale", 1.0))
+            limits = tuple(cc.get("turn_scale_limits", (0.7, 2.5)))
+            forward = self.camera_settings()["forward_m"]
+            out = {"centered": False, "looks": [], "turn_scale_start": round(self.turn_scale, 3)}
+            prev = None                      # (bearing, heading_deg) of the last look
+            searches = None                  # search offsets still to try (set on a miss)
+            tried = []
+            found_any = False
+            j, n = 0, 0                      # corrections made, photos taken
+            while True:
+                t_look = time.monotonic()
+                shot, an, res = self.look(f"{b['name']}_step{i}_c{n}", b)
+                n += 1
+                if shot is None:
+                    out["reason"] = f"no photo: {res}"
+                    break
+                look = {"photo": shot, "seconds": res["seconds"],
+                        "expected_bearing_deg": an["expected_bearing_deg"],
+                        "bin_bearing_deg": an["bin_bearing_deg"],
+                        "bin_conf": an["bin"]["conf"] if an["bin"] else None,
+                        "heading_deg": round(math.degrees(self.park_pose()[2]), 2)}
+                out["looks"].append(look)
+                err = an["bin_bearing_deg"]
+                parallax = rg.parallax_factor(an["expected_dist_m"], forward)
+                if err is not None and prev is not None and not self.gaps_since(prev[2]):
+                    turned = look["heading_deg"] - prev[1]
+                    turned = (turned + 180.0) % 360.0 - 180.0
+                    self.turn_scale = rg.learn_turn_scale(
+                        self.turn_scale, prev[0], err, turned, parallax,
+                        float(cc.get("turn_scale_gain", 0.6)), limits)
+                    look["turn_scale"] = round(self.turn_scale, 3)
+                prev = (err, look["heading_deg"], t_look) if err is not None else None
+                if err is None and not found_any and float(cc.get("search_deg", 0)) > 0:
+                    if searches is None:
+                        searches = list(an["search_order"])
+                    if searches:
+                        off = searches.pop(0)
+                        tried.append(off)
+                        target = rg.wrap(heading + math.radians(off))
+                        look["search_deg"] = off
+                        move = math.degrees(rg.wrap(target - self.park_pose()[2]))
+                        print(f"  centering {b['name']}: no bin, looking {off:+.0f} deg "
+                              f"from the configured heading")
+                        if abs(move) <= self.cfg["turn"]["pulse_max_deg"]:
+                            self.pulse(target, move)
+                        else:
+                            self.turn_to(target)
+                        continue
+                    out["reason"] = (f"no bin detected (searched "
+                                     f"{', '.join(f'{o:+.0f}' for o in tried)} deg)")
+                    break
+                if err is not None:
+                    found_any = True
+                if err is None or abs(err - an["expected_bearing_deg"]) > cc["max_offset_deg"]:
+                    out["reason"] = ("no bin detected" if err is None else
+                                     f"bin seen {err:+.1f} deg, too far from the expected "
+                                     f"{an['expected_bearing_deg']:+.1f}")
+                    break
+                if abs(err) <= cc["tolerance_deg"]:
+                    out["centered"] = True
+                    break
+                if j == int(cc["max_corrections"]):
+                    out["reason"] = f"still {err:+.1f} deg off after {j} corrections"
+                    break
+                j += 1
+                h_now = self.park_pose()[2]
+                # the camera sees the bin move parallax x turn_scale x the recorded turn
+                turn_for = err / (parallax * self.turn_scale)
+                target, clamped = rg.centering_target(h_now, turn_for, heading,
+                                                      cc["max_offset_deg"])
+                look["clamped"] = clamped
+                move = math.degrees(rg.wrap(target - h_now))
+                print(f"  centering {b['name']}: bin at {err:+.1f} deg, turning {move:+.1f}")
+                if abs(move) <= self.cfg["turn"]["pulse_max_deg"]:
+                    if not self.pulse(target, move):
+                        out["reason"] = "the shortest pulse would overshoot"
+                        break
+                else:
+                    self.turn_to(target)
+            if tried:
+                out["searched_deg"] = tried
+            out["turn_scale_end"] = round(self.turn_scale, 3)
+            out["offset_from_config_deg"] = round(math.degrees(
+                rg.wrap(self.park_pose()[2] - heading)), 2)
+            last = out["looks"][-1]["bin_bearing_deg"] if out["looks"] else None
+            print(f"  centering {b['name']}: "
+                  + ("centered" if out["centered"] else f"NOT centered ({out.get('reason')})")
+                  + (f", bin at {last:+.1f} deg" if last is not None else "")
+                  + f", {out['offset_from_config_deg']:+.1f} deg from the configured heading")
+            return out
+
+        def detect_at_bin(self, i, b, shot):
+            """Detect items in the bin photo (taken during the wait, after centering) and
+            keep them for detections.json. Returns a short count for the event."""
+            an, res, pose = self.analyze(shot, b)
+            self.detections.append({
+                "step": i, "t_utc": utc_now(), "place_kind": "bin_stop", "bin": b["name"],
+                "bin_id": b["id"], "photo": shot, "pose": pose, "model": res["model"],
+                "source": res["source"], "seconds": res["seconds"], "size": res["size"],
+                "bin_detection": an["bin"], "bin_bearing_deg": an["bin_bearing_deg"],
+                "rim_visible": an["rim_visible"], "items": an["items"],
+                "low_conf": res.get("low_conf", [])})
+            items = an["items"]
+            print(f"  {b['name']}: " + (", ".join(
+                f"{d['label']} ({d['category']}, {d['place']}"
+                + (f", {d['conf']:.2f})" if d.get("conf") is not None else ")")
+                for d in items) or "no items") + f"  [{res['seconds']:.2f} s]")
+            return {"items": len(items), "on_bin": sum(d["place"] == "on_bin" for d in items),
+                    "around_bin": sum(d["place"] == "around_bin" for d in items),
+                    "bin_found": an["bin"] is not None, "rim_visible": an["rim_visible"]}
 
         def bin_event(self, i, corner, b, heading):
             snap = self.snapshot()
@@ -415,7 +759,8 @@ def make_follower_class():
                                                 * 180 / math.pi, 2)
             if "ground_truth" in snap:
                 g = snap["ground_truth"]
-                bearing = math.atan2(b["position"][1] - g[1], b["position"][0] - g[0])
+                pos = self.truth_bins.get(b["name"], b)["position"]
+                bearing = math.atan2(pos[1] - g[1], pos[0] - g[0])
                 ev["true_bearing_error_deg"] = round(math.degrees(
                     rg.wrap(bearing - math.radians(g[2]))), 2)
             return ev
@@ -510,6 +855,14 @@ def parse_args(argv=None):
     p.add_argument("--config", default=ROUTE_CONFIG)
     p.add_argument("--no-measure", action="store_true",
                    help="real robot: do not ask for the tape-measured end position")
+    p.add_argument("--truth-layout", help="Gazebo: the world's real layout, for the ground-"
+                   "truth detector, when --layout-json gives the follower a different one "
+                   "(bins moved, to test centering)")
+    p.add_argument("--sim-hide-cut-bins", action="store_true",
+                   help="Gazebo: the ground-truth detector misses bins cut off at the frame's "
+                   "side, as YOLO-World did on the robot (tests the search turn)")
+    p.add_argument("--no-detect", action="store_true",
+                   help="no YOLO-World at the bin stops (no centering, no detections)")
     p.add_argument("--no-memory", action="store_true",
                    help="do not record the run in the memory store (walle-app/data/memory/)")
     return p.parse_args(argv)
@@ -559,6 +912,14 @@ def main(argv=None):
             node.coast_side = node.coast_turn = a.coast_time
         node.anchor()
         node.state["run_id"] = run_id
+        truth = layout
+        if a.truth_layout:
+            with open(a.truth_layout) as f:
+                truth = json.load(f)
+            node.truth_bins = {b["name"]: b for b in truth["bins"]}
+        if cfg.get("detect", True) and cfg["face_bins"] and cfg.get("camera_url") \
+                and not a.no_detect:
+            load_detector(node, truth, a.sim_hide_cut_bins)
         bins = [b["name"] for b in layout["bins"]] if cfg["face_bins"] else []
         print(f"Run {run_id}: {cfg['laps']} lap(s), bins {', '.join(bins) or 'none'}, "
               f"dwell {cfg['dwell_s']:.0f} s, steering by {cfg['feedback_topic']}, "
@@ -596,7 +957,13 @@ def main(argv=None):
                                    "turn": round(node.coast_turn, 3)},
                    "corrections": node.corrections,
                    "pulse_gain_end_dps": round(node.pulse_gain, 1),
+                   "centering_turn_scale_end": (round(node.turn_scale, 3)
+                                                if node.turn_scale is not None else None),
                    "pulses": node.pulses,
+                   "sensor_gaps": [{"topic": g[2], "seconds": round(g[1] - g[0], 2)}
+                                   for g in node.gaps],
+                   "sensor_guard_waits": node.guard_waits,
+                   "estimate_repairs": node.repairs,
                    "zero_velocity_heading_deg": round(node.zero_velocity_deg, 3),
                    "gyro_bias_dps": round(math.degrees(node.bias.rate), 4),
                    "holds": node.holds}
@@ -623,12 +990,38 @@ def main(argv=None):
         json.dump(summary, f, indent=2)
     with open(os.path.join(run_dir, "layout.json"), "w") as f:
         json.dump(layout, f, indent=2)
+    if node.detector:
+        with open(os.path.join(run_dir, "detections.json"), "w") as f:
+            json.dump({"run_id": run_id, "model": node.detector.model_name,
+                       "source": node.detector.source, "photos": node.detections}, f, indent=1)
     if not in_sim and node.anchors:
         print(f"Recorded in {append_robot_row(results_dir, run_id, summary)}")
     if not a.no_memory and node.anchors:
         record_in_memory(summary, layout, run_dir)
     print(f"Run log: {run_dir}")
     return 0 if status == "done" else 1
+
+
+def load_detector(node, truth_layout, hide_cut_bins=False):
+    """YOLO-World for the bin stops (Phase 3). In Gazebo, where YOLO-World sees nothing, the
+    ground-truth stand-in (detect/sim_truth.py) projects truth_layout into the camera. If the
+    detector can't be loaded (no ultralytics, no weights), the run goes on without it."""
+    try:
+        from detect.detector import load_config as load_detect_config, make_detector
+        node.detect_cfg = load_detect_config()
+        t0 = time.time()
+        if node.in_sim:
+            from detect.sim_truth import TruthDetector
+            node.detector = TruthDetector(truth_layout,
+                                          lambda: node.park_pose("ground_truth"),
+                                          cfg=node.detect_cfg, hide_cut_bins=hide_cut_bins)
+        else:
+            node.detector = make_detector(source="robot", cfg=node.detect_cfg)
+        print(f"Detector: {node.detector.model_name} ({node.detector.source}), "
+              f"loaded in {time.time() - t0:.1f} s")
+    except Exception as e:
+        node.detector = None
+        print(f"Detector NOT loaded, no centering or detections this run: {e}")
 
 
 def record_in_memory(summary, layout, run_dir):

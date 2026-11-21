@@ -141,3 +141,65 @@ def learn_pulse_gain(gain_dps, duration_s, moved_deg, dead_s, adapt_gain, lo=30.
         return gain_dps
     seen = moved_deg / active
     return clamp(gain_dps + adapt_gain * (seen - gain_dps), lo, hi)
+
+
+def pulse_outlier(gain_dps, duration_s, dead_s, moved_deg, ratio):
+    """A pulse that turned more than ratio x what it was planned to (gain x active time),
+    or less than 1/ratio of it: not normal pulse behavior (a lost stop message, a sensor
+    gap), so it must not teach the gain."""
+    planned = gain_dps * max(duration_s - dead_s, 0.0)
+    if planned < 1.0:
+        return False
+    return moved_deg > ratio * planned or moved_deg < planned / ratio
+
+
+def bridge_gap(park_before, wheel_before, wheel_after):
+    """The park pose after a sensor gap: the pose just before it, moved by what the wheels
+    measured across it. The encoder counts are cumulative, so the wheel odometry is right
+    again once ticks arrive; the EKF, which predicted on at the last speed through the gap,
+    is not (sim blackout: it carried on 8 cm the robot never drove)."""
+    dx, dy = wheel_after[0] - wheel_before[0], wheel_after[1] - wheel_before[1]
+    c, s = math.cos(wheel_before[2]), math.sin(wheel_before[2])
+    fwd, left = c * dx + s * dy, -s * dx + c * dy          # in the robot frame at the start
+    h = park_before[2]
+    return (park_before[0] + math.cos(h) * fwd - math.sin(h) * left,
+            park_before[1] + math.sin(h) * fwd + math.cos(h) * left,
+            wrap(h + wrap(wheel_after[2] - wheel_before[2])))
+
+
+def gaps_in(gaps, t0, t1):
+    """The sensor gaps [(start, end, topic), ...] (monotonic s) that overlap [t0, t1]."""
+    return [g for g in gaps if g[1] >= t0 and g[0] <= t1]
+
+
+def centering_target(heading_now, bearing_deg, heading_cfg, max_offset_deg):
+    """Bin centering (Phase 3): the heading (rad) that puts a bin seen at bearing_deg (left
+    positive, from the camera's axis) in the middle of the frame, kept within max_offset_deg
+    of the configured bin heading heading_cfg. Returns (target, clamped)."""
+    target = heading_now + math.radians(bearing_deg)
+    off = wrap(target - heading_cfg)
+    lim = math.radians(max_offset_deg)
+    if abs(off) <= lim:
+        return wrap(target), False
+    return wrap(heading_cfg + math.copysign(lim, off)), True
+
+
+def parallax_factor(dist_cam_m, forward_m):
+    """How much a small turn about the axle moves a thing dist_cam_m ahead of the camera in
+    the camera's view, the camera being forward_m ahead of the axle: (d + f) / d."""
+    d = max(dist_cam_m, 0.05)
+    return (d + forward_m) / d
+
+
+def learn_turn_scale(scale, bearing_before, bearing_after, turned_deg, parallax, gain,
+                     limits=(0.7, 2.5), min_turn_deg=1.5):
+    """Bin centering: update the turn scale (camera bearing change per recorded degree of
+    turn, over parallax) from one pair of looks at the same bin. Turns smaller than
+    min_turn_deg are too noisy to learn from."""
+    if abs(turned_deg) < min_turn_deg:
+        return scale
+    seen = (bearing_before - bearing_after) / turned_deg / parallax
+    if seen <= 0:
+        return scale                  # moved the wrong way: a different box, don't learn
+    seen = min(max(seen, limits[0]), limits[1])
+    return min(max(scale + gain * (seen - scale), limits[0]), limits[1])
