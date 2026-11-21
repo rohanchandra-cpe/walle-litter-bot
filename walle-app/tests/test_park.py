@@ -141,7 +141,8 @@ class BinShapeTests(unittest.TestCase):
         self.assertGreater(geo.bin_offset, geo.bin_clear_offset)
 
     def test_without_framing_the_offset_is_the_clearance(self):
-        geo = park.Geometry(self.park_with(frame_from_corner=False))
+        # the auto rule (park.yaml fixes offset_m at 0.88 m since 2026-11-19)
+        geo = park.Geometry(self.park_with(offset_m="auto", frame_from_corner=False))
         self.assertEqual(geo.bin_offset, math.ceil(geo.bin_clear_offset * 100 - 1e-9) / 100)
         self.assertTrue(geo.bin_is_clear((-geo.bin_offset / math.sqrt(2),) * 2,
                                          math.radians(-135)))
@@ -151,7 +152,8 @@ class BinShapeTests(unittest.TestCase):
             park.Geometry(self.park_with(offset_m=0.15))
 
     def test_cylinder_bins_still_load(self):
-        cfg = self.park_with(shape="cylinder", radius_m=0.10, frame_from_corner=False)
+        cfg = self.park_with(shape="cylinder", radius_m=0.10, offset_m="auto",
+                             frame_from_corner=False)
         with tempfile.TemporaryDirectory() as d:
             pf = os.path.join(d, "park.yaml")
             with open(pf, "w") as f:

@@ -6,3 +6,6 @@ run_id,started_utc,status,scenario,laps,bins,measured_dx_cm,measured_dy_cm,measu
 20261119_021229,2026-11-19T02:12:29+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.4,4.007,2/4,n
 20261119_043639,2026-11-19T04:36:39+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.3,4.006,0/4,
 20261120_014029,2026-11-20T01:40:29+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.3,4.008,2/4,
+20261121_000650,2026-11-21T00:06:50+00:00,done,default,1,4,-1.0,0.0,1.0,0.0,1.1,4.014,3/4,"bin 2 was centered, but then it moved so much that by the end it wasn't centered. Also for Bin 2, it was hard to see the milk jug on top. The top was cut off."
+20261121_035910,2026-11-21T03:59:11+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.6,4.016,3/4,"Bin 2 was much better this time in terms of being centered, but it wasn't quite there."
+20261121_041923,2026-11-21T04:19:24+00:00,done,default,1,4,-2.0,0.0,2.0,0.0,0.1,4.116,4/4,"There was a slight jerk when it got to Bin 4 where it jerked left, but then it corrected itself."

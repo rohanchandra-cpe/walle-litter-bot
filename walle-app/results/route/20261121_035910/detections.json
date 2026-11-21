@@ -1,0 +1,255 @@
+{
+ "run_id": "20261121_035910",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 2,
+   "t_utc": "2026-11-21T04:00:13+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step2.jpg",
+   "pose": [
+    0.9933,
+    0.0026,
+    -43.34
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.264,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": null,
+   "bin_bearing_deg": null,
+   "rim_visible": null,
+   "items": [
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      229.8,
+      210.2,
+      273.3,
+      246.2
+     ],
+     "vlm_name": "metal bowl",
+     "vlm_description": "A dull gray metal bowl with a shallow, rounded shape and no noticeable shine.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      220.8,
+      32.6,
+      370.6,
+      292.8
+     ],
+     "vlm_name": "wooden table",
+     "vlm_description": "A light-colored wooden table with a smooth, matte finish and simple rectangular shape."
+    }
+   ]
+  },
+  {
+   "step": 6,
+   "t_utc": "2026-11-21T04:01:09+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step6.jpg",
+   "pose": [
+    0.9982,
+    0.997,
+    35.54
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 7.151,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.344,
+    "bbox": [
+     203.9,
+     33.0,
+     477.6,
+     342.5
+    ]
+   },
+   "bin_bearing_deg": -2.14,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      55.7,
+      231.8,
+      229.8,
+      406.1
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white object with a matte texture and no shine, resembling a used tissue or paper towel.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.315,
+      1.358
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      192.6,
+      290.4,
+      417.3,
+      431.0
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "A crumpled object made of shiny silver material, likely aluminum foil.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.337,
+      1.249
+     ]
+    }
+   ],
+   "low_conf": []
+  },
+  {
+   "step": 10,
+   "t_utc": "2026-11-21T04:01:45+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step10.jpg",
+   "pose": [
+    0.0008,
+    1.0004,
+    136.09
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 4.77,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.716,
+    "bbox": [
+     194.6,
+     30.0,
+     477.5,
+     351.7
+    ]
+   },
+   "bin_bearing_deg": -1.66,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      280.3,
+      172.3,
+      362.9,
+      375.8
+     ],
+     "vlm_name": "can",
+     "vlm_description": "A white cylindrical can with printed text and graphics, featuring a metallic sheen typical of aluminum beverage cans.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.39,
+      1.378
+     ]
+    }
+   ],
+   "low_conf": []
+  },
+  {
+   "step": 14,
+   "t_utc": "2026-11-21T04:02:22+00:00",
+   "place_kind": "bin_stop",
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step14.jpg",
+   "pose": [
+    0.0008,
+    -0.0063,
+    -137.09
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.549,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.47,
+    "bbox": [
+     168.0,
+     40.0,
+     429.7,
+     343.0
+    ]
+   },
+   "bin_bearing_deg": 2.19,
+   "rim_visible": true,
+   "items": [],
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      165.1,
+      37.9,
+      425.0,
+      342.2
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black, rectangular container with rounded corners and a smooth surface that does not reflect light."
+    }
+   ]
+  }
+ ]
+}

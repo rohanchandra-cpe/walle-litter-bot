@@ -55,6 +55,22 @@ turn:                        # turns in place, to an ABSOLUTE heading (module 8'
     adapt_gain: 0.5
   pulse_max_deg: 20.0
 
+# Sensor guard (2026-11-21): over Wi-Fi the Pico's messages can stop for a second or more.
+# The EKF then keeps predicting at the last turn rate: robot run 20261121_041923 saw the
+# fused heading spin ~300 deg while the wheels stood still, and the follower made a real
+# 73 deg pulse at the ghost heading. If /pico/wheel_ticks or /pico/imu/data is older than
+# max_age_s, any motion command becomes a stop, and the follower waits until both have
+# been fresh for resume_after_s (then it re-reads the pose and carries on), or gives up
+# after give_up_s (the run ends). Pulses, centering looks and still periods that saw a gap
+# don't feed the learned pulse gain, turn scale or gyro bias. Pulses moving more than
+# pulse_outlier x the planned turn don't either.
+sensor_guard:
+  enabled: true
+  max_age_s: 0.4            # the Pico publishes at 50 Hz; above walle-sim's 0.3 s stress bursts
+  resume_after_s: 0.6
+  give_up_s: 20.0
+  pulse_outlier: 2.5
+
 # Coast: after a stop command the robot keeps moving (Wi-Fi, estimate delay, motor
 # spin-down), so each move stops early by (measured speed x coast). Starting values from the
 # robot: sides 0.2 s (pilot.yaml RQ1-B); turns 0.15 s (what the 1.0-1.5 rad/s turns learn in
@@ -88,3 +104,11 @@ camera_tries: 3              # tries per bin stop, within the bin wait (a weak 5
 camera_retry_gap_s: 3.0      # pause between tries (a rebooting ESP32-CAM needs a few s)
                              # (Gazebo: http://localhost:8080/capture, set by route-check)
 results_dir: results/route   # under walle-app/
+
+# Phase 3 (config/detect.yaml): YOLO-World at each bin stop, when there is a camera_url.
+# center_bins: before the wait, turn until the detected bin is in the middle of the frame
+# (pulses; at most detect.yaml centering.max_offset_deg from the configured heading).
+# detect: find items in the bin photo and record them (detections.json, memory store).
+# --no-detect turns both off for one run.
+detect: true
+center_bins: true

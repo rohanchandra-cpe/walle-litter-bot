@@ -70,7 +70,7 @@ an existing message (see the open decision in `ROADMAP.md`, Phase 4).
 | `/pico/drive/status` | `std_msgs/Int32` | from Pico |
 | `/wheel/odom`, `/odometry/filtered` | `nav_msgs/Odometry` | wheel odometry node, EKF |
 | `/camera/image/compressed` | `sensor_msgs/CompressedImage` | camera node |
-| `/vision/ask` → `/vision/result`, `/depth/ask` → `/depth/result` | `std_msgs/String` (JSON) | tool ↔ node request/response |
+| `/vision/ask` → `/vision/result`, `/depth/ask` → `/depth/result`, `/detect/ask` → `/detect/result` | `std_msgs/String` (JSON) | tool ↔ node request/response |
 
 ## Repository layout
 
@@ -92,6 +92,12 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   route/             route_follower.py (Phase 1: drives the route on the EKF)
   memory/            memory store (Phase 2): SQLite + recall; config/memory.yaml
   data/memory/       robot.sqlite, sim.sqlite (git-ignored; rebuilt by memory/import_runs.py)
+  detect/            YOLO-World detector (Phase 3): detector.py, geometry.py, eval_photos.py,
+                     capture_set.py, probe_prompts.py, detect_node.py (/detect/ask);
+                     sim_truth.py (Gazebo stand-in: YOLO-World sees nothing in the sim world);
+                     config/detect.yaml (vocabulary, labels, centering)
+  data/photos/phase3/  labeled ESP32-CAM photo set: shots.yaml (shot list), labels.yaml
+  models/            YOLO-World + CLIP weights (git-ignored, downloaded on first use)
 walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
 docs/plans/          approved phase plans (phase-N-plan.md)
 docs/handoff/        start prompts for each phase's session, session summaries
@@ -124,8 +130,12 @@ make sim-park-check LOOK_AT="bin_2 obstacle"            # layout vs ground truth
 make sim-route-check                                    # Phase 1: drive the route, PASS if <= 5 cm
                                                         # (COAST=0.35 forces turn misses: tests pulses)
                                                         # (launch with PROFILE=plastic_pid: the robot's firmware + surface)
+                                                        # (MISPLACE=12: bins 12 deg off what the follower is told;
+                                                        #  Phase 3 centering + detection checks, ground-truth detector)
 python3 -m unittest discover -s walle-app/tests         # park, route, memory tests (host or container)
 python3 walle-app/memory/import_runs.py --rebuild       # rebuild robot.sqlite from results/route/
+make detect-eval                                        # Phase 3: score the detector on the photo set
+python3 walle-app/detect/capture_set.py --camera-url http://192.168.1.201/capture   # take the set (host)
 ```
 
 Route follower on the robot (after `make launch`, robot on corner 1 facing corner 2):
@@ -143,6 +153,9 @@ Ollama runs on the host, not in the container.
 ## Conventions
 
 - Python 3.10 (ROS 2 Humble). Nodes use `rclpy`; ROSA tools use `langchain_core.tools.tool`.
+- Both images carry ultralytics 8.4.215 (YOLO-World), CLIP and OpenCV 5.1 pinned against numpy
+  2.2.6 and torch 2.14 CPU (Phase 3). After changing a Dockerfile: `make build` / `make sim-build`,
+  then `make down && make up` (never recreate only `walle-pilot`).
 - Tool ↔ node communication uses an `/x/ask` + `/x/result` String pair carrying JSON, with a
   request id. Follow that pattern for new nodes.
 - Settings go in YAML under `config/`, not in code. Results and logs go in CSV/JSON under a
