@@ -1696,3 +1696,45 @@ Work done before the ledger started, summarized from git history:
   - `walle-app/data/photos/_props.jpg`;
   - the CLIP weight copies, `.DS_Store`, `.vscode/`.
 - **Open / next:** the user merges Phase 3, then Phase 4; then Phase 5 (start in plan mode).
+
+### 2026-11-22: Commit on the wrong branch, fixed; Phase 4 → 5 handoff
+
+- **Phase:** 4 → 5
+- **Branch / commit:** `walle-phase-4` @ `4eee476` (this entry and the handoff docs are
+  uncommitted)
+- **Asked for:**
+  - after the Phase 4 commit, "I can't checkout to main or walle-phase-4 because I have
+    untracked changes. I don't want to do a git stash";
+  - then a session summary, a Phase 5 start prompt structured like the earlier handoffs,
+    and the initial Phase 4 plan in `docs/plans`.
+- **Done:**
+  - The Phase 4 commit had landed on `walle-phase-3`: the user switched the checkout there
+    (reflog 10:52:45) 3 minutes before I committed, and I didn't re-check the branch.
+    - `walle-phase-4` was set to the commit (`4eee476`);
+    - `walle-phase-3` was reset to `177ec2b` (mixed, so the working tree was untouched);
+    - all 104 committed files were checked byte for byte against the disk.
+  - To leave `walle-phase-3` without a stash: the working tree equalled `4eee476` (checked
+    again), so HEAD was pointed at `walle-phase-4` and the index refreshed. No file changed.
+  - `docs/handoff/phase4-to-phase-5/session-2026-11-21-summary.md` and `phase-5-prompt.md`.
+    The prompt flags three things for plan mode:
+    - the HC-SR04 never answering, which the roadmap's Phase 5 relies on;
+    - the level camera seeing the floor only from ~0.41 m ahead of the axle;
+    - the 5–8 s detector.
+  - `docs/plans/phase-4-initial-plan.md`: the plan as approved in plan mode, before the
+    "as built" notes in `phase-4-plan.md`.
+- **Verified:**
+  - Branch positions and the byte-for-byte file check (git).
+  - The prompt's facts were checked against `walle-phase-4`: obstacle code in `park.py`,
+    the memory store's obstacle tables, `sim_truth.py` without the obstacle, the follower's
+    obstacle refusal, route speeds and footprint, the sim HC-SR04 model.
+  - Nothing run.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Found afterwards (user):** the HC-SR04 was unplugged during the Phase 4 robot runs, which
+  explains `echo_us` −2 in all of them (the bin-check `echo_us` diagnostic and earlier notes
+  that it "never answered" in Phase 4). The user plugs it back in for Phase 5. The prompt
+  now starts Phase 5 by checking that it answers.
+- **Open / next:** the user merges the Phase 4 PR; Phase 5 in a new session from
+  `docs/handoff/phase4-to-phase-5/phase-5-prompt.md`. This entry, the new handoff folder and
+  `phase-4-initial-plan.md` are committed (user's go-ahead). The user's handoff-doc moves
+  and `_props.jpg` are not.
