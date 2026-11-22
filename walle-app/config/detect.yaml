@@ -60,9 +60,13 @@ vlm:
   box_order: {default: yxyx, qwen: xyxy}
   # Second FIND on a zoomed crop over the biggest bin's rim (items on top were missed most).
   # Window, in bin-box sizes: `above` its top edge, `below` it (the rim), `side` each way.
-  # Off: on shots 1-29 it found more on the rim but those were misnamed; recall 0.674 vs 0.698
-  # without, median 8.5 s vs 5.1 s (2026-11-20). Re-check on the daylight shots 43-52 (--zoom).
-  zoom_bin_top: {enabled: false, above: 1.0, below: 0.3, side: 0.25, min_side: 448}
+  # Only in good light (2026-11-21). Same on-bin setups: daylight 0.73 -> 0.93 recall with the
+  # zoom; under the room lamps 0.75 -> 0.56 (the zoomed crop is dim and noisy, items misnamed).
+  # Good light = the photo's color cast, mean red minus mean blue, at most max_warm_cast: the
+  # lamp photos measure 11-22, the daylight ones 2-7. This tells the user's warm lamps from
+  # daylight; it is not a general darkness measure (a white LED lamp would pass).
+  zoom_bin_top: {enabled: true, max_warm_cast: 9.0, above: 1.0, below: 0.3, side: 0.25,
+                 min_side: 448}
   # What the model is told each label looks like (it answers with the label).
   describe:
     paper_towel: crumpled white paper towel or tissue

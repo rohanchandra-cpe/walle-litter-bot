@@ -426,6 +426,18 @@ class TestZoom(unittest.TestCase):
         self.assertIsNone(self.det().rim_region([], 640, 480))
         self.assertIsNone(self.det().rim_region([{"bbox": [0, 240, 640, 480]}], 640, 480))
 
+    def test_zoom_only_in_good_light(self):
+        from detect.detector import zoom_light_ok
+        cfg = {"max_warm_cast": 9.0}
+        self.assertTrue(zoom_light_ok(3.9, cfg))       # daylight median
+        self.assertFalse(zoom_light_ok(16.6, cfg))     # lamp-light median
+        self.assertTrue(zoom_light_ok(30.0, {}))       # no limit set: always
+
+    def test_config_zoom_on_with_a_light_gate(self):
+        z = CFG["vlm"]["zoom_bin_top"]
+        self.assertTrue(z["enabled"])
+        self.assertIn("max_warm_cast", z)
+
     def test_zoomed_boxes_win_and_new_ones_are_kept(self):
         zoomed = [([210, 100, 260, 160], "jug")]
         whole = [([205, 95, 262, 165], "white jug"),       # same object: dropped

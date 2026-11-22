@@ -253,8 +253,12 @@ class VLMDetector(Detector):
         found = self.find(img, self.find_prompt)
         region = None
         if self.zoom.get("enabled"):
+            cast = warm_cast(img)
+            out["warm_cast"] = round(cast, 1)
             region = self.rim_region(out["detections"], *img.size)
-            if region is not None:
+            if not zoom_light_ok(cast, self.zoom):
+                out["zoom_skipped"] = "warm (lamp) light"
+            elif region is not None:
                 found = merge_boxes(self.find(img, self.zoom_prompt, region), found)
                 out["zoom_region"] = region
         rejected = []
@@ -272,6 +276,20 @@ class VLMDetector(Detector):
         if keep_low:
             out["low_conf"] += rejected
         return out
+
+
+def warm_cast(img):
+    """Mean red minus mean blue of a PIL image: the user's room lamps make photos warm
+    (11-22 on the phase-3 night shots), daylight doesn't (2-7)."""
+    from PIL import ImageStat
+    r, _, b = ImageStat.Stat(img.convert("RGB")).mean
+    return r - b
+
+
+def zoom_light_ok(cast, zoom_cfg):
+    """Whether the light is good enough for the zoomed rim search (vlm.zoom_bin_top)."""
+    limit = zoom_cfg.get("max_warm_cast")
+    return limit is None or cast <= float(limit)
 
 
 def overlap(a, b):

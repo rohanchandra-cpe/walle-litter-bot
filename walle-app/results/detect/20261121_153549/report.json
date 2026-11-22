@@ -1,0 +1,1302 @@
+{
+ "summary": {
+  "photos": 10,
+  "recall": 0.933,
+  "precision": 0.778,
+  "category": 1.0,
+  "bin_found": 1.0,
+  "place": 0.643,
+  "latency_median_s": 9.407,
+  "latency_p90_s": 10.941,
+  "per_label": {
+   "can": {
+    "true": 1,
+    "found": 1,
+    "reported": 1
+   },
+   "foil": {
+    "true": 2,
+    "found": 2,
+    "reported": 2
+   },
+   "milk_jug": {
+    "true": 2,
+    "found": 2,
+    "reported": 2
+   },
+   "paper_bag": {
+    "true": 1,
+    "found": 1,
+    "reported": 1
+   },
+   "paper_towel": {
+    "true": 3,
+    "found": 3,
+    "reported": 5
+   },
+   "plastic_bag": {
+    "true": 5,
+    "found": 4,
+    "reported": 5
+   },
+   "yogurt_container": {
+    "true": 1,
+    "found": 1,
+    "reported": 2
+   }
+  },
+  "bin_bearing_abs_error_deg": {
+   "median": 2.1,
+   "max": 3.48
+  },
+  "checks": {
+   "recall": {
+    "value": 0.933,
+    "target": 0.8,
+    "pass": true
+   },
+   "precision": {
+    "value": 0.778,
+    "target": 0.8,
+    "pass": false
+   },
+   "category": {
+    "value": 1.0,
+    "target": 0.9,
+    "pass": true
+   },
+   "bin_found": {
+    "value": 1.0,
+    "target": 0.95,
+    "pass": true
+   },
+   "latency_median_s": {
+    "value": 9.407,
+    "target": 15.0,
+    "pass": true
+   }
+  },
+  "pass": false,
+  "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+  "ids": "43-52",
+  "set": "data/photos/phase3",
+  "config": {
+   "min_conf": 0.25,
+   "iou": 0.5,
+   "imgsz": 640,
+   "bin_min_conf": 0.03
+  }
+ },
+ "photos": [
+  {
+   "id": 43,
+   "file": "shot_43.jpg",
+   "true": {
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.41,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 7.508
+  },
+  {
+   "id": 44,
+   "file": "shot_44.jpg",
+   "true": {
+    "milk_jug": 1
+   },
+   "reported": {
+    "milk_jug": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.53,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 7.096
+  },
+  {
+   "id": 45,
+   "file": "shot_45.jpg",
+   "true": {
+    "plastic_bag": 1
+   },
+   "reported": {
+    "plastic_bag": 2
+   },
+   "true_items": 1,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -1.12,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 9.528
+  },
+  {
+   "id": 46,
+   "file": "shot_46.jpg",
+   "true": {
+    "can": 1
+   },
+   "reported": {
+    "can": 1,
+    "yogurt_container": 1
+   },
+   "true_items": 1,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 2.07,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [
+    "yogurt_container"
+   ],
+   "seconds": 9.422
+  },
+  {
+   "id": 47,
+   "file": "shot_47.jpg",
+   "true": {
+    "plastic_bag": 1
+   },
+   "reported": {
+    "paper_towel": 1,
+    "plastic_bag": 1
+   },
+   "true_items": 1,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -2.96,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 10.941
+  },
+  {
+   "id": 48,
+   "file": "shot_48.jpg",
+   "true": {
+    "yogurt_container": 1
+   },
+   "reported": {
+    "yogurt_container": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -2.24,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 6.463
+  },
+  {
+   "id": 49,
+   "file": "shot_49.jpg",
+   "true": {
+    "paper_towel": 1,
+    "foil": 1
+   },
+   "reported": {
+    "paper_towel": 1,
+    "foil": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 2,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 3.48,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 2,
+   "missed": [],
+   "extra": [],
+   "seconds": 11.14
+  },
+  {
+   "id": 50,
+   "file": "shot_50.jpg",
+   "true": {
+    "paper_bag": 1,
+    "plastic_bag": 1
+   },
+   "reported": {
+    "plastic_bag": 1,
+    "paper_bag": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 2,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.58,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 2,
+   "missed": [],
+   "extra": [],
+   "seconds": 8.833
+  },
+  {
+   "id": 51,
+   "file": "shot_51.jpg",
+   "true": {
+    "milk_jug": 1,
+    "plastic_bag": 1
+   },
+   "reported": {
+    "milk_jug": 1,
+    "paper_towel": 1
+   },
+   "true_items": 2,
+   "reported_items": 2,
+   "found": 1,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.17,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [
+    "plastic_bag"
+   ],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 9.392
+  },
+  {
+   "id": 52,
+   "file": "shot_52.jpg",
+   "true": {
+    "plastic_bag": 1,
+    "foil": 1,
+    "paper_towel": 1
+   },
+   "reported": {
+    "plastic_bag": 1,
+    "paper_towel": 1,
+    "foil": 1
+   },
+   "true_items": 3,
+   "reported_items": 3,
+   "found": 3,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -2.13,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 3,
+   "place_checked": 3,
+   "missed": [],
+   "extra": [],
+   "seconds": 10.16
+  }
+ ],
+ "detections": {
+  "shot_43.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.631,
+     "bbox": [
+      217.3,
+      84.1,
+      430.7,
+      320.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.139,
+     "bbox": [
+      607.5,
+      0.0,
+      640.0,
+      73.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.069,
+     "bbox": [
+      563.3,
+      128.1,
+      638.0,
+      254.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.042,
+     "bbox": [
+      567.4,
+      0.7,
+      640.0,
+      222.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.035,
+     "bbox": [
+      497.5,
+      0.1,
+      639.9,
+      289.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      255.5,
+      9.2,
+      411.7,
+      87.3
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "The object is made of white, fibrous material with a matte finish, appearing as a crumpled or loosely folded shape."
+    }
+   ],
+   "seconds": 7.508,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [],
+   "zoom_region": [
+    164.0,
+    0.0,
+    484.0,
+    155.1
+   ],
+   "vlm_seconds": 7.186
+  },
+  "shot_44.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.427,
+     "bbox": [
+      230.7,
+      23.3,
+      419.5,
+      312.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.035,
+     "bbox": [
+      634.8,
+      233.2,
+      640.0,
+      299.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "milk_jug",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      229.7,
+      24.7,
+      417.1,
+      107.8
+     ],
+     "vlm_name": "plastic milk jug (gallon)",
+     "vlm_description": "A white, opaque plastic jug with a handle and blue label, exhibiting a smooth, slightly glossy surface."
+    }
+   ],
+   "seconds": 7.096,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [],
+   "zoom_region": [
+    183.5,
+    0.0,
+    466.7,
+    110.1
+   ],
+   "vlm_seconds": 6.745
+  },
+  "shot_45.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.772,
+     "bbox": [
+      226.8,
+      84.7,
+      434.8,
+      321.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.606,
+     "bbox": [
+      437.4,
+      175.9,
+      506.7,
+      259.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.069,
+     "bbox": [
+      607.6,
+      0.1,
+      640.0,
+      74.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.031,
+     "bbox": [
+      487.7,
+      0.1,
+      640.0,
+      289.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      344.2,
+      0.0,
+      435.6,
+      86.8
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "A crumpled, translucent beige plastic bag with a slight sheen, likely from grocery use."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      234.1,
+      10.6,
+      355.1,
+      91.0
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "A crumpled white plastic bag with a slight sheen and translucent texture."
+    }
+   ],
+   "seconds": 9.528,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.014,
+     "bbox": [
+      552.9,
+      74.9,
+      633.9,
+      255.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.01,
+     "bbox": [
+      467.0,
+      175.7,
+      497.4,
+      264.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.01,
+     "bbox": [
+      164.0,
+      159.5,
+      195.7,
+      264.7
+     ]
+    }
+   ],
+   "zoom_region": [
+    174.8,
+    0.0,
+    486.8,
+    155.9
+   ],
+   "vlm_seconds": 9.171
+  },
+  "shot_46.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.832,
+     "bbox": [
+      208.1,
+      102.5,
+      391.9,
+      312.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.072,
+     "bbox": [
+      606.6,
+      195.1,
+      640.0,
+      305.0
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      233.3,
+      60.2,
+      352.4,
+      103.6
+     ],
+     "vlm_name": "metal drink can",
+     "vlm_description": "A cylindrical object with a matte white finish and printed text, likely made of metal given its rigid structure."
+    },
+    {
+     "kind": "item",
+     "label": "yogurt_container",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      240.0,
+      0.0,
+      437.8,
+      91.2
+     ],
+     "vlm_name": "3D printer",
+     "vlm_description": "The object is a cylindrical white container with printed text and a blue band near the top, made of smooth plastic with a slight sheen; its shape resembles that of a yogurt cup or small bottle."
+    }
+   ],
+   "seconds": 9.422,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [],
+   "zoom_region": [
+    162.2,
+    0.0,
+    437.8,
+    165.3
+   ],
+   "vlm_seconds": 9.045
+  },
+  "shot_47.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.751,
+     "bbox": [
+      247.4,
+      77.8,
+      449.9,
+      310.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.166,
+     "bbox": [
+      47.2,
+      49.1,
+      105.6,
+      114.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.044,
+     "bbox": [
+      0.0,
+      93.7,
+      270.2,
+      294.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      242.5,
+      47.5,
+      336.4,
+      84.8
+     ],
+     "vlm_name": "paper towel",
+     "vlm_description": "A crumpled white object made of soft, fibrous material with a matte finish and irregular folds."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      280.3,
+      26.9,
+      505.6,
+      114.2
+     ],
+     "vlm_name": "plastic film bag (grocery bag with handles)",
+     "vlm_description": "A crumpled white plastic grocery bag with handles, showing some slight sheen from the material."
+    }
+   ],
+   "seconds": 10.941,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      244.6,
+      82.9,
+      336.4,
+      153.9
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "A smooth, matte gray plastic container with rounded edges and a slightly curved top rim."
+    }
+   ],
+   "zoom_region": [
+    0.0,
+    0.0,
+    337.8,
+    154.1
+   ],
+   "vlm_seconds": 10.599
+  },
+  "shot_48.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.487,
+     "bbox": [
+      241.9,
+      79.3,
+      441.5,
+      302.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.079,
+     "bbox": [
+      170.1,
+      0.0,
+      238.6,
+      95.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "yogurt_container",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      275.2,
+      9.4,
+      369.5,
+      85.0
+     ],
+     "vlm_name": "white plastic yogurt tub",
+     "vlm_description": "The object is made of white plastic, has a cylindrical shape with a slightly tapered top, and exhibits a matte finish."
+    }
+   ],
+   "seconds": 6.463,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [],
+   "zoom_region": [
+    192.0,
+    0.0,
+    491.4,
+    146.3
+   ],
+   "vlm_seconds": 6.109
+  },
+  "shot_49.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.301,
+     "bbox": [
+      181.5,
+      75.7,
+      391.0,
+      315.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      168.4,
+      19.8,
+      279.3,
+      88.0
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "The object is made of white, fibrous material with a matte finish, crumpled into an irregular, soft shape that lacks any reflective shine."
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      273.7,
+      19.8,
+      391.5,
+      79.5
+     ],
+     "vlm_name": "crumpled aluminum foil",
+     "vlm_description": "The object is made of shiny silver material, crumpled into an irregular shape with reflective highlights."
+    }
+   ],
+   "seconds": 11.14,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.026,
+     "bbox": [
+      0.1,
+      219.5,
+      107.3,
+      295.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.02,
+     "bbox": [
+      615.5,
+      210.7,
+      640.0,
+      313.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.015,
+     "bbox": [
+      0.0,
+      89.9,
+      204.3,
+      300.6
+     ]
+    }
+   ],
+   "zoom_region": [
+    129.1,
+    0.0,
+    443.4,
+    147.7
+   ],
+   "vlm_seconds": 10.786
+  },
+  "shot_50.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.719,
+     "bbox": [
+      232.7,
+      90.8,
+      418.5,
+      302.3
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      337.5,
+      15.1,
+      464.1,
+      107.6
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "A crumpled white plastic bag with red printed text and visible handles, showing slight translucency and soft sheen."
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      205.4,
+      18.7,
+      327.7,
+      105.6
+     ],
+     "vlm_name": "paper takeout bag",
+     "vlm_description": "A crumpled, light-colored paper takeout bag with visible creases and a matte finish."
+    }
+   ],
+   "seconds": 8.833,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.025,
+     "bbox": [
+      156.3,
+      0.0,
+      264.7,
+      107.8
+     ]
+    }
+   ],
+   "zoom_region": [
+    186.2,
+    0.0,
+    464.9,
+    154.2
+   ],
+   "vlm_seconds": 8.468
+  },
+  "shot_51.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.498,
+     "bbox": [
+      247.6,
+      85.8,
+      453.7,
+      320.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.04,
+     "bbox": [
+      186.7,
+      157.2,
+      213.6,
+      263.0
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "milk_jug",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      254.5,
+      7.3,
+      454.5,
+      90.6
+     ],
+     "vlm_name": "plastic milk jug",
+     "vlm_description": "A white plastic milk jug with a handle and blue label, featuring a glossy surface that reflects light."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      286.1,
+      192.0,
+      523.5,
+      346.6
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "A crumpled white object with slight translucency and soft folds, suggesting a paper-based material rather than shiny plastic or metal."
+    }
+   ],
+   "seconds": 9.392,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.011,
+     "bbox": [
+      516.6,
+      0.3,
+      640.0,
+      289.4
+     ]
+    }
+   ],
+   "zoom_region": [
+    196.1,
+    0.0,
+    505.2,
+    156.2
+   ],
+   "vlm_seconds": 9.008
+  },
+  "shot_52.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.842,
+     "bbox": [
+      237.5,
+      80.3,
+      443.7,
+      310.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.042,
+     "bbox": [
+      28.6,
+      0.0,
+      123.8,
+      89.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.041,
+     "bbox": [
+      2.9,
+      212.4,
+      61.6,
+      266.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      255.2,
+      5.2,
+      423.4,
+      83.4
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "A crumpled white plastic bag with a small red detail, showing slight translucency and soft folds."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      229.8,
+      224.6,
+      414.1,
+      331.2
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white tissue with soft folds and no shine, lying on a light-colored surface."
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      395.5,
+      266.4,
+      489.0,
+      326.9
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "The object is made of shiny silver material, has an irregular crumpled shape, and reflects light strongly."
+    }
+   ],
+   "seconds": 10.16,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.014,
+     "bbox": [
+      0.0,
+      0.0,
+      153.9,
+      218.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.012,
+     "bbox": [
+      147.2,
+      11.3,
+      203.9,
+      156.5
+     ]
+    }
+   ],
+   "zoom_region": [
+    185.9,
+    0.0,
+    495.2,
+    149.2
+   ],
+   "vlm_seconds": 9.805
+  }
+ }
+}

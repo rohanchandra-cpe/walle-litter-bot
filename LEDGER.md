@@ -1119,3 +1119,98 @@ Work done before the ledger started, summarized from git history:
 - **Scope:** Drift (agreed): Phase 1 route robustness fixed during Phase 3.
 - **Decisions:** none.
 - **Open / next:** robot run to see the guard on real Wi-Fi. Phase 3: daylight shots.
+
+### 2026-11-21: Phase 3 committed; handoff to Phase 4
+
+- **Phase:** 3 → 4
+- **Branch / commit:** `walle-phase-3` @ `3dea433` (Phase 3, committed at the user's
+  request; the user opened a draft PR). The handoff docs and this entry are uncommitted.
+- **Asked for:** "commit Phase 3 with a sensible message", then a session summary and a
+  Phase 4 start prompt, structured like the earlier ones in `docs/handoff/`.
+- **Done:**
+  - Commit `3dea433`: 133 files. Left out: the user's handoff-folder moves,
+    `walle-app/data/photos/_props.jpg`, three copies of the CLIP weights (`weights/`,
+    `walle-app/weights/`, `walle-pilot/weights/`), `.DS_Store`, `.vscode/`.
+  - `docs/handoff/phase3-to-phase-4/session-2026-11-19-summary.md` and `phase-4-prompt.md`.
+    The prompt includes the Phase 3 leftovers (score daylight shots 43–52), the firmware
+    facts (micro-ROS limit, pins in use, watchdog), and the "fill level" vs overflow-only
+    wording to reconcile.
+  - ROADMAP status row for Phase 3: "all done but item accuracy".
+- **Verified:** the prompt's facts were checked against the repository (firmware pins,
+  publishers and subscriptions, `add_bin_check` signature, sim camera joint). Found that
+  `walle-pilot/config/depth_calibration.json`, which `depth_estimator.py` reads, is not in
+  the checkout; the prompt says so. Nothing run.
+- **Scope:** In scope. The user moves on to Phase 4 with Phase 3's accuracy box open
+  (agreed).
+- **Decisions:** none.
+- **Open / next:** Phase 4 in a new session; daylight shots on 2026-11-22.
+
+### 2026-11-21: Daylight repeats (shots 43–52) scored
+
+- **Phase:** 3 (leftover)
+- **Branch / commit:** `walle-phase-3` @ uncommitted (photos and labels added by the user's
+  `capture_set.py --light day` run)
+- **Asked for:** the user took shots 43–52 (daylight repeats of the night on-bin setups 7–14,
+  25, 28).
+- **Done:** checked the 10 photos against their labels; scored them with and without
+  `--zoom`; compared with the same setups at night. No code changed.
+- **Verified:**
+  - Photos: items on top are fully in frame (unlike the robot's 0.88 m bin stops).
+    Shots 45 and 47 look alike: a white/red grocery bag AND a tan crumpled bag (looks like
+    the Chipotle paper bag of shot 50), but each is labeled with one `plastic_bag` only.
+    Asked the user; not changed.
+  - Shots 43–52, no zoom: recall 0.733, precision 0.786, category 1.0, median 7.8 s
+    (`results/detect/20261121_153411`). With zoom: recall 0.933, precision 0.778, category
+    1.0, median 9.4 s (`20261121_153549`).
+  - Same setups at night (7–14, 25, 28): no zoom recall 0.75 / precision 0.86; zoom 0.56 /
+    0.64 (from `20261120_231243`, `20261120_234001`).
+  - Reading: without the zoom, daylight changes nothing; with it, daylight lifts recall from
+    0.56 to 0.93. The zoomed crop helps when the light is good and hurts in lamp light.
+    Small sets (15–16 items each): treat as indications.
+- **Scope:** In scope.
+- **Decisions:** none yet (accuracy box and zoom setting to decide with the user).
+- **Open / next:** user: confirm shots 45/47 contents; decide the accuracy box (and whether
+  to switch the zoom on, e.g. only in good light).
+
+### 2026-11-21: Zoomed rim search on, but only in good light; all 52 photos re-scored
+
+- **Phase:** 3 (accuracy box)
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** the user fixed shots 45 and 47 (two plastic bags each, brown and gray) and
+  chose "Try the zoom in good light".
+- **Done:**
+  - `detect/detector.py`: `warm_cast(img)` (mean red − mean blue), `zoom_light_ok()`; the
+    zoom runs only when the cast is ≤ `max_warm_cast`; results carry `warm_cast` and
+    `zoom_skipped`.
+  - `config/detect.yaml` `vlm.zoom_bin_top`: `enabled: true`, `max_warm_cast: 9.0`.
+  - Tests: the gate and the config.
+- **Verified:**
+  - Light measures on the 52 photos: mean brightness overlaps (night 85–162, day 146–162:
+    the camera's auto-exposure), edges overlap; the warm cast separates cleanly (lamps
+    11.2–21.5, daylight 2.4–7.0). It separates the user's warm lamps from daylight, not dark
+    from bright in general.
+  - All 52, gated zoom (`results/detect/20261121_154929`): recall 0.787, precision 0.768,
+    category 0.945, bins 1.0, median 8.1 s: FAIL by a hair on recall and precision.
+    Daylight 35 items: recall 0.91, precision 0.84 (on-bin setups 0.88 / 0.83, floor shots
+    0.90 / 0.82). Lamp light 45 items: 0.69 / 0.70 (zoom skipped on all of them).
+  - Tests: host OK, walle-pilot OK.
+- **Scope:** In scope.
+- **Decisions:** zoom on in good light (user's choice); ROADMAP row added.
+- **Open / next:** the accuracy box: met in daylight, not under the lamps, overall just
+  under. The user decides how to record it.
+
+### 2026-11-21: Phase 3 item-accuracy target carried into Phase 4
+
+- **Phase:** 3 → 4
+- **Branch / commit:** `walle-phase-3` @ uncommitted
+- **Asked for:** "Leave open for Phase 4" (how to record the accuracy box, after the 52-photo
+  score: daylight 0.91 / 0.84, lamp light 0.69 / 0.70, overall 0.787 / 0.768).
+- **Done:** ROADMAP: Phase 3's accuracy box stays unticked, with the numbers and a pointer;
+  Phase 4 gains a "done when" box for item accuracy with the tilted camera (same targets);
+  status row and decision log updated. Phase 4 start prompt updated (leftovers done, the
+  carried target added).
+- **Verified:** docs only.
+- **Scope:** Drift, agreed by the user: one Phase 3 criterion moves to Phase 4, because the
+  servo changes the view that fails (items on top of a bin, at 0.88 m, under lamp light).
+- **Decisions:** ROADMAP 2026-11-21 (accuracy target carried to Phase 4).
+- **Open / next:** Phase 4 in a new session.
