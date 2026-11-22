@@ -3,3 +3,6 @@ __pycache__/
 
 # Memory store databases (rebuild with memory/import_runs.py)
 data/memory/*.sqlite*
+
+# YOLO-World and CLIP weights (Phase 3), downloaded on first use
+models/

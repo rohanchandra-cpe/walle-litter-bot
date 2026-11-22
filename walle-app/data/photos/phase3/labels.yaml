@@ -1,0 +1,416 @@
+# Phase 3 labeled photo set: what is in each photo (written by detect/capture_set.py from
+# shots.yaml; edit an entry if what you placed differed). Read by detect/eval_photos.py.
+# items: one entry per object, place on_bin | around_bin | route.
+# plastic_bag covers grocery AND spinach bags (merged 2026-11-20).
+photos:
+- id: 1
+  file: shot_01.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items: []
+  t_utc: '2026-11-20T04:49:01+00:00'
+  note: bin 1 where park.py puts it
+  light: night
+- id: 2
+  file: shot_02.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items: []
+  t_utc: '2026-11-20T04:49:34+00:00'
+  note: bin 2 where park.py puts it
+  light: night
+- id: 3
+  file: shot_03.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 13.3
+  items: []
+  t_utc: '2026-11-20T04:50:15+00:00'
+  light: night
+- id: 4
+  file: shot_04.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: -13.3
+  items: []
+  t_utc: '2026-11-20T04:50:39+00:00'
+  light: night
+- id: 5
+  file: shot_05.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 27.5
+  items: []
+  t_utc: '2026-11-20T04:51:18+00:00'
+  light: night
+- id: 6
+  file: shot_06.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: -27.5
+  items: []
+  t_utc: '2026-11-20T04:51:59+00:00'
+  light: night
+- id: 7
+  file: shot_07.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: on_bin}
+  t_utc: '2026-11-20T22:59:13+00:00'
+  light: night
+- id: 8
+  file: shot_08.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: milk_jug, place: on_bin}
+  t_utc: '2026-11-20T04:55:04+00:00'
+  light: night
+- id: 9
+  file: shot_09.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  t_utc: '2026-11-20T04:56:26+00:00'
+  light: night
+- id: 10
+  file: shot_10.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: can, place: on_bin}
+  t_utc: '2026-11-20T04:57:06+00:00'
+  light: night
+- id: 11
+  file: shot_11.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  t_utc: '2026-11-20T04:58:16+00:00'
+  light: night
+- id: 12
+  file: shot_12.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: yogurt_container, place: on_bin}
+  t_utc: '2026-11-20T04:58:59+00:00'
+  light: night
+- id: 13
+  file: shot_13.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: on_bin}
+  - {label: foil, place: on_bin}
+  t_utc: '2026-11-20T05:00:05+00:00'
+  light: night
+- id: 14
+  file: shot_14.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: paper_bag, place: on_bin}
+  - {label: plastic_bag, place: on_bin}
+  t_utc: '2026-11-20T05:01:17+00:00'
+  light: night
+- id: 15
+  file: shot_15.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: around_bin}
+  t_utc: '2026-11-20T05:03:38+00:00'
+  note: in front of the bin, a little left
+  light: night
+- id: 16
+  file: shot_16.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: can, place: around_bin}
+  t_utc: '2026-11-20T05:03:55+00:00'
+  note: beside the bin, right
+  light: night
+- id: 17
+  file: shot_17.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  t_utc: '2026-11-20T05:04:41+00:00'
+  light: night
+- id: 18
+  file: shot_18.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: foil, place: around_bin}
+  t_utc: '2026-11-20T05:05:48+00:00'
+  light: night
+- id: 19
+  file: shot_19.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: around_bin}
+  - {label: yogurt_container, place: around_bin}
+  t_utc: '2026-11-20T05:06:24+00:00'
+  light: night
+- id: 20
+  file: shot_20.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: paper_bag, place: around_bin}
+  t_utc: '2026-11-20T05:07:00+00:00'
+  light: night
+- id: 21
+  file: shot_21.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: milk_jug, place: around_bin}
+  - {label: paper_towel, place: around_bin}
+  t_utc: '2026-11-20T05:07:37+00:00'
+  light: night
+- id: 22
+  file: shot_22.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  t_utc: '2026-11-20T05:08:14+00:00'
+  light: night
+- id: 23
+  file: shot_23.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: can, place: around_bin}
+  - {label: paper_towel, place: around_bin}
+  - {label: paper_towel, place: around_bin}
+  - {label: foil, place: around_bin}
+  t_utc: '2026-11-20T05:08:51+00:00'
+  light: night
+- id: 24
+  file: shot_24.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  t_utc: '2026-11-20T05:10:07+00:00'
+  note: close, ~25 cm from the camera
+  light: night
+- id: 25
+  file: shot_25.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: milk_jug, place: on_bin}
+  - {label: plastic_bag, place: around_bin}
+  - {label: plastic_bag, place: around_bin}
+  t_utc: '2026-11-20T05:11:07+00:00'
+  light: night
+- id: 26
+  file: shot_26.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: on_bin}
+  - {label: can, place: around_bin}
+  t_utc: '2026-11-20T05:11:49+00:00'
+  light: night
+- id: 27
+  file: shot_27.jpg
+  where: corner
+  bin: 3
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  - {label: paper_bag, place: around_bin}
+  t_utc: '2026-11-20T05:12:40+00:00'
+  light: night
+- id: 28
+  file: shot_28.jpg
+  where: corner
+  bin: 4
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: on_bin}
+  - {label: foil, place: around_bin}
+  - {label: paper_towel, place: around_bin}
+  t_utc: '2026-11-20T05:14:02+00:00'
+  light: night
+- id: 29
+  file: shot_29.jpg
+  where: corner
+  bin: 1
+  bin_shift_cm: 0
+  items:
+  - {label: yogurt_container, place: on_bin}
+  - {label: plastic_bag, place: around_bin}
+  t_utc: '2026-11-20T05:15:31+00:00'
+  light: night
+- id: 30
+  file: shot_30.jpg
+  where: corner
+  bin: 2
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: on_bin}
+  - {label: milk_jug, place: around_bin}
+  t_utc: '2026-11-20T18:56:05+00:00'
+  light: day
+- id: 31
+  file: shot_31.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: route}
+  t_utc: '2026-11-20T23:00:07+00:00'
+  note: 40 cm ahead, center
+  light: night
+- id: 32
+  file: shot_32.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: route}
+  t_utc: '2026-11-20T23:00:30+00:00'
+  note: 50 cm ahead, left
+  light: night
+- id: 33
+  file: shot_33.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: route}
+  - {label: paper_bag, place: route}
+  t_utc: '2026-11-20T18:59:45+00:00'
+  note: 35 cm ahead
+  light: day
+- id: 34
+  file: shot_34.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: can, place: route}
+  - {label: yogurt_container, place: route}
+  t_utc: '2026-11-20T19:00:17+00:00'
+  note: 40 cm ahead
+  light: day
+- id: 35
+  file: shot_35.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: milk_jug, place: route}
+  t_utc: '2026-11-20T19:01:02+00:00'
+  note: 60 cm ahead
+  light: day
+- id: 36
+  file: shot_36.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: yogurt_container, place: route}
+  - {label: paper_towel, place: route}
+  t_utc: '2026-11-20T19:01:44+00:00'
+  light: day
+- id: 37
+  file: shot_37.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: foil, place: route}
+  - {label: plastic_bag, place: route}
+  t_utc: '2026-11-20T19:02:20+00:00'
+  light: day
+- id: 38
+  file: shot_38.jpg
+  where: carpet
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: paper_bag, place: route}
+  - {label: plastic_bag, place: route}
+  t_utc: '2026-11-20T19:03:04+00:00'
+  light: day
+- id: 39
+  file: shot_39.jpg
+  where: carpet
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: paper_towel, place: route}
+  - {label: can, place: route}
+  - {label: plastic_bag, place: route}
+  t_utc: '2026-11-20T19:03:53+00:00'
+  light: day
+- id: 40
+  file: shot_40.jpg
+  where: carpet
+  bin: null
+  bin_shift_cm: 0
+  items:
+  - {label: plastic_bag, place: route}
+  - {label: milk_jug, place: route}
+  t_utc: '2026-11-20T19:04:22+00:00'
+  light: day
+- id: 41
+  file: shot_41.jpg
+  where: route
+  bin: null
+  bin_shift_cm: 0
+  items: []
+  t_utc: '2026-11-20T19:04:52+00:00'
+  note: empty route ahead
+  light: day
+- id: 42
+  file: shot_42.jpg
+  where: carpet
+  bin: null
+  bin_shift_cm: 0
+  items: []
+  t_utc: '2026-11-20T19:05:06+00:00'
+  note: empty carpet
+  light: day

@@ -24,7 +24,7 @@ commands. Metrics and an LLM judge are stretch goals.
 | 0 | Foundations: sim merged, park defined | ✅ done 2026-11-19 |
 | 1 | Route following | ✅ done 2026-11-18 (bin centering moved to Phase 3) |
 | 2 | Memory store | ✅ done 2026-11-18 |
-| 3 | Object detection and trash/recycling classification | ⬜ |
+| 3 | Object detection and trash/recycling classification | 🟨 plan approved 2026-11-19 |
 | 4 | Servo and bin monitoring | ⬜ |
 | 5 | Obstacle detection and avoidance | ⬜ |
 | 6 | WALL-E ROSA agent | ⬜ |
@@ -175,16 +175,28 @@ Find objects in camera photos and say whether each is trash or recycling.
 **Done when**
 - [ ] On a labeled set of real ESP32-CAM photos of the fake trash: detection and
       classification accuracy measured and above a target agreed in plan mode.
-- [ ] Runs fast enough on the computer's CPU for use while driving (latency measured).
-- [ ] In sim, detections from the park world are written to the memory store.
-- [ ] At each bin stop the robot centers the detected bin in the frame (sim, then robot).
+- [x] Runs fast enough on the computer's CPU for use while driving (latency measured).
+      (2026-11-20: median 5.1 s night / 8.1 s day per photo, p90 ≤ 11 s, with YOLO-World
+      for bins + qwen3.5:4b in Ollama for items; target ≤ 15 s agreed with the user. The
+      robot is stopped during detection.)
+- [x] In sim, detections from the park world are written to the memory store. (2026-11-19,
+      ground-truth stand-in `detect/sim_truth.py`; YOLO-World sees nothing in Gazebo)
+- [x] At each bin stop the robot centers the detected bin in the frame (sim, then robot).
+      Sim done 2026-11-19 (`make sim-route-check MISPLACE=12`, all 4 within 1°); re-run
+      2026-11-20 with bins at 0.88 m: PASS, all 4 within 2.5°. Robot 2026-11-21
+      (`20261121_000650`): bins 1 and 4 centered, bin 3 4.2° off after 3 corrections,
+      bin 2 failed (junk box taken as the bin; pulses overshoot ~1.6x). Fixed 2026-11-21
+      (size check, confidence-first pick, learned turn scale); sim PASS again. Robot re-run
+      `20261121_035910`: bins 1, 3, 4 centered (learned scale 1.36); bin 2 not found on the
+      first look (cut off at the frame edge, ~18° off its configured heading). Search turn
+      added 2026-11-21 (sim PASS with bins 20° off and cut bins hidden). Robot 2026-11-21
+      `20261121_041923`: all 4 centered within 3° (bin 2 found by the +15° search; learned
+      turn scale 1.35–1.40). Done.
 
-**Open decisions**
-- Which fake trash items, and their trash/recycling labels.
-- YOLO-World model size vs. CPU latency; whether to keep the existing vision-language model
-  (`gemma4` through Ollama) as a second opinion or for descriptions.
-- Gazebo objects won't look like the real items: in sim, does detection use real-looking
-  textures, or is it checked mainly on real photos?
+**Open decisions:** settled 2026-11-19, see the decision log and
+`docs/plans/phase-3-plan.md`. Agreed targets on ~40 labeled ESP32-CAM photos: detection
+recall and precision ≥ 80%, trash/recycling correct ≥ 90% of items found, bin found ≥ 95%,
+median latency ≤ 1 s per photo on the container CPU. Centering tolerance 3°.
 
 ---
 
@@ -211,6 +223,14 @@ Tilt the camera up at a bin, estimate how full it is, and count litter around it
 - Which Pico pin and PWM settings for the servo; its power supply (servos draw spikes).
 - How to express "degree of overflow": a scale (e.g. 0 = empty … 4 = overflowing a lot), or a
   percentage. Ground truth for it during testing.
+- **Fallback if the servo can't be made to work (user's idea, 2026-11-21): back up.** At the
+  bin stop the robot backs straight away from the bin, along the corner's diagonal into the
+  square, takes the photo, drives forward the same distance on the EKF, and resumes the
+  route. Geometry (nominal 47° vertical FOV, camera 10.3 cm high): to see 25 cm above a
+  29 cm rim the camera needs ~1.0 m to the bin's near face, vs ~0.65 m now, so back up
+  ~0.35–0.45 m. Costs: the bin and items look ~35% smaller (harder naming); the square's
+  inside must be clear; the drive code only goes forward today. Could run only when needed
+  (rim at the frame's top edge, or an item cut off there).
 
 ---
 
@@ -290,6 +310,17 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-21 | 1/3 | The route follower stops and waits when the Pico's ticks or IMU are > 0.4 s old, and afterwards re-anchors the fused estimate on the wheels' motion across the gap (robot run 20261121_041923: the EKF spun on with no data and the follower made a real 73° pulse at the ghost heading). `route.yaml` `sensor_guard`; walle-sim `/sim/blackout` tests it. |
+| 2026-11-20 | 3 | Latency target for detection: median ≤ 15 s per photo (was ≤ 1 s, set for YOLO-World alone). User: "I am not expecting sub 1 second performance" with local models. Bins sit 0.88 m out from their corner (`park.yaml` `offset_m`, confirmed by the user); the auto offset stays tested on its own. |
+| 2026-11-20 | 3 | Grocery and spinach bags are one label, `plastic_bag` (user's choice; both trash). The model could not tell them apart (spinach bags 0/9). |
+| 2026-11-20 | 3 | Remote (cloud) vision models, e.g. Gemini, are shelved: not tried, kept as an alternative for the paper's discussion of local-model limits (user's choice). Detection stays local (Ollama on the host). |
+| 2026-11-20 | 3 | Items are detected in two steps (user chose "Option 2"): YOLO-World with generic prompts proposes boxes, `gemma4` names each crop (or rejects it). YOLO-World alone found 0/36 items on the night photos. Slower is accepted for accuracy. Tune on shots 1–29, report 30–42 as unseen; fallback = fine-tune YOLO. Bins stay with YOLO-World (29/29). |
+| 2026-11-19 | 3 | Sim detection is a ground-truth stand-in (`detect/sim_truth.py`), not sim prompts: YOLO-World scored < 0.05 on every Gazebo object. The code after the model is the real one; accuracy is judged on real photos only (user chose this). |
+| 2026-11-19 | 3 | Fake trash (user's labels): trash = crumpled paper towels, plastic grocery bag, spinach bag; recycling = aluminum coffee can, gallon milk jug, yogurt container + lid, crumpled foil, crumpled Chipotle paper bag. Extras (recycling): chicken-stock carton, tissue box, paper egg carton. Mapping in `walle-app/config/detect.yaml`, sharing names and categories with `park.yaml` `items` (a test checks they agree). |
+| 2026-11-19 | 3 | YOLO-World (`ultralytics`, start with `yolov8s-worldv2`) runs in the containers on CPU, pinned in both Dockerfiles; budget median ≤ 1 s per photo; weights cached in `walle-app/models/` (git-ignored). `gemma4` not used in Phase 3. |
+| 2026-11-19 | 3 | Accuracy is judged on ~40 real ESP32-CAM photos (never phone photos), labeled by item lists (no boxes): recall/precision ≥ 80%, category ≥ 90%, bin found ≥ 95%. Sim checks plumbing and centering only, with sim-only prompts for the primitive shapes. |
+| 2026-11-19 | 3 | Bin centering between `face_bin` and `dwell`: nearest bin detection to the expected bearing, tolerance 3°, up to 3 corrections (pulses ≤ 20°), at most 25° from the configured heading; no bin found = keep the fixed heading and record it. Detector is a Python module the follower imports (robot stopped while it runs), plus a `/detect/ask` node for Phase 6. |
+| 2026-11-19 | 3 | Memory at a bin stop: `on_bin` = box above the bin's top edge and overlapping it; `around_bin` otherwise; all `around_bin` when the rim is out of view. `obj_xy` from the box's bottom edge on the ground plane (not for `on_bin`). Below `min_conf` dropped (kept in `detections.json`); unmapped labels = `unknown`. Detections saved per run in `detections.json` and rebuilt by `import_runs.py`. |
 | 2026-11-19 | 1 | Small heading corrections (≤ 20°) are timed pulses with a learned gain, skipped if the shortest would overshoot by more than the miss; up to 3 per turn. Slow correction turns stuck and lurched 8–13° on the robot. Photos: up to 3 tries, 3 s apart, within the bin wait. Needed for Phase 3's bin centering. |
 | 2026-11-18 | 2 | Memory store: SQLite (stdlib) + vector store (Ollama `nomic-embed-text`, embeddings in SQLite, cosine in Python; keyword fallback without Ollama). Python API only (`walle-app/memory/store.py`); a `/memory/ask` node only if Phase 6 needs it. |
 | 2026-11-18 | 2 | Sim and robot in separate files (`walle-app/data/memory/{robot,sim}.sqlite`), both git-ignored; `import_runs.py` rebuilds them from the committed run logs. Photos referenced by repo-relative path. Rollback journal (not WAL) for Docker bind mounts. |

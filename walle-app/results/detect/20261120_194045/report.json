@@ -1,0 +1,2634 @@
+{
+ "summary": {
+  "photos": 29,
+  "recall": 0.279,
+  "precision": 0.48,
+  "category": 1.0,
+  "bin_found": 1.0,
+  "place": 0.917,
+  "latency_median_s": 2.331,
+  "latency_p90_s": 10.113,
+  "per_label": {
+   "can": {
+    "true": 4,
+    "found": 0,
+    "reported": 0
+   },
+   "foil": {
+    "true": 4,
+    "found": 3,
+    "reported": 4
+   },
+   "milk_jug": {
+    "true": 3,
+    "found": 0,
+    "reported": 0
+   },
+   "paper_bag": {
+    "true": 3,
+    "found": 0,
+    "reported": 0
+   },
+   "paper_towel": {
+    "true": 8,
+    "found": 6,
+    "reported": 13
+   },
+   "plastic_bag": {
+    "true": 9,
+    "found": 3,
+    "reported": 6
+   },
+   "plastic_bottle": {
+    "true": 0,
+    "found": 0,
+    "reported": 2
+   },
+   "spinach_bag": {
+    "true": 9,
+    "found": 0,
+    "reported": 0
+   },
+   "yogurt_container": {
+    "true": 3,
+    "found": 0,
+    "reported": 0
+   }
+  },
+  "bin_bearing_abs_error_deg": {
+   "median": 3.42,
+   "max": 26.16
+  },
+  "checks": {
+   "recall": {
+    "value": 0.279,
+    "target": 0.8,
+    "pass": false
+   },
+   "precision": {
+    "value": 0.48,
+    "target": 0.8,
+    "pass": false
+   },
+   "category": {
+    "value": 1.0,
+    "target": 0.9,
+    "pass": true
+   },
+   "bin_found": {
+    "value": 1.0,
+    "target": 0.95,
+    "pass": true
+   },
+   "latency_median_s": {
+    "value": 2.331,
+    "target": 15.0,
+    "pass": true
+   }
+  },
+  "pass": false,
+  "model": "yolov8s-worldv2.pt+gemma4",
+  "ids": "1-29",
+  "set": "data/photos/phase3",
+  "config": {
+   "min_conf": 0.25,
+   "iou": 0.5,
+   "imgsz": 640,
+   "bin_min_conf": 0.03
+  }
+ },
+ "photos": [
+  {
+   "id": 1,
+   "file": "shot_01.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 3.54,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 2.331
+  },
+  {
+   "id": 2,
+   "file": "shot_02.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 0.43,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.759
+  },
+  {
+   "id": 3,
+   "file": "shot_03.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 14.61,
+   "expected_bearing_deg": 9.99,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.735
+  },
+  {
+   "id": 4,
+   "file": "shot_04.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -9.51,
+   "expected_bearing_deg": -9.99,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.789
+  },
+  {
+   "id": 5,
+   "file": "shot_05.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 20.12,
+   "expected_bearing_deg": 20.01,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.754
+  },
+  {
+   "id": 6,
+   "file": "shot_06.jpg",
+   "true": {},
+   "reported": {},
+   "true_items": 0,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -17.62,
+   "expected_bearing_deg": -20.01,
+   "rim_visible": false,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [],
+   "extra": [],
+   "seconds": 1.735
+  },
+  {
+   "id": 7,
+   "file": "shot_07.jpg",
+   "true": {
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -4.69,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.719
+  },
+  {
+   "id": 8,
+   "file": "shot_08.jpg",
+   "true": {
+    "milk_jug": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 2.62,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "milk_jug"
+   ],
+   "extra": [],
+   "seconds": 1.708
+  },
+  {
+   "id": 9,
+   "file": "shot_09.jpg",
+   "true": {
+    "plastic_bag": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 1.0,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "plastic_bag"
+   ],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 4.934
+  },
+  {
+   "id": 10,
+   "file": "shot_10.jpg",
+   "true": {
+    "can": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 6.81,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "can"
+   ],
+   "extra": [],
+   "seconds": 1.776
+  },
+  {
+   "id": 11,
+   "file": "shot_11.jpg",
+   "true": {
+    "spinach_bag": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.52,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag"
+   ],
+   "extra": [],
+   "seconds": 1.703
+  },
+  {
+   "id": 12,
+   "file": "shot_12.jpg",
+   "true": {
+    "yogurt_container": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 3.39,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "yogurt_container"
+   ],
+   "extra": [],
+   "seconds": 1.713
+  },
+  {
+   "id": 13,
+   "file": "shot_13.jpg",
+   "true": {
+    "paper_towel": 1,
+    "foil": 1
+   },
+   "reported": {},
+   "true_items": 2,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 1.74,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "foil",
+    "paper_towel"
+   ],
+   "extra": [],
+   "seconds": 1.696
+  },
+  {
+   "id": 14,
+   "file": "shot_14.jpg",
+   "true": {
+    "paper_bag": 1,
+    "plastic_bag": 1
+   },
+   "reported": {},
+   "true_items": 2,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 1.22,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "paper_bag",
+    "plastic_bag"
+   ],
+   "extra": [],
+   "seconds": 4.732
+  },
+  {
+   "id": 15,
+   "file": "shot_15.jpg",
+   "true": {
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 5.07,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.39
+  },
+  {
+   "id": 16,
+   "file": "shot_16.jpg",
+   "true": {
+    "can": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 5.12,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "can"
+   ],
+   "extra": [],
+   "seconds": 1.701
+  },
+  {
+   "id": 17,
+   "file": "shot_17.jpg",
+   "true": {
+    "plastic_bag": 2
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 2,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 0.25,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "plastic_bag",
+    "plastic_bag"
+   ],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 4.898
+  },
+  {
+   "id": 18,
+   "file": "shot_18.jpg",
+   "true": {
+    "foil": 1
+   },
+   "reported": {
+    "foil": 1
+   },
+   "true_items": 1,
+   "reported_items": 1,
+   "found": 1,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": 0.34,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [],
+   "extra": [],
+   "seconds": 4.585
+  },
+  {
+   "id": 19,
+   "file": "shot_19.jpg",
+   "true": {
+    "spinach_bag": 1,
+    "yogurt_container": 1
+   },
+   "reported": {
+    "plastic_bag": 1
+   },
+   "true_items": 2,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.7,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag",
+    "yogurt_container"
+   ],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 4.753
+  },
+  {
+   "id": 20,
+   "file": "shot_20.jpg",
+   "true": {
+    "paper_bag": 1
+   },
+   "reported": {},
+   "true_items": 1,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.76,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "paper_bag"
+   ],
+   "extra": [],
+   "seconds": 1.699
+  },
+  {
+   "id": 21,
+   "file": "shot_21.jpg",
+   "true": {
+    "milk_jug": 1,
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 2,
+    "plastic_bottle": 1
+   },
+   "true_items": 2,
+   "reported_items": 3,
+   "found": 1,
+   "category_right": 2,
+   "category_matchable": 2,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.44,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [
+    "milk_jug"
+   ],
+   "extra": [
+    "paper_towel",
+    "plastic_bottle"
+   ],
+   "seconds": 9.864
+  },
+  {
+   "id": 22,
+   "file": "shot_22.jpg",
+   "true": {
+    "plastic_bag": 2,
+    "spinach_bag": 2
+   },
+   "reported": {
+    "plastic_bag": 3
+   },
+   "true_items": 4,
+   "reported_items": 3,
+   "found": 2,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.51,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 2,
+   "place_checked": 2,
+   "missed": [
+    "spinach_bag",
+    "spinach_bag"
+   ],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 11.071
+  },
+  {
+   "id": 23,
+   "file": "shot_23.jpg",
+   "true": {
+    "can": 1,
+    "paper_towel": 2,
+    "foil": 1
+   },
+   "reported": {
+    "paper_towel": 3,
+    "foil": 1,
+    "plastic_bottle": 1
+   },
+   "true_items": 4,
+   "reported_items": 5,
+   "found": 3,
+   "category_right": 4,
+   "category_matchable": 4,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -26.16,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": false,
+   "place_right": 3,
+   "place_checked": 3,
+   "missed": [
+    "can"
+   ],
+   "extra": [
+    "paper_towel",
+    "plastic_bottle"
+   ],
+   "seconds": 14.93
+  },
+  {
+   "id": 24,
+   "file": "shot_24.jpg",
+   "true": {
+    "spinach_bag": 3
+   },
+   "reported": {},
+   "true_items": 3,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.42,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag",
+    "spinach_bag",
+    "spinach_bag"
+   ],
+   "extra": [],
+   "seconds": 1.705
+  },
+  {
+   "id": 25,
+   "file": "shot_25.jpg",
+   "true": {
+    "milk_jug": 1,
+    "plastic_bag": 2
+   },
+   "reported": {
+    "paper_towel": 1,
+    "plastic_bag": 1,
+    "foil": 1
+   },
+   "true_items": 3,
+   "reported_items": 3,
+   "found": 1,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -5.39,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 1,
+   "place_checked": 1,
+   "missed": [
+    "milk_jug",
+    "plastic_bag"
+   ],
+   "extra": [
+    "foil",
+    "paper_towel"
+   ],
+   "seconds": 10.113
+  },
+  {
+   "id": 26,
+   "file": "shot_26.jpg",
+   "true": {
+    "paper_towel": 1,
+    "can": 1
+   },
+   "reported": {},
+   "true_items": 2,
+   "reported_items": 0,
+   "found": 0,
+   "category_right": 0,
+   "category_matchable": 0,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -0.87,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "can",
+    "paper_towel"
+   ],
+   "extra": [],
+   "seconds": 1.693
+  },
+  {
+   "id": 27,
+   "file": "shot_27.jpg",
+   "true": {
+    "plastic_bag": 1,
+    "paper_bag": 1
+   },
+   "reported": {
+    "paper_towel": 1
+   },
+   "true_items": 2,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -4.93,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "paper_bag",
+    "plastic_bag"
+   ],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 4.835
+  },
+  {
+   "id": 28,
+   "file": "shot_28.jpg",
+   "true": {
+    "spinach_bag": 1,
+    "foil": 1,
+    "paper_towel": 1
+   },
+   "reported": {
+    "paper_towel": 2,
+    "foil": 1
+   },
+   "true_items": 3,
+   "reported_items": 3,
+   "found": 2,
+   "category_right": 3,
+   "category_matchable": 3,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -3.75,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": true,
+   "place_right": 2,
+   "place_checked": 2,
+   "missed": [
+    "spinach_bag"
+   ],
+   "extra": [
+    "paper_towel"
+   ],
+   "seconds": 10.345
+  },
+  {
+   "id": 29,
+   "file": "shot_29.jpg",
+   "true": {
+    "yogurt_container": 1,
+    "spinach_bag": 1
+   },
+   "reported": {
+    "plastic_bag": 1
+   },
+   "true_items": 2,
+   "reported_items": 1,
+   "found": 0,
+   "category_right": 1,
+   "category_matchable": 1,
+   "has_bin": true,
+   "bin_found": true,
+   "bin_bearing_deg": -2.0,
+   "expected_bearing_deg": 0.0,
+   "rim_visible": false,
+   "place_right": 0,
+   "place_checked": 0,
+   "missed": [
+    "spinach_bag",
+    "yogurt_container"
+   ],
+   "extra": [
+    "plastic_bag"
+   ],
+   "seconds": 4.573
+  }
+ ],
+ "detections": {
+  "shot_01.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.354,
+     "bbox": [
+      160.8,
+      46.9,
+      410.6,
+      341.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.13,
+     "bbox": [
+      442.9,
+      0.0,
+      552.8,
+      64.4
+     ]
+    }
+   ],
+   "seconds": 2.331,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 2.015
+  },
+  "shot_02.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.475,
+     "bbox": [
+      188.2,
+      32.2,
+      443.4,
+      338.7
+     ]
+    }
+   ],
+   "seconds": 1.759,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.427
+  },
+  "shot_03.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.735,
+     "bbox": [
+      44.3,
+      46.6,
+      306.8,
+      348.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.272,
+     "bbox": [
+      452.8,
+      0.0,
+      563.1,
+      59.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.041,
+     "bbox": [
+      558.7,
+      0.0,
+      640.0,
+      43.3
+     ]
+    }
+   ],
+   "seconds": 1.735,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.409
+  },
+  "shot_04.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.644,
+     "bbox": [
+      279.8,
+      31.3,
+      545.9,
+      344.8
+     ]
+    }
+   ],
+   "seconds": 1.789,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.447
+  },
+  "shot_05.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.664,
+     "bbox": [
+      0.0,
+      65.2,
+      233.8,
+      340.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.062,
+     "bbox": [
+      596.2,
+      210.9,
+      639.9,
+      333.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.044,
+     "bbox": [
+      632.3,
+      275.1,
+      640.0,
+      329.7
+     ]
+    }
+   ],
+   "seconds": 1.754,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.421
+  },
+  "shot_06.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.362,
+     "bbox": [
+      352.0,
+      0.5,
+      640.0,
+      353.2
+     ]
+    }
+   ],
+   "seconds": 1.735,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.406
+  },
+  "shot_07.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.722,
+     "bbox": [
+      234.2,
+      34.8,
+      496.8,
+      345.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.051,
+     "bbox": [
+      558.1,
+      0.0,
+      640.0,
+      41.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.044,
+     "bbox": [
+      597.1,
+      205.3,
+      640.0,
+      331.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.037,
+     "bbox": [
+      451.4,
+      0.0,
+      563.5,
+      55.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      252.2,
+      8.2,
+      412.2,
+      48.0
+     ],
+     "vlm_name": "white paper towel",
+     "vlm_description": "It is a crumpled, white, soft-looking piece of paper."
+    }
+   ],
+   "seconds": 4.719,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.381
+  },
+  "shot_08.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.353,
+     "bbox": [
+      189.7,
+      11.6,
+      399.5,
+      319.4
+     ]
+    }
+   ],
+   "seconds": 1.708,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.387
+  },
+  "shot_09.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.246,
+     "bbox": [
+      210.1,
+      81.9,
+      410.5,
+      307.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.033,
+     "bbox": [
+      27.7,
+      149.0,
+      80.4,
+      256.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      161.9,
+      28.8,
+      329.0,
+      97.4
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "It is a crumpled, white, soft-looking object with a swirling pattern."
+    }
+   ],
+   "seconds": 4.934,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.603
+  },
+  "shot_10.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.481,
+     "bbox": [
+      152.0,
+      85.2,
+      355.6,
+      315.7
+     ]
+    }
+   ],
+   "seconds": 1.776,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.429
+  },
+  "shot_11.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.583,
+     "bbox": [
+      0.0,
+      177.0,
+      49.2,
+      280.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.563,
+     "bbox": [
+      228.4,
+      75.5,
+      421.6,
+      295.1
+     ]
+    }
+   ],
+   "seconds": 1.703,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.368
+  },
+  "shot_12.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.762,
+     "bbox": [
+      183.1,
+      78.9,
+      391.2,
+      316.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.159,
+     "bbox": [
+      0.3,
+      0.0,
+      110.5,
+      80.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.054,
+     "bbox": [
+      0.0,
+      0.0,
+      146.7,
+      219.8
+     ]
+    }
+   ],
+   "seconds": 1.713,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.381
+  },
+  "shot_13.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.64,
+     "bbox": [
+      214.1,
+      93.2,
+      392.3,
+      295.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.632,
+     "bbox": [
+      0.0,
+      186.9,
+      37.4,
+      286.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.09,
+     "bbox": [
+      157.7,
+      438.0,
+      417.9,
+      480.0
+     ]
+    }
+   ],
+   "seconds": 1.696,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.367
+  },
+  "shot_14.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.639,
+     "bbox": [
+      204.4,
+      80.9,
+      412.0,
+      319.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.18,
+     "bbox": [
+      6.2,
+      0.0,
+      115.9,
+      83.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.051,
+     "bbox": [
+      0.0,
+      216.2,
+      48.3,
+      275.5
+     ]
+    }
+   ],
+   "seconds": 4.732,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      168.3,
+      99.4,
+      411.5,
+      317.8
+     ],
+     "vlm_name": "crumpled paper",
+     "vlm_description": "It is a dark gray, irregularly shaped, matte object."
+    }
+   ],
+   "vlm_seconds": 4.402
+  },
+  "shot_15.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.341,
+     "bbox": [
+      494.7,
+      0.0,
+      597.0,
+      80.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.302,
+     "bbox": [
+      150.1,
+      52.7,
+      391.5,
+      335.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.047,
+     "bbox": [
+      462.1,
+      0.3,
+      639.8,
+      220.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.037,
+     "bbox": [
+      621.5,
+      212.6,
+      640.0,
+      314.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      0.0,
+      262.6,
+      224.0,
+      384.0
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "It is a crumpled, white, matte-textured piece of paper."
+    }
+   ],
+   "seconds": 4.39,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.059
+  },
+  "shot_16.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.329,
+     "bbox": [
+      494.0,
+      0.0,
+      594.7,
+      80.1
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.104,
+     "bbox": [
+      149.4,
+      52.6,
+      391.3,
+      336.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.063,
+     "bbox": [
+      460.8,
+      0.0,
+      639.8,
+      220.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.04,
+     "bbox": [
+      590.5,
+      0.0,
+      640.0,
+      66.2
+     ]
+    }
+   ],
+   "seconds": 1.701,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.372
+  },
+  "shot_17.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.478,
+     "bbox": [
+      215.2,
+      80.7,
+      419.9,
+      298.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.083,
+     "bbox": [
+      616.8,
+      186.5,
+      640.0,
+      313.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.064,
+     "bbox": [
+      0.0,
+      239.7,
+      11.9,
+      295.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.046,
+     "bbox": [
+      0.0,
+      239.6,
+      29.5,
+      295.6
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      64.6,
+      189.6,
+      394.9,
+      341.8
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "The object is a crumpled, white, irregularly shaped piece of material with a matte finish."
+    }
+   ],
+   "seconds": 4.898,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.566
+  },
+  "shot_18.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.445,
+     "bbox": [
+      214.1,
+      81.0,
+      419.3,
+      316.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.063,
+     "bbox": [
+      616.7,
+      182.6,
+      640.0,
+      314.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.031,
+     "bbox": [
+      0.0,
+      238.7,
+      26.0,
+      295.5
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      131.2,
+      262.6,
+      339.8,
+      342.7
+     ],
+     "vlm_name": "crumpled foil",
+     "vlm_description": "It is a shiny, crumpled piece of silver material."
+    }
+   ],
+   "seconds": 4.585,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.27
+  },
+  "shot_19.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.593,
+     "bbox": [
+      392.6,
+      201.8,
+      497.3,
+      313.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.334,
+     "bbox": [
+      0.0,
+      177.4,
+      81.1,
+      284.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.162,
+     "bbox": [
+      622.9,
+      200.9,
+      640.0,
+      287.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.136,
+     "bbox": [
+      259.3,
+      83.2,
+      452.4,
+      238.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.037,
+     "bbox": [
+      95.6,
+      183.1,
+      141.5,
+      271.2
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      131.2,
+      191.5,
+      428.8,
+      326.9
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "It is a crumpled, translucent white and gray plastic bag with printed logos."
+    }
+   ],
+   "seconds": 4.753,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.407
+  },
+  "shot_20.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.533,
+     "bbox": [
+      0.0,
+      177.9,
+      78.3,
+      284.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.482,
+     "bbox": [
+      255.7,
+      82.8,
+      457.2,
+      321.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.224,
+     "bbox": [
+      95.4,
+      182.4,
+      138.9,
+      274.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.036,
+     "bbox": [
+      621.4,
+      200.8,
+      640.0,
+      285.1
+     ]
+    }
+   ],
+   "seconds": 1.699,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.367
+  },
+  "shot_21.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.093,
+     "bbox": [
+      81.4,
+      0.0,
+      180.6,
+      87.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.056,
+     "bbox": [
+      252.9,
+      84.8,
+      453.8,
+      250.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.038,
+     "bbox": [
+      0.1,
+      0.0,
+      85.2,
+      77.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.033,
+     "bbox": [
+      0.0,
+      0.0,
+      219.0,
+      221.0
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      186.2,
+      346.1,
+      339.8,
+      397.0
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "It is a crumpled, white, and matte piece of paper."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      339.8,
+      382.6,
+      430.7,
+      432.0
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of paper with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      394.9,
+      304.8,
+      542.1,
+      423.8
+     ],
+     "vlm_name": "plastic bottle",
+     "vlm_description": "The object is a translucent, somewhat irregularly shaped plastic bottle with a slight sheen."
+    }
+   ],
+   "seconds": 9.864,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 9.535
+  },
+  "shot_22.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.156,
+     "bbox": [
+      81.1,
+      0.0,
+      180.0,
+      88.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.061,
+     "bbox": [
+      252.9,
+      83.4,
+      455.0,
+      202.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.036,
+     "bbox": [
+      0.1,
+      0.0,
+      83.8,
+      76.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      17.3,
+      177.1,
+      410.9,
+      378.7
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "It is a crumpled, translucent plastic bag with various printed graphics and text on it."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      394.9,
+      288.0,
+      474.9,
+      341.3
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "The object appears to be a translucent, irregularly shaped piece of thin, somewhat shiny plastic."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      400.0,
+      309.6,
+      636.8,
+      432.0
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "The object appears to be a thin, translucent, and somewhat wrinkled piece of plastic, likely white or very light in color."
+    }
+   ],
+   "seconds": 11.071,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 10.747
+  },
+  "shot_23.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.214,
+     "bbox": [
+      544.5,
+      0.0,
+      640.0,
+      76.4
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      193.9,
+      214.6,
+      315.5,
+      281.8
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "It is a crumpled, matte white piece of paper."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      305.3,
+      169.4,
+      449.9,
+      355.7
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "It is a crumpled, white, matte piece of paper."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      393.6,
+      180.0,
+      553.6,
+      344.2
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "It is a crumpled, white, matte-surfaced object."
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      0.0,
+      277.0,
+      187.5,
+      363.4
+     ],
+     "vlm_name": "crumpled aluminum foil",
+     "vlm_description": "It is a shiny, crumpled piece of silver aluminum foil."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      181.1,
+      289.4,
+      355.2,
+      358.6
+     ],
+     "vlm_name": "plastic bottle",
+     "vlm_description": "It is a cylindrical, matte beige plastic bottle."
+    }
+   ],
+   "seconds": 14.93,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 14.595
+  },
+  "shot_24.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.161,
+     "bbox": [
+      260.2,
+      100.1,
+      446.0,
+      240.8
+     ]
+    }
+   ],
+   "seconds": 1.705,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.376
+  },
+  "shot_25.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.678,
+     "bbox": [
+      261.6,
+      73.3,
+      482.9,
+      219.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      502.4,
+      161.8,
+      640.0,
+      349.0
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "It is a crumpled, white, matte-textured object."
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      209.9,
+      195.4,
+      425.6,
+      361.4
+     ],
+     "vlm_name": "plastic grocery bag",
+     "vlm_description": "The object is a crumpled, translucent, light-colored plastic bag with a dull sheen."
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      278.4,
+      61.0,
+      336.0,
+      92.2
+     ],
+     "vlm_name": "crumpled aluminum foil",
+     "vlm_description": "It is a shiny, silver, crumpled piece of aluminum foil."
+    }
+   ],
+   "seconds": 10.113,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 9.791
+  },
+  "shot_26.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.279,
+     "bbox": [
+      223.5,
+      77.2,
+      433.4,
+      317.9
+     ]
+    }
+   ],
+   "seconds": 1.693,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 1.371
+  },
+  "shot_27.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.287,
+     "bbox": [
+      0.0,
+      177.7,
+      101.4,
+      282.4
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.11,
+     "bbox": [
+      568.7,
+      198.3,
+      640.0,
+      276.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.066,
+     "bbox": [
+      380.8,
+      448.6,
+      593.9,
+      480.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.055,
+     "bbox": [
+      568.2,
+      199.8,
+      591.9,
+      275.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.053,
+     "bbox": [
+      258.2,
+      82.4,
+      477.5,
+      316.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      232.3,
+      9.6,
+      496.0,
+      102.7
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "The object is a crumpled mass of white, matte paper."
+    }
+   ],
+   "seconds": 4.835,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.519
+  },
+  "shot_28.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.193,
+     "bbox": [
+      122.0,
+      0.0,
+      210.2,
+      100.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.178,
+     "bbox": [
+      264.7,
+      92.6,
+      447.9,
+      259.9
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      200.3,
+      291.4,
+      361.6,
+      336.0
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of material with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      341.1,
+      200.2,
+      501.1,
+      323.0
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "It is a crumpled, white, irregularly shaped piece of material with a matte finish."
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      245.1,
+      251.0,
+      347.5,
+      299.0
+     ],
+     "vlm_name": "crumpled aluminum foil",
+     "vlm_description": "It is a shiny, crumpled piece of silver aluminum foil."
+    }
+   ],
+   "seconds": 10.345,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 10.004
+  },
+  "shot_29.jpg": {
+   "detections": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.053,
+     "bbox": [
+      616.0,
+      224.2,
+      640.0,
+      315.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.048,
+     "bbox": [
+      508.0,
+      0.0,
+      604.2,
+      112.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.046,
+     "bbox": [
+      139.3,
+      89.8,
+      547.0,
+      355.7
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.041,
+     "bbox": [
+      287.2,
+      0.1,
+      391.5,
+      93.8
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "gemma4",
+     "conf": null,
+     "bbox": [
+      136.3,
+      169.4,
+      550.4,
+      352.8
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "The object is a crumpled, multi-colored plastic bag with a somewhat glossy finish."
+    }
+   ],
+   "seconds": 4.573,
+   "size": [
+    640,
+    480
+   ],
+   "model": "yolov8s-worldv2.pt+gemma4",
+   "source": "robot",
+   "low_conf": [],
+   "vlm_seconds": 4.229
+  }
+ }
+}
