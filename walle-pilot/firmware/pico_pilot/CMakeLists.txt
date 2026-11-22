@@ -33,6 +33,7 @@ add_executable(pico_pilot
   microros_time.c
   pico_pilot.c
   picow_udp_transport.c
+  servo.c
   tb6612.c
   ultrasonic.c
 )
@@ -63,6 +64,7 @@ target_link_libraries(pico_pilot
   hardware_gpio
   hardware_i2c
   hardware_pwm
+  hardware_clocks
   micro_ros
 )
 

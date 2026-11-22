@@ -167,6 +167,33 @@ def bridge_gap(park_before, wheel_before, wheel_after):
             wrap(h + wrap(wheel_after[2] - wheel_before[2])))
 
 
+def estimate_jump(fused0, fused1, wheel0, wheel1, max_extra_m, max_extra_deg):
+    """Did the fused estimate move in a way the wheels can't explain? Over one short window,
+    compare how far it moved and turned with how far the wheels did. A differential drive
+    can't slide sideways or turn without its wheels turning, so a large excess is a glitch
+    (robot run 20261122_142402: the fused estimate went 40 cm sideways in 0.5 s while the
+    wheels moved 7 cm). Returns (extra_m, extra_deg, is_jump)."""
+    d_f = math.hypot(fused1[0] - fused0[0], fused1[1] - fused0[1])
+    d_w = math.hypot(wheel1[0] - wheel0[0], wheel1[1] - wheel0[1])
+    t_f = abs(math.degrees(wrap(fused1[2] - fused0[2])))
+    t_w = abs(math.degrees(wrap(wheel1[2] - wheel0[2])))
+    extra_m, extra_deg = d_f - d_w, t_f - t_w
+    return extra_m, extra_deg, extra_m > max_extra_m or extra_deg > max_extra_deg
+
+
+def pico_restarted(last, now, max_counts):
+    """A Pico restart, from two consecutive /pico/wheel_ticks [left, right, ping_seq, ...]:
+    ping_seq (one per finished HC-SR04 ping, answered or not) starts again from 0 at boot,
+    so it going BACKWARDS is a restart even early on, when the encoder counts are still small;
+    or the counts moved more in one message than the wheels can turn (the wheel odometry
+    node's test)."""
+    if last is None:
+        return False
+    if len(now) >= 3 and len(last) >= 3 and now[2] < last[2]:
+        return True
+    return abs(now[0] - last[0]) > max_counts or abs(now[1] - last[1]) > max_counts
+
+
 def gaps_in(gaps, t0, t1):
     """The sensor gaps [(start, end, topic), ...] (monotonic s) that overlap [t0, t1]."""
     return [g for g in gaps if g[1] >= t0 and g[0] <= t1]

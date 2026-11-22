@@ -20,8 +20,13 @@ robot:                        # footprint (clearance checks) and camera (bin fra
   turn_radius_m: 0.14         # farthest point of the body from the axle center when turning
   margin_m: 0.05              # extra clearance kept from bins, litter, and corners
   camera:                     # ESP32-CAM on the robot, for framing the bins (MEASURE on the robot)
-    height_m: 0.103           # measured 2026-11-18 on the robot (walle-sim model: 0.10)
+    # The lens, camera LEVEL. 2026-11-21 (user), on the Phase 4 tilt servo mount: 12.5 cm up
+    # (was 10.3 cm before the servo; the Phase 3 photo set keeps 10.3: data/photos/phase3/
+    # camera.yaml), same 12.5 cm ahead of the axle, 1.1 cm LEFT of the robot's center line.
+    # Where it goes when it tilts: config/servo.yaml lens_from_pivot_m.
+    height_m: 0.125           # (walle-sim model: 0.10)
     forward_m: 0.125          # re-measured 2026-11-19: 12.5-13 cm ahead of the axle (walle-sim model: 0.07)
+    left_m: 0.011             # + = left of the center line (walle-sim model: 0)
     vertical_fov_deg: 47      # OV3660 at 4:3, NOMINAL (not measured); the walle-sim camera is 60 x 46.8 deg.
     horizontal_fov_deg: 60    # 2026-11-19: at the auto offset (0.71 m) the robot saw the bin's top cut off,
                               # so the real lens is likely narrower or tilted; Phase 3 shots 3-6 measure it.

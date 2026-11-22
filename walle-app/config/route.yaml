@@ -70,6 +70,20 @@ sensor_guard:
   resume_after_s: 0.6
   give_up_s: 20.0
   pulse_outlier: 2.5
+  # Pico restart (ping_seq goes backwards, or the encoder counts jump by more than this in
+  # one message; robot run
+  # 20261122_142402): stop, wait until the data has been fresh this long, repair the estimate
+  # from the wheels. During the start hold: take the start pose again.
+  restart_counts: 20000
+  restart_settle_s: 2.0
+  # Estimate jump: every window_s while moving, the fused estimate may not move more than
+  # the wheels by max_extra_m, or turn more by max_extra_deg; else stop and repair from the
+  # wheels (that run: 40 cm sideways in 0.5 s while the wheels moved 7 cm).
+  jump:
+    enabled: true
+    window_s: 0.25
+    max_extra_m: 0.05
+    max_extra_deg: 20.0
 
 # Coast: after a stop command the robot keeps moving (Wi-Fi, estimate delay, motor
 # spin-down), so each move stops early by (measured speed x coast). Starting values from the
@@ -112,3 +126,8 @@ results_dir: results/route   # under walle-app/
 # --no-detect turns both off for one run.
 detect: true
 center_bins: true
+# Phase 4 (detect/bin_check.py, config/servo.yaml): after the bin photo, tilt the camera up,
+# take a second photo, judge the bin (overflow level, items on top, litter), level the
+# camera, and record it (bin_checks.json, memory store). No servo answering: judged on the
+# level photo alone. --no-tilt for one run without the servo; false = no bin check.
+bin_check: true

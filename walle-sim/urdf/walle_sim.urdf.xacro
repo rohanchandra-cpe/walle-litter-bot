@@ -7,6 +7,13 @@
   the robot there. This file only adds the ultrasonic sensor that RQ3 needs, so the
   base model stays a clean copy.
 
+  Camera tilt servo (WALL-E Phase 4): camera_tilt_joint, a revolute joint about the
+  robot's left axis at the camera's spot, driven by a JointPositionController on the
+  Gazebo topic /camera_tilt (radians; ROS /sim/camera_tilt via config/bridge.yaml).
+  nodes/sim_pico_bridge.py turns the servo pulses on /pico/imu/std into that angle, as
+  the firmware does, with walle-app/config/servo.yaml's sim calibration. URDF pitch is
+  positive DOWN about +y, so the controller is given minus the tilt (up = +).
+
   HC-SR04: mounted directly below the camera, transducer face in the camera's
   vertical plane (draft III-A), so both sensors share the reference plane
   x = camera_x in base_link. Modeled as a cone of GPU lidar rays, +/-15 deg
@@ -69,6 +76,35 @@
         </range>
       </lidar>
     </sensor>
+  </gazebo>
+
+  <!-- ===== Camera tilt servo (WALL-E Phase 4) ===== -->
+  <link name="camera_tilt_link">
+    <inertial>
+      <mass value="0.01"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+  <joint name="camera_tilt_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="camera_tilt_link"/>
+    <origin xyz="${camera_x} 0 ${camera_z}"/>
+    <axis xyz="0 1 0"/>
+    <!-- -35 .. +15 deg pitch = 35 deg up .. 15 deg down: wider than servo.yaml sim -->
+    <limit lower="-0.611" upper="0.262" effort="1.0" velocity="3.0"/>
+    <dynamics damping="0.001"/>
+  </joint>
+  <gazebo>
+    <plugin filename="ignition-gazebo-joint-position-controller-system"
+            name="ignition::gazebo::systems::JointPositionController">
+      <joint_name>camera_tilt_joint</joint_name>
+      <topic>/camera_tilt</topic>
+      <use_velocity_commands>true</use_velocity_commands>
+      <p_gain>8.0</p_gain>
+      <cmd_max>3.0</cmd_max>
+      <cmd_min>-3.0</cmd_min>
+      <initial_position>0.0</initial_position>
+    </plugin>
   </gazebo>
 
 </robot>

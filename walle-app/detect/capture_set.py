@@ -1,4 +1,4 @@
-"""Take the Phase 3 labeled photo set with the robot's ESP32-CAM, one shot at a time.
+"""Take a labeled photo set (Phase 3, Phase 4) with the robot's ESP32-CAM, one shot at a time.
 
 Walks through data/photos/phase3/shots.yaml: prints each shot's setup, waits for you to
 arrange it, takes the photo, saves shot_NN.jpg, and writes the shot's entry into
@@ -10,6 +10,12 @@ labels.yaml from the shot list. Shots already in labels.yaml are skipped, so you
 
 At each shot: Enter = take it, r = take it again after looking, s = skip, q = quit.
 If what you placed differs from the shot, fix that entry in labels.yaml afterwards.
+
+Phase 4 (--set-dir walle-app/data/photos/phase4): each shot says which look it is (level, or
+up at tilt_deg) and its light. The camera tilt needs the robot side up (`make launch`) and is
+set from a container shell, which the script prints before each shot, e.g.
+    python3 /workspace/walle-app/servo/servo_test.py --deg 15 --stay
+--light day takes only the shots marked light: day (if the shot list marks lights).
 """
 
 import argparse
@@ -39,6 +45,11 @@ HEADER = """\
 
 def describe(shot):
     lines = [f"  where: {WHERE_TEXT[shot['where']].format(bin=shot.get('bin'))}"]
+    if "tilt_deg" in shot:
+        t = float(shot["tilt_deg"])
+        lines.append(f"  CAMERA: {'level' if not t else f'tilted {t:+.0f} deg up'} ({shot.get('look')})"
+                     f"; in the container: python3 /workspace/walle-app/servo/servo_test.py "
+                     f"--deg {t:g} --stay")
     if shot.get("bin_shift_cm"):
         side = "LEFT" if shot["bin_shift_cm"] > 0 else "RIGHT"
         lines.append(f"  slide the bin {abs(shot['bin_shift_cm'])} cm to the robot's {side}")
@@ -71,8 +82,9 @@ def entry(shot, name):
          "bin": shot.get("bin"), "bin_shift_cm": shot.get("bin_shift_cm", 0),
          "items": [{"label": label, "place": place} for label, place in shot["items"]],
          "t_utc": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-    if shot.get("note"):
-        e["note"] = shot["note"]
+    for k in ("look", "tilt_deg", "light", "setup", "note"):
+        if k in shot:
+            e[k] = shot[k]
     return e
 
 
@@ -102,6 +114,8 @@ def main(argv=None):
     # a shot is done when it has a label AND its photo is in the folder
     labels = {k: e for k, e in labels.items()
               if os.path.exists(os.path.join(a.set_dir, e["file"]))}
+    if a.light and any("light" in s for s in shots):
+        shots = [s for s in shots if s.get("light") == a.light]
     todo = [s for s in shots if (s["id"] in a.only if a.only else s["id"] not in labels)]
     print(f"{len(labels)} of {len(shots)} shots done; {len(todo)} to take. Camera {a.camera_url}")
 
@@ -119,7 +133,7 @@ def main(argv=None):
             with open(os.path.join(a.set_dir, name), "wb") as f:
                 f.write(data)
             labels[shot["id"]] = entry(shot, name)
-            if a.light:
+            if a.light and "light" not in shot:
                 labels[shot["id"]]["light"] = a.light
             save_labels(labels_path, labels)
             print(f"  saved {name} ({len(data) // 1024} KB)")

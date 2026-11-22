@@ -1,0 +1,51 @@
+# Camera tilt servo (ROADMAP Phase 4): a FITEC FS5106B on the Pico's GP22.
+#
+# The firmware knows only pulse widths (it clamps them to 600-2400 us, servo.h). Degrees are
+# worked out here, so recalibrating needs no reflash:
+#     pulse_us = level_us + us_per_deg * tilt_deg        tilt_deg: + = camera looks UP
+# The command rides on /pico/imu/std as a 4th value; the pulse being output comes back as
+# the 5th value of /pico/wheel_ticks (see walle-pilot/firmware/pico_pilot/pico_pilot.c).
+#
+# CALIBRATE ON THE ROBOT (servo/servo_test.py):
+#   1. `servo_test.py --us 1500`, then step --us until a phone inclinometer on the camera
+#      reads 0 deg (level): that is level_us.
+#   2. `servo_test.py --us <level_us + 200>` and read the angle: us_per_deg = 200 / angle
+#      (negative if the camera tilts DOWN for a longer pulse: it depends on the mounting).
+#   3. Tilt up and down until the camera or its cable touches the body: min_deg / max_deg
+#      stay a few degrees inside that.
+#   4. If the lens moves when it tilts (it sits off the servo's axis), measure where it is
+#      relative to the axis at level: lens_from_pivot_m. The level position itself is
+#      park.yaml robot.camera height_m / forward_m.
+# Robot, measured 2026-11-21 (user): a SHORTER pulse tilts the camera UP (1000 us = up,
+# 1750 us = down). Level 1575 us (angle against the floor). 1275 us (300 us up) = 30 deg up
+# -> 10 us/deg; the longest move measured, so it wins over the short ones (1490 us = 18 deg,
+# 1516 us = ~15 deg: a degree or two of reading error is a big share of a short move).
+# Safe range 1000-1750 us = +57.5 .. -17.5 deg; the limits stay a little inside it.
+level_us: 1575
+us_per_deg: -10.0         # negative: shorter pulse = up. 15 deg up = 1425 us
+min_deg: -15.0            # 1725 us (1750 us is the measured down limit)
+max_deg: 55.0             # 1025 us (1000 us is the measured up limit)
+lens_from_pivot_m: [0.01, 0.04]   # [forward, up] of the lens from the tilt axis, camera level
+                                  # (user, 2026-11-21: 4 cm above the horn's center, lens edge
+                                  # 1 cm ahead). At 15 deg up the lens is ~1 cm farther back.
+
+settle_s: 0.6             # wait after the readback reaches the target (the camera shakes)
+readback_timeout_s: 4.0   # no readback by then: the firmware has no servo (old flash)
+level_tolerance_us: 3     # readback this close to level_us counts as level
+
+# The bin check (route follower, at each bin stop after centering)
+# The up look. At a bin stop (bin center 0.755 m from the lens, near face 0.65 m) the frame
+# spans -8.5 .. +38.5 deg at 15 deg up: the whole bin (its base is at -9 deg) plus 0.44 m
+# above its rim at the near face, enough for a gallon jug standing on top. The rim sits just
+# below the middle of the frame. The level photo still does the litter on the floor.
+up_deg: 15.0
+
+# Gazebo (walle-sim): the simulated Pico turns the same pulses into the joint angle with
+# these values, so the follower runs unchanged. Over the values above, when in sim.
+sim:
+  level_us: 1500
+  us_per_deg: 10.0
+  min_deg: -10.0
+  max_deg: 30.0
+  lens_from_pivot_m: [0.0, 0.0]
+  settle_s: 0.5

@@ -1,7 +1,7 @@
 // WALL-E pilot firmware: Module 8 sensor fusion firmware + an HC-SR04 range sensor.
 //
 // Publishes   /pico/wheel_ticks   std_msgs/Int32MultiArray  50 Hz:
-//                                 [left, right, ping_seq, echo_us]
+//                                 [left, right, ping_seq, echo_us, servo_us]
 //                                 left/right: total encoder counts
 //                                 ping_seq: +1 per finished ultrasonic ping (every 60 ms)
 //                                 echo_us: that ping's echo time in us, or -1 echo
@@ -9,11 +9,17 @@
 //                                 The ping rides on this message because the micro-ROS
 //                                 library allows only 3 publishers; nodes that read
 //                                 just [left, right] keep working.
+//                                 servo_us: camera tilt servo pulse being output now
+//                                 (WALL-E Phase 4; readers of [0..3] are unaffected)
 //             /pico/imu/data      sensor_msgs/Imu           orientation, gyro, accel, 50 Hz
 //             /pico/drive/status  std_msgs/Int32            0 stopped, 1 driving, 2 timeout
 // Subscribes  /pico/cmd_vel       geometry_msgs/Twist       drive command
 //             /pico/imu/std       std_msgs/Float32MultiArray
 //                                 [orientation_deg, gyro_rad_s, accel_m_s2] uncertainty
+//                                 [3] (optional, Phase 4): camera tilt servo pulse in us.
+//                                 The servo has no topic of its own because the micro-ROS
+//                                 library allows only 2 subscriptions. A value of 0 or less
+//                                 (or a 3-value message) keeps each setting as it is.
 
 #include <math.h>
 #include <stdio.h>
@@ -37,6 +43,7 @@
 #include "drive_control.h"
 #include "encoders.h"
 #include "picow_udp_transport.h"
+#include "servo.h"
 #include "tb6612.h"
 #include "ultrasonic.h"
 #include "wifi_config.h"
@@ -60,11 +67,11 @@ static rcl_publisher_t imu_publisher;
 static rcl_publisher_t drive_status_publisher;
 static geometry_msgs__msg__Twist cmd_vel_message;
 static std_msgs__msg__Int32MultiArray wheel_ticks_message;
-static int32_t wheel_ticks_buffer[4];
+static int32_t wheel_ticks_buffer[5];
 static sensor_msgs__msg__Imu imu_message;
 static char imu_frame_id[] = "imu_link";
 static std_msgs__msg__Float32MultiArray imu_std_message;
-static float imu_std_buffer[3];
+static float imu_std_buffer[4];
 static std_msgs__msg__Int32 drive_status_message;
 static uint32_t commands_received;
 
@@ -106,6 +113,13 @@ static void imu_std_callback(const void *incoming) {
     }
     if (n > 2 && v[2] > 0.0f) {
         accel_std_m_s2 = v[2];
+    }
+    if (n > 3 && v[3] > 0.0f) {
+        servo_set_us((int32_t) (v[3] + 0.5f));
+        printf("Camera servo -> %ld us\n", (long) servo_target_us());
+        if (n == 4 && v[0] <= 0.0f && v[1] <= 0.0f && v[2] <= 0.0f) {
+            return;                  // a servo-only command: don't log the IMU settings
+        }
     }
     printf("IMU uncertainty: orientation %.2f deg, gyro %.4f rad/s, accel %.3f m/s^2\n",
            orientation_std_deg, gyro_std_rad_s, accel_std_m_s2);
@@ -169,11 +183,14 @@ int main(void) {
     ultrasonic_init();
     printf("HC-SR04 on TRIG GP%d / ECHO GP%d, one ping every %d ms.\n",
            ULTRASONIC_TRIG_PIN, ULTRASONIC_ECHO_PIN, ULTRASONIC_PERIOD_MS);
+    servo_init();
+    printf("Camera servo on GP%d at %d us (clamped to %d-%d us).\n",
+           SERVO_PIN, SERVO_BOOT_US, SERVO_MIN_US, SERVO_MAX_US);
 
     // micro-ROS needs all message memory set up in advance.
     wheel_ticks_message.data.data = wheel_ticks_buffer;
-    wheel_ticks_message.data.size = 4;
-    wheel_ticks_message.data.capacity = 4;
+    wheel_ticks_message.data.size = 5;
+    wheel_ticks_message.data.capacity = 5;
     wheel_ticks_message.layout.dim.data = NULL;
     wheel_ticks_message.layout.dim.size = 0;
     wheel_ticks_message.layout.dim.capacity = 0;
@@ -181,7 +198,7 @@ int main(void) {
 
     imu_std_message.data.data = imu_std_buffer;
     imu_std_message.data.size = 0;
-    imu_std_message.data.capacity = 3;
+    imu_std_message.data.capacity = 4;
     imu_std_message.layout.dim.data = NULL;
     imu_std_message.layout.dim.size = 0;
     imu_std_message.layout.dim.capacity = 0;
@@ -348,6 +365,7 @@ int main(void) {
     while (true) {
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(5));
         ultrasonic_update();
+        servo_update(now_ms());
 
         int32_t status = drive_control_update(now_ms());
         if (status != last_status || time_reached(next_status_publish)) {
@@ -364,6 +382,7 @@ int main(void) {
         if (time_reached(next_publish)) {
             encoders_read(&wheel_ticks_buffer[0], &wheel_ticks_buffer[1]);
             ultrasonic_latest(&wheel_ticks_buffer[2], &wheel_ticks_buffer[3]);
+            wheel_ticks_buffer[4] = servo_current_us();
             if (rcl_publish(&wheel_ticks_publisher, &wheel_ticks_message, NULL) !=
                 RCL_RET_OK) {
                 rcl_reset_error();
@@ -407,13 +426,13 @@ int main(void) {
             ultrasonic_latest(&ping_seq, &echo);
             printf("Ticks L %ld  R %ld  (errors %lu) | yaw %.1f deg  gyro z %+.3f rad/s | "
                    "cal sys %u gyro %u accel %u | drive %ld | %lu commands | "
-                   "ping %ld echo %ld us\n",
+                   "ping %ld echo %ld us | servo %ld us\n",
                    (long) left, (long) right, (unsigned long) encoders_error_count(),
                    reading_valid ? yaw_degrees(&reading) : 0.0f,
                    reading_valid ? reading.gz : 0.0f,
                    calibration.system, calibration.gyro, calibration.accel,
                    (long) status, (unsigned long) commands_received,
-                   (long) ping_seq, (long) echo);
+                   (long) ping_seq, (long) echo, (long) servo_current_us());
             next_log = make_timeout_time_ms(1000);
         }
     }

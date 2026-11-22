@@ -26,6 +26,7 @@ Run inside the sim container while launch/sim.launch.py is running:
     python3 /workspace/walle-sim/harness/sim_trials.py --run base analyze
     python3 /workspace/walle-sim/harness/sim_trials.py park-check --look-at bin_2 obstacle  # world park
     python3 /workspace/walle-sim/harness/sim_trials.py --run route route-check --laps 1   # world park
+    python3 /workspace/walle-sim/harness/sim_trials.py --run route bin-check          # Phase 4
 
 Simulated runs are never study data. Their logs say so (session "sim" or the
 schedule's session, a SIM note on every row, and sim_runs.jsonl beside them).
@@ -115,8 +116,22 @@ def parse_args():
     p.add_argument("--blackout", type=float, nargs=2, metavar=("EVERY_S", "FOR_S"),
                    help="sensor-guard test: every EVERY_S s drop all ticks and IMU for FOR_S s "
                    "(/sim/blackout)")
+    p.add_argument("--restart", type=float, nargs=2, metavar=("AT_S", "FOR_S"),
+                   help="restart the simulated Pico AT_S s after the follower starts, offline "
+                   "FOR_S s (/sim/restart; robot run 20261122_142402)")
+    p.add_argument("--jump", type=float, nargs=2, metavar=("AT_S", "DY_M"),
+                   help="move the EKF's estimate DY_M to the robot's left AT_S s after the "
+                   "start (harness/jump_ekf.py), as the robot's estimate glitched in run "
+                   "20261122_142402; tests the estimate-jump guard")
     p.add_argument("--center-tol-deg", type=float, default=3.0,
                    help="Phase 3: a centered bin is within this of straight ahead (truth)")
+    # Phase 4: route-check + the camera servo sweep, and every bin judged right
+    b = sub.add_parser("bin-check", parents=[], help="world park: Phase 4 bin check - the "
+                       "servo moves to commanded angles, then a route-check whose bin "
+                       "checks must match the world (overflow level, outcome, litter)")
+    for action in p._actions:
+        if action.dest != "help":
+            b._add_action(action)
     for name in ("shakedown", "rq1", "rq2", "motion"):
         sub.choices[name].add_argument("--bag", action="store_true", help="record ros2 bags")
     return parser.parse_args()
@@ -747,17 +762,26 @@ def detection_checks(summary, layout, out_dir):
     truth_xy = {it["name"]: it["position"][:2] for b in layout["bins"]
                 for g in groups for it in b.get(g, [])}
     n_items = 0
+    with_up = {(p.get("step"), p.get("bin")) for p in dets.get("photos", [])
+               if p.get("look") == "up"}
+    n_stored = 0                       # what route_records stores (one look per place)
     for photo in dets.get("photos", []):
+        look = photo.get("look", "level")
+        has_up = (photo.get("step"), photo.get("bin")) in with_up
+        n_stored += sum(1 for d in photo["items"] if not has_up or
+                        (look, d["place"]) not in (("level", "on_bin"), ("up", "around_bin")))
         bd = photo.get("bin_detection") or {}
         wrong_place, xy_err = [], []
         for d in photo["items"]:
             n_items += 1
             if groups.get(d.get("truth_group")) != d["place"]:
                 wrong_place.append(f"{d.get('truth')} as {d['place']}")
-            if d.get("obj_xy") and d.get("truth") in truth_xy:
+            if d.get("obj_xy") and d.get("truth") in truth_xy \
+                    and d.get("obj_xy_from") != "frame_bottom":     # an estimate, not checked
                 t = truth_xy[d["truth"]]
                 xy_err.append(math.hypot(d["obj_xy"][0] - t[0], d["obj_xy"][1] - t[1]))
-        checks.append((f"{photo['bin']} detections", bd.get("truth") == photo["bin"]
+        checks.append((f"{photo['bin']} detections ({photo.get('look', 'level')})",
+                       bd.get("truth") == photo["bin"]
                        and not wrong_place and all(e <= 0.15 for e in xy_err),
                        f"bin seen: {bd.get('truth')}, {len(photo['items'])} items "
                        f"({sum(d['place'] == 'on_bin' for d in photo['items'])} on top)"
@@ -773,9 +797,75 @@ def detection_checks(summary, layout, out_dir):
         con.close()
     except Exception as e:
         stored = f"unreadable ({e})"
-    checks.append(("detections in the memory store", stored == n_items,
-                   f"{stored} in {os.path.relpath(db, REPO_DIR)}, {n_items} in detections.json"))
+    checks.append(("detections in the memory store", stored == n_stored,
+                   f"{stored} in {os.path.relpath(db, REPO_DIR)}, {n_stored} expected "
+                   f"({n_items} in detections.json, the two looks' overlap left out)"))
+    checks += bin_check_checks(summary, layout, out_dir, dets)
     return checks
+
+
+def bin_check_checks(summary, layout, out_dir, dets):
+    """Phase 4: each bin stop's judged check (bin_checks.json) against the world. Overflow
+    level, outcome and litter count must match the layout (park.py has put floor items in the
+    robot's view since 2026-11-21; how many the level camera saw is reported). The check
+    must have used the up look (method tilt) and reached the memory store."""
+    path = os.path.join(out_dir, "bin_checks.json")
+    if not os.path.exists(path):
+        return [("bin_checks.json written", False, "missing")] if ARGS.command == "bin-check" \
+            else []
+    with open(path) as f:
+        checks_in = json.load(f).get("checks", [])
+    import sys as _s
+    _s.path.insert(0, os.path.join(REPO_DIR, "walle-app"))
+    from detect.bin_check import expected_from_layout
+    bins = {b["name"]: b for b in layout["bins"]}
+    seen_litter = {}                   # (step, bin) -> truth litter/spill names in the level look
+    for photo in dets.get("photos", []):
+        if photo.get("look", "level") == "level":
+            seen_litter[(photo["step"], photo["bin"])] = {
+                d.get("truth") for d in photo["items"]
+                if d.get("truth_group") in ("litter", "spill")}
+    out, rows = [], []
+    for c in checks_in:
+        t = expected_from_layout(bins[c["bin"]])
+        visible = seen_litter.get((c["step"], c["bin"]), set())
+        want_outcome = t["outcome"]
+        ok = (c["overflow_level"] == t["overflow_level"] and c["outcome"] == want_outcome
+              and c["litter_count"] == t["litter_count"]
+              and (c["method"] == "tilt" or ARGS.command != "bin-check"))
+        rows.append((c["bin"], c["method"], t["overflow_level"], c["overflow_level"],
+                     t["on_top_count"], c["on_top_count"], len(visible), t["litter_count"],
+                     c["litter_count"], want_outcome, c["outcome"], ok))
+        out.append((f"{c['bin']} bin check", ok,
+                    f"{c['method']}: {c['outcome']} (want {want_outcome}), level "
+                    f"{c['overflow_level']} (want {t['overflow_level']}), on top "
+                    f"{c['on_top_count']}/{t['on_top_count']}, litter {c['litter_count']} "
+                    f"(want {t['litter_count']}; {len(visible)} seen in the level photo)"
+                    + (f", top {c['top_height_above_rim_m'] * 100:.1f} cm over the rim"
+                       if c.get("top_height_above_rim_m") is not None else "")
+                    + (f", up look failed: {c['up_error']}" if c.get("up_error") else "")))
+    if rows:
+        print("\nBin checks (truth / judged):")
+        print("  bin    method      level  on top  litter(seen/all/judged)  outcome")
+        for r in rows:
+            print(f"  {r[0]:6s} {r[1]:10s}  {r[2]}/{r[3]}    {r[4]:2d}/{r[5]:<2d}   "
+                  f"{r[6]}/{r[7]}/{r[8]}                  {r[9]}/{r[10]}  "
+                  f"{'OK' if r[11] else 'FAIL'}")
+    db = os.path.join(REPO_DIR, "walle-app", "data", "memory", "sim.sqlite")
+    try:
+        import sqlite3
+        con = sqlite3.connect(db)
+        stored = con.execute("SELECT COUNT(*) FROM bin_checks WHERE run_id = ? AND method "
+                             "!= 'photo_only'", (summary["run_id"],)).fetchone()[0]
+        con.close()
+    except Exception as e:
+        stored = f"unreadable ({e})"
+    out.append(("bin checks in the memory store", stored == len(checks_in),
+                f"{stored} judged in sim.sqlite, {len(checks_in)} in bin_checks.json"))
+    guard = summary.get("tilt_guard", [])
+    out.append(("never drove with the camera tilted", not guard,
+                f"{len(guard)} motion commands refused while tilted"))
+    return out
 
 
 def cmd_route_check(sim):
@@ -827,11 +917,28 @@ def cmd_route_check(sim):
                            f"sleep {every}; done"])
         print(f"Blackouts: every ~{every:.0f} s, no ticks or IMU for {hold:.1f} s "
               "(first after 25 s).")
+    jumper = None
+    if getattr(ARGS, "jump", None):
+        at, dy = ARGS.jump
+        jumper = subprocess.Popen(["bash", "-c", f"sleep {at}; python3 "
+                                   f"{os.path.join(SIM_DIR, 'harness', 'jump_ekf.py')} {dy}"])
+        print(f"Estimate jump {dy:+.2f} m sideways {at:.0f} s after the start.")
+    restart = None
+    if getattr(ARGS, "restart", None):
+        at, hold = ARGS.restart
+        restart = subprocess.Popen(
+            ["bash", "-c", f"sleep {at}; ros2 topic pub --once /sim/restart "
+                           f"std_msgs/msg/Float32 '{{data: {hold}}}' >/dev/null 2>&1"])
+        print(f"Pico restart {at:.0f} s after the start, offline {hold:.1f} s.")
     try:
         code = subprocess.call(cmd)
     finally:
         if blackouts:
             blackouts.terminate()
+        if restart:
+            restart.terminate()
+        if jumper:
+            jumper.terminate()
     summary_path = os.path.join(out_dir, "summary.json")
     if not os.path.exists(summary_path):
         raise SystemExit(f"FAIL: the route follower wrote no summary (exit {code}).")
@@ -870,6 +977,15 @@ def cmd_route_check(sim):
                        f"{len(gaps)} gaps seen, {len(waits)} waits (stopped "
                        f"{sum(w['seconds'] for w in waits):.1f} s in all), {len(bad)} pulses "
                        "kept out of the gain"))
+    if getattr(ARGS, "jump", None):
+        j = summary.get("estimate_jumps", [])
+        checks.append(("estimate jump caught", bool(j),
+                       ", ".join(f"{x['extra_cm']:.0f} cm at {x['t']} s" for x in j) or "none"))
+    if getattr(ARGS, "restart", None):
+        r = summary.get("pico_restarts_s", [])
+        checks.append(("Pico restart detected and recovered", bool(r),
+                       f"restarts at {r} s, {len(summary.get('estimate_jumps', []))} estimate "
+                       f"jumps caught, {len(summary.get('estimate_repairs', []))} repairs"))
     faced = {ev["bin"] for ev in summary["events"] if ev["event"] == "facing_bin"}
     for name in bins:
         if name not in faced:
@@ -897,6 +1013,21 @@ def cmd_route_check(sim):
         raise SystemExit(1)
 
 
+SERVO_TEST = os.path.join(REPO_DIR, "walle-app", "servo", "servo_test.py")
+
+
+def cmd_bin_check(sim):
+    """Phase 4: the servo reaches commanded angles (Gazebo's camera_tilt_joint within 1 deg),
+    then a route-check with the bin check judged against the world."""
+    sim.wait_robot(("ticks", "wheel", "ekf", "imu"))
+    print("Camera servo: sweep, joint angle against the command")
+    code = subprocess.call([sys.executable, SERVO_TEST, "--sweep", "--sim", "--check",
+                            "--hold", "1.0"])
+    if code:
+        raise SystemExit("FAIL: the camera servo did not reach the commanded angles.")
+    cmd_route_check(sim)
+
+
 def main():
     cfg = load_config()
     if ARGS.command == "analyze":
@@ -917,6 +1048,8 @@ def main():
             cmd_park_check(sim)
         elif ARGS.command == "route-check":
             cmd_route_check(sim)
+        elif ARGS.command == "bin-check":
+            cmd_bin_check(sim)
 
 
 if __name__ == "__main__":

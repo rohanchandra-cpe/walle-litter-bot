@@ -98,6 +98,13 @@ def make_follower_class():
             self.detections = []             # one entry per bin-stop photo -> detections.json
             self.truth_bins = {}             # Gazebo: where the bins really are (--truth-layout)
             self.turn_scale = None           # centering: learned at the first bin (centering_cfg)
+            # Phase 4: the camera tilt servo (servo/tilt.py) and the bin checks
+            self.tilt = None                 # Tilt, set by main() when the servo answers
+            self.bin_check_on = False
+            self.bin_checks = []             # one record per bin stop -> bin_checks.json
+            self.last_level = None           # (analysis, photo) of the last level look
+            self.tilt_guard = []             # motion refused because the camera was tilted
+            self.last_echo_us = None         # HC-SR04, /pico/wheel_ticks [3] (diagnostic)
             # Sensor guard: when each Pico stream last arrived, the gaps seen, the waits made
             self.guard = cfg.get("sensor_guard", {"enabled": False})
             self.last_seen = {}              # topic -> monotonic time of the last message
@@ -107,11 +114,42 @@ def make_follower_class():
             self.last_good = None            # (raw odom, raw wheel, t) at the last fresh tick
             self.gap_start = None            # last_good when the first unrepaired gap began
             self.repairs = []
-            self.create_subscription(Int32MultiArray, "/pico/wheel_ticks",
-                                     lambda m: self._seen("/pico/wheel_ticks"),
+            # Pico restarts and estimate jumps (robot run 20261122_142402)
+            self.last_counts = None          # [left, right, ping_seq] of the last ticks
+            self.restarts = []               # monotonic times of detected Pico restarts
+            self.restart_pending = False     # a restart not yet recovered from
+            self.jumps = []                  # estimate jumps caught (summary.json)
+            self.jump_ref = None             # (fused park pose, wheel pose, raw odom, t)
+            self.t_start = time.monotonic()
+            self.create_subscription(Int32MultiArray, "/pico/wheel_ticks", self._on_ticks,
                                      qos_profile_sensor_data)
             self.create_subscription(Imu, "/pico/imu/data", lambda m: self._seen("/pico/imu/data"),
                                      qos_profile_sensor_data)
+
+        def _on_ticks(self, msg):
+            if len(msg.data) >= 4:
+                self.last_echo_us = int(msg.data[3])
+            if len(msg.data) >= 2:
+                counts = tuple(int(v) for v in msg.data[:3])
+                if rg.pico_restarted(self.last_counts, counts,
+                                     int(self.guard.get("restart_counts", 20000))):
+                    self._on_restart()
+                self.last_counts = counts
+            self._seen("/pico/wheel_ticks")
+
+        def _on_restart(self):
+            """The Pico restarted: everything it measured since is suspect until the data
+            settles. Treated as a sensor gap (no learning across it, repair from the wheels,
+            which the wheel odometry carries across the count jump)."""
+            now = time.monotonic()
+            with self.lock:
+                self.restarts.append(now)
+                self.gaps.append((now, now, "pico_restart"))
+                self.restart_pending = True
+                if self.gap_start is None and self.last_good is not None:
+                    self.gap_start = self.last_good
+            print(f"  PICO RESTARTED ({now - self.t_start:.1f} s into the run): stopping "
+                  "until its data settles")
 
         # ----- sensor guard -----
         def _seen(self, topic):
@@ -136,6 +174,7 @@ def make_follower_class():
             if start is None or "odom" not in self.anchors or self.stale_topics():
                 return
             odom0, wheel0, t0 = start
+            self.jump_ref = None
             anchor = self.anchors["odom"]
             before = anchor.to_park(odom0, t0)
             now_est = self.park_pose()
@@ -150,6 +189,71 @@ def make_follower_class():
                                  "corner": self.state.get("corner")})
             print(f"  estimate repaired after the gap: {jump[0]:.1f} cm, {jump[1]:+.1f} deg "
                   "of motion that did not happen removed")
+
+        def wait_settled(self, settle_s):
+            """Stop; wait until every Pico stream has been fresh for settle_s."""
+            Mover.stop(self)
+            t0, fresh_since = time.monotonic(), None
+            while True:
+                now = time.monotonic()
+                if now - t0 > float(self.guard.get("give_up_s", 20.0)) + settle_s:
+                    raise RuntimeError("the Pico's data did not come back after a restart")
+                if self.stale_topics() or self.pose("odom") is None:
+                    fresh_since = None
+                elif fresh_since is None:
+                    fresh_since = now
+                elif now - fresh_since >= settle_s:
+                    return round(now - t0, 2)
+                time.sleep(0.05)
+
+        def recover_restart(self):
+            """After a Pico restart while running: wait for its data to settle, then put the
+            estimate back from the wheels (repair_estimate)."""
+            waited = self.wait_settled(float(self.guard.get("restart_settle_s", 2.0)))
+            with self.lock:
+                self.restart_pending = False
+            self.guard_waits.append({"stale": ["pico_restart"], "seconds": waited,
+                                     "state": self.state.get("state"),
+                                     "corner": self.state.get("corner")})
+            print(f"  Pico data settled after {waited:.1f} s, carrying on")
+            self.repair_estimate()
+
+        def check_jump(self):
+            """Estimate-jump guard: every window_s while moving, compare the fused motion
+            with the wheels' (rg.estimate_jump). On a jump: stop, and repair the estimate
+            from the wheels over that window. Returns True if it stopped."""
+            jc = self.guard.get("jump") or {}
+            if not (self.guard.get("enabled") and jc.get("enabled")) or "odom" not in self.anchors:
+                return False
+            now, win = time.monotonic(), float(jc.get("window_s", 0.25))
+            f, w, raw = self.park_pose(), self.pose("wheel"), self.pose("odom")
+            if f is None or w is None:
+                return False
+            ref = self.jump_ref
+            if ref is None or now - ref[3] > 3 * win:     # idle in between: start afresh
+                self.jump_ref = (f, w, raw, now)
+                return False
+            if now - ref[3] < win:
+                return False
+            extra_m, extra_deg, jump = rg.estimate_jump(
+                ref[0], f, ref[1], w, float(jc.get("max_extra_m", 0.05)),
+                float(jc.get("max_extra_deg", 20.0)))
+            if not jump:
+                self.jump_ref = (f, w, raw, now)
+                return False
+            Mover.send(self, 0.0, 0.0)
+            self.jumps.append({"t": round(now - self.t_start, 2),
+                               "extra_cm": round(extra_m * 100, 1),
+                               "extra_deg": round(extra_deg, 1),
+                               "state": self.state.get("state"),
+                               "corner": self.state.get("corner")})
+            print(f"  ESTIMATE JUMP: {extra_m * 100:.0f} cm / {extra_deg:.0f} deg more than "
+                  "the wheels moved: stopping, repairing it from the wheels")
+            with self.lock:
+                self.gaps.append((ref[3], now, "estimate_jump"))
+                self.gap_start = (ref[2], ref[1], ref[3])
+            self.repair_estimate()
+            return True
 
         def stale_topics(self):
             """Pico streams older than max_age_s (only streams seen at least once)."""
@@ -197,6 +301,26 @@ def make_follower_class():
         def send(self, v, w):
             """Mover.send, except that a motion command while a Pico stream is stale stops
             the robot and waits for the data instead (stop commands always go out)."""
+            if (v or w) and self.restart_pending:
+                Mover.send(self, 0.0, 0.0)
+                self.recover_restart()
+                return                       # the caller's loop re-reads the pose
+            if (v or w) and self.check_jump():
+                return
+            if (v or w) and self.tilt is not None and not self.tilt.is_level():
+                # never drive with the camera tilted (Phase 4): stop, level it, and let the
+                # caller's loop re-read the pose
+                Mover.send(self, 0.0, 0.0)
+                rec = {"t": round(time.monotonic(), 2), "readback_us": self.tilt.readback()}
+                try:
+                    self.tilt.level()
+                    rec["leveled"] = True
+                except Exception as e:          # noqa: BLE001 (still refuses to move)
+                    rec["error"] = str(e)
+                    time.sleep(0.5)
+                self.tilt_guard.append(rec)
+                print(f"  camera was tilted ({rec['readback_us']} us): leveling before moving")
+                return
             if v or w:
                 stale = self.stale_topics()
                 if stale:
@@ -553,12 +677,22 @@ def make_follower_class():
                             self.events[-1]["photo_error"] = tried["error"]
                     if drift is not None:
                         self.events[-1]["held_heading_drift_deg"] = drift
+                    self.last_level = None
                     if shot and self.detector:
                         try:
                             self.events[-1]["detected"] = self.detect_at_bin(i, bins[name], shot)
                         except Exception as e:
                             self.events[-1]["detect_error"] = str(e)
                             print(f"  detection at {name} failed: {e}")
+                    if self.bin_check_on and self.last_level:
+                        try:            # a bin check must never abort the drive either
+                            self.events[-1]["bin_check"] = self.check_bin(
+                                i, bins[name], self.events[-1]["step"])
+                        except Exception as e:
+                            self.events[-1]["bin_check_error"] = str(e)
+                            print(f"  bin check at {name} failed: {e}")
+                        finally:
+                            self.level_camera()
                     self.state.pop("bin", None)
                 elif kind == "turn":
                     _, corner, heading = step
@@ -580,38 +714,60 @@ def make_follower_class():
                 cc.update(self.detect_cfg.get("sim", {}).get("centering", {}))
             return cc
 
-        def camera_model(self, size):
+        def camera_model(self, size, tilt_deg=0.0):
             from detect.geometry import Camera
-            return Camera.from_park(self.camera_settings(), *size)
+            pivot = self.tilt.cal.lens_from_pivot_m if self.tilt else None
+            return Camera.from_park(self.camera_settings(), *size, tilt_deg=tilt_deg,
+                                    lens_from_pivot_m=pivot)
+
+        def tilt_deg(self):
+            """The camera's tilt now (servo readback), 0 if there is no servo."""
+            a = self.tilt.angle_deg() if self.tilt else None
+            return a or 0.0
 
         def expected_bin(self, b):
             """The bin's bearing from the camera axis (deg, left +) on the current estimate,
             and its distance from the camera (m)."""
             x, y, h = self.park_pose()
-            dx, dy = b["position"][0] - x, b["position"][1] - y
+            cam = self.camera_settings()
+            fwd, left = cam["forward_m"], cam.get("left_m", 0.0)
+            # from the lens, which is fwd ahead of the axle and left of the center line
+            lx = x + fwd * math.cos(h) - left * math.sin(h)
+            ly = y + fwd * math.sin(h) + left * math.cos(h)
+            dx, dy = b["position"][0] - lx, b["position"][1] - ly
             bearing = math.degrees(rg.wrap(math.atan2(dy, dx) - h))
-            return bearing, max(math.hypot(dx, dy) - self.camera_settings()["forward_m"], 0.1)
+            return bearing, max(math.hypot(dx, dy), 0.1)
 
-        def analyze(self, shot, b):
-            """Detect in a saved photo and sort what is seen for bin b. Returns (analysis,
-            detector result, pose [x, y, heading_deg])."""
+        def analyze(self, shot, b, tilt_deg=0.0, stop=False):
+            """Detect in a saved photo and sort what is seen for bin b (the camera tilted
+            tilt_deg up when it was taken). stop: a photo of the bin check, after centering
+            (geometry.analyze_bin_stop's stop rules). Returns (analysis, detector result, pose
+            [x, y, heading_deg]); the analysis carries the Camera it used ("camera")."""
             from detect import geometry as dg
             with open(os.path.join(self.run_dir, shot), "rb") as f:
                 res = self.detector.detect(f.read(), keep_low=True)
-            cam = self.camera_model(res["size"])
+            cam = self.camera_model(res["size"], tilt_deg)
             bearing, dist = self.expected_bin(b)
             width_m = b["size_m"][0] if b.get("shape") == "box" else 2 * b.get("radius_m", 0.1)
             height_m = b.get("height_m") or (b["size_m"][2] if b.get("size_m") else 0.29)
             p = self.park_pose()
             pose = [round(p[0], 4), round(p[1], 4), round(math.degrees(p[2]), 2)]
+            if tilt_deg:
+                expected_px = cam.expected_box_px(width_m, dist, 0.0, height_m)
+            else:                            # Phase 3's level formula, unchanged
+                expected_px = (cam.width_px(width_m, dist), cam.fy * height_m / dist)
+            stop_info = None
+            if stop:
+                stop_info = {"bin_dist_m": dist, "bin_height_m": height_m,
+                             "low_conf_bins": res.get("low_conf", [])}
             an = dg.analyze_bin_stop(res["detections"], cam, pose=pose,
                                      expected_bearing_deg=bearing,
-                                     expected_bin_px=(cam.width_px(width_m, dist),
-                                                      cam.fy * height_m / dist),
-                                     cfg=self.detect_cfg)
+                                     expected_bin_px=expected_px,
+                                     cfg=self.detect_cfg, stop=stop_info)
             an["expected_bearing_deg"] = round(bearing, 2)
             an["expected_dist_m"] = round(dist, 3)
-            an["expected_bin_px"] = (cam.width_px(width_m, dist), cam.fy * height_m / dist)
+            an["expected_bin_px"] = expected_px
+            an["camera"] = cam
             an["search_order"] = dg.search_order(
                 [d for d in res["detections"] + res.get("low_conf", []) if d["kind"] == "bin"],
                 cam, self.detect_cfg["centering"].get("edge_px", 4), an["expected_bin_px"],
@@ -732,13 +888,16 @@ def make_follower_class():
         def detect_at_bin(self, i, b, shot):
             """Detect items in the bin photo (taken during the wait, after centering) and
             keep them for detections.json. Returns a short count for the event."""
-            an, res, pose = self.analyze(shot, b)
+            an, res, pose = self.analyze(shot, b, stop=True)
+            self.last_level = (an, shot)
             self.detections.append({
-                "step": i, "t_utc": utc_now(), "place_kind": "bin_stop", "bin": b["name"],
+                "step": i, "t_utc": utc_now(), "place_kind": "bin_stop", "look": "level",
+                "tilt_deg": 0.0, "bin": b["name"],
                 "bin_id": b["id"], "photo": shot, "pose": pose, "model": res["model"],
                 "source": res["source"], "seconds": res["seconds"], "size": res["size"],
                 "bin_detection": an["bin"], "bin_bearing_deg": an["bin_bearing_deg"],
                 "rim_visible": an["rim_visible"], "items": an["items"],
+                "ignored": an.get("ignored", []),
                 "low_conf": res.get("low_conf", [])})
             items = an["items"]
             print(f"  {b['name']}: " + (", ".join(
@@ -748,6 +907,82 @@ def make_follower_class():
             return {"items": len(items), "on_bin": sum(d["place"] == "on_bin" for d in items),
                     "around_bin": sum(d["place"] == "around_bin" for d in items),
                     "bin_found": an["bin"] is not None, "rim_visible": an["rim_visible"]}
+
+        # ----- Phase 4: the bin check (tilt up, judge, tilt back) -----
+        def level_camera(self):
+            """Put the camera level again (the send() guard retries if this fails)."""
+            if self.tilt is None:
+                return
+            try:
+                self.tilt.level()
+            except Exception as e:              # noqa: BLE001
+                print(f"  could not level the camera: {e}")
+
+        def up_photo(self, name):
+            """The up look's photo: up to camera_tries requests."""
+            timeout = float(self.cfg.get("camera_timeout_s", 5.0))
+            error = None
+            for k in range(int(self.cfg.get("camera_tries", 1))):
+                shot, error = self.photo(name, timeout)
+                if shot:
+                    return shot, None
+                time.sleep(float(self.cfg.get("camera_retry_gap_s", 3.0)) if k else 1.0)
+            return None, error
+
+        def check_bin(self, i, b, facing_step):
+            """Judge bin b (detect/bin_check.py): the level look is the dwell photo already
+            analysed (detect_at_bin); the up look tilts the camera servo.yaml up_deg, takes
+            a photo and analyses it. Without a servo, or if the up look fails, the judge
+            uses the level photo alone (method level_only). Returns a short summary."""
+            from detect.bin_check import judge_bin
+            level_an, level_shot = self.last_level
+            up_an, up_shot, up_error, tilt_used = None, None, None, None
+            if self.tilt is not None:
+                try:
+                    tilt_used = self.tilt.set(self.tilt.cal.up_deg)
+                    up_shot, up_error = self.up_photo(f"{b['name']}_step{i}_up")
+                    if up_shot:
+                        up_an, res, pose = self.analyze(up_shot, b, tilt_used, stop=True)
+                        self.detections.append({
+                            "step": i, "t_utc": utc_now(), "place_kind": "bin_stop",
+                            "look": "up", "tilt_deg": round(tilt_used, 2), "bin": b["name"],
+                            "bin_id": b["id"], "photo": up_shot, "pose": pose,
+                            "model": res["model"], "source": res["source"],
+                            "seconds": res["seconds"], "size": res["size"],
+                            "bin_detection": up_an["bin"],
+                            "bin_bearing_deg": up_an["bin_bearing_deg"],
+                            "rim_visible": up_an["rim_visible"], "items": up_an["items"],
+                            "ignored": up_an.get("ignored", []),
+                            "low_conf": res.get("low_conf", [])})
+                except Exception as e:          # noqa: BLE001 (judge on the level look)
+                    up_error = str(e)
+                finally:
+                    self.level_camera()
+            rec = judge_bin(level_an, up_an, b, self.detect_cfg,
+                            level_cam=level_an["camera"],
+                            up_cam=up_an["camera"] if up_an else None,
+                            dist_m=level_an["expected_dist_m"],
+                            edge_px=self.detect_cfg["centering"].get("edge_px", 4))
+            rec.update({"step": i, "facing_step": facing_step, "t_utc": utc_now(),
+                        "bin": b["name"], "bin_id": b["id"], "level_photo": level_shot,
+                        "up_photo": up_shot, "up_tilt_deg": (None if tilt_used is None
+                                                             else round(tilt_used, 2)),
+                        "expected_dist_m": level_an["expected_dist_m"],
+                        "echo_us": self.last_echo_us})
+            if up_error:
+                rec["up_error"] = up_error
+            if self.in_sim and b["name"] in self.truth_bins:
+                from detect.bin_check import expected_from_layout
+                rec["truth"] = expected_from_layout(self.truth_bins[b["name"]])
+            self.bin_checks.append(rec)
+            print(f"  bin check {b['name']} ({rec['method']}): {rec['outcome']}, overflow "
+                  f"level {rec['overflow_level']} ({rec['on_top_count']} on top"
+                  + (f", top {rec['top_height_above_rim_m'] * 100:.0f} cm over the rim"
+                     if rec["top_height_above_rim_m"] is not None else "")
+                  + f"), litter {rec['litter_count']}"
+                  + (f"  [up look failed: {up_error}]" if up_error else ""))
+            return {k: rec[k] for k in ("method", "outcome", "overflow_level", "on_top_count",
+                                        "litter_count")}
 
         def bin_event(self, i, corner, b, heading):
             snap = self.snapshot()
@@ -863,6 +1098,8 @@ def parse_args(argv=None):
                    "side, as YOLO-World did on the robot (tests the search turn)")
     p.add_argument("--no-detect", action="store_true",
                    help="no YOLO-World at the bin stops (no centering, no detections)")
+    p.add_argument("--no-tilt", action="store_true",
+                   help="bin check without the camera servo (level photo only)")
     p.add_argument("--no-memory", action="store_true",
                    help="do not record the run in the memory store (walle-app/data/memory/)")
     return p.parse_args(argv)
@@ -920,6 +1157,8 @@ def main(argv=None):
         if cfg.get("detect", True) and cfg["face_bins"] and cfg.get("camera_url") \
                 and not a.no_detect:
             load_detector(node, truth, a.sim_hide_cut_bins)
+        if node.detector and cfg.get("bin_check", True):
+            setup_bin_check(node, use_tilt=not a.no_tilt)
         bins = [b["name"] for b in layout["bins"]] if cfg["face_bins"] else []
         print(f"Run {run_id}: {cfg['laps']} lap(s), bins {', '.join(bins) or 'none'}, "
               f"dwell {cfg['dwell_s']:.0f} s, steering by {cfg['feedback_topic']}, "
@@ -930,11 +1169,24 @@ def main(argv=None):
         log_thread = threading.Thread(target=node.logger, daemon=True)
         log_thread.start()
         hold = cfg["zero_velocity"]["start_hold_s"]
-        if hold > 0:
-            print(node.fmt(node.report(state="calibrating", step=-1, corner=None))
-                  + f"  standing still {hold:.0f} s to measure the gyro drift")
-            node.hold_still(hold)
-            print(f"  gyro drift at rest: {math.degrees(node.bias.rate) * 60:+.2f} deg/min")
+        for attempt in range(3):
+            if hold > 0:
+                print(node.fmt(node.report(state="calibrating", step=-1, corner=None))
+                      + f"  standing still {hold:.0f} s to measure the gyro drift")
+                node.hold_still(hold)
+                print(f"  gyro drift at rest: {math.degrees(node.bias.rate) * 60:+.2f} deg/min")
+            if not node.restart_pending:
+                break
+            # the Pico restarted during the start (run 20261122_142402): the start pose was
+            # taken from data that no longer holds. Wait for it to settle and take it again.
+            print("  the Pico restarted during the start: taking the start pose again")
+            node.wait_settled(float(node.guard.get("restart_settle_s", 2.0)))
+            with node.lock:
+                node.restart_pending, node.gap_start = False, None
+            node.anchor()
+            node.bias = rg.BiasEstimate()
+        else:
+            raise RuntimeError("the Pico kept restarting during the start")
         node.run(steps)
         status = "done"
     except KeyboardInterrupt:
@@ -966,7 +1218,11 @@ def main(argv=None):
                    "estimate_repairs": node.repairs,
                    "zero_velocity_heading_deg": round(node.zero_velocity_deg, 3),
                    "gyro_bias_dps": round(math.degrees(node.bias.rate), 4),
-                   "holds": node.holds}
+                   "holds": node.holds,
+                   "pico_restarts_s": [round(t - node.t_start, 2) for t in node.restarts],
+                   "estimate_jumps": node.jumps,
+                   "tilt_moves": node.tilt.log if node.tilt else [],
+                   "tilt_guard": node.tilt_guard}
         if node.anchors:
             summary.update(end_report(node, started, status, reason))
         else:
@@ -994,6 +1250,10 @@ def main(argv=None):
         with open(os.path.join(run_dir, "detections.json"), "w") as f:
             json.dump({"run_id": run_id, "model": node.detector.model_name,
                        "source": node.detector.source, "photos": node.detections}, f, indent=1)
+    if node.bin_check_on:
+        with open(os.path.join(run_dir, "bin_checks.json"), "w") as f:
+            json.dump({"run_id": run_id, "source": summary.get("source"),
+                       "checks": node.bin_checks}, f, indent=1)
     if not in_sim and node.anchors:
         print(f"Recorded in {append_robot_row(results_dir, run_id, summary)}")
     if not a.no_memory and node.anchors:
@@ -1012,9 +1272,13 @@ def load_detector(node, truth_layout, hide_cut_bins=False):
         t0 = time.time()
         if node.in_sim:
             from detect.sim_truth import TruthDetector
+            from servo.tilt import Calibration
             node.detector = TruthDetector(truth_layout,
                                           lambda: node.park_pose("ground_truth"),
-                                          cfg=node.detect_cfg, hide_cut_bins=hide_cut_bins)
+                                          cfg=node.detect_cfg, hide_cut_bins=hide_cut_bins,
+                                          tilt_fn=node.tilt_deg,
+                                          lens_from_pivot_m=Calibration.load(
+                                              sim=True).lens_from_pivot_m)
         else:
             node.detector = make_detector(source="robot", cfg=node.detect_cfg)
         print(f"Detector: {node.detector.model_name} ({node.detector.source}), "
@@ -1022,6 +1286,31 @@ def load_detector(node, truth_layout, hide_cut_bins=False):
     except Exception as e:
         node.detector = None
         print(f"Detector NOT loaded, no centering or detections this run: {e}")
+
+
+def setup_bin_check(node, use_tilt=True):
+    """Phase 4: the bin check at each bin stop. With the servo (its readback arrives on
+    /pico/wheel_ticks [4]) it adds the up look; without it the check judges on the level
+    photo alone. Leaves the camera level."""
+    node.bin_check_on = True
+    if not use_tilt:
+        print("Bin check: level photo only (--no-tilt)")
+        return
+    try:
+        from servo.tilt import Calibration, Tilt
+        tilt = Tilt(node, Calibration.load(sim=node.in_sim))
+        t_end = time.monotonic() + 3.0
+        while time.monotonic() < t_end and not tilt.has_servo():
+            time.sleep(0.1)
+        if not tilt.has_servo():
+            print("Bin check: NO servo readback on /pico/wheel_ticks (firmware without the "
+                  "servo?): level photo only")
+            return
+        tilt.level()
+        node.tilt = tilt
+        print(f"Bin check: camera servo ready, up look at {tilt.cal.up_deg:+.0f} deg")
+    except Exception as e:                      # noqa: BLE001 (the drive goes on)
+        print(f"Bin check: servo not usable ({e}): level photo only")
 
 
 def record_in_memory(summary, layout, run_dir):

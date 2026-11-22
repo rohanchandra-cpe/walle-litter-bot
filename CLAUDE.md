@@ -53,19 +53,20 @@ WALL-E is a low-cost inspection rover for a model park. The repository holds two
 | BNO055 IMU | heading | I²C on GP0/GP1 |
 | HC-SR04 ultrasonic | forward range | TRIG GP17, ECHO GP16 through a divider (ECHO is 5 V) |
 | ESP32-CAM (OV3660) | photos over HTTP (`/capture`) | firmware in `walle-pilot/firmware/esp32cam_camera/` |
-| Servo | tilts the camera to look up at bins and tall objects | **not wired into the firmware yet** |
+| Servo (FITEC FS5106B) | tilts the camera up at bins (Phase 4) | signal GP22, 50 Hz; power from a 5–6 V buck/UBEC off the 9 V supply (never 9 V directly), common ground; firmware `servo.c`; calibration in `walle-app/config/servo.yaml` |
 
 **Firmware limit:** the micro-ROS library in `libmicroros/` allows exactly 3 publishers and 2
-subscriptions, and all 5 are used. Adding the servo needs either a library rebuild or reusing
-an existing message (see the open decision in `ROADMAP.md`, Phase 4).
+subscriptions, and all 5 are used. The camera servo therefore rides on existing messages
+(Phase 4, decided 2026-11-21): its pulse (µs) is a 4th value of `/pico/imu/std`, and the pulse
+being output comes back as a 5th value of `/pico/wheel_ticks`.
 
 ### ROS 2 topics (robot side)
 
 | Topic | Type | Direction |
 |---|---|---|
 | `/pico/cmd_vel` | `geometry_msgs/Twist` | to Pico |
-| `/pico/imu/std` | `std_msgs/Float32MultiArray` | to Pico |
-| `/pico/wheel_ticks` | `std_msgs/Int32MultiArray` `[left, right, ping_seq, echo_us]` | from Pico; `echo_us` −1 = timeout, −2 = no sensor |
+| `/pico/imu/std` | `std_msgs/Float32MultiArray` `[orient, gyro, accel(, servo_us)]` | to Pico; ≤ 0 or missing keeps a value |
+| `/pico/wheel_ticks` | `std_msgs/Int32MultiArray` `[left, right, ping_seq, echo_us, servo_us]` | from Pico; `echo_us` −1 = timeout, −2 = no sensor; `servo_us` since Phase 4 |
 | `/pico/imu/data` | `sensor_msgs/Imu` | from Pico |
 | `/pico/drive/status` | `std_msgs/Int32` | from Pico |
 | `/wheel/odom`, `/odometry/filtered` | `nav_msgs/Odometry` | wheel odometry node, EKF |
@@ -95,8 +96,13 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   detect/            YOLO-World detector (Phase 3): detector.py, geometry.py, eval_photos.py,
                      capture_set.py, probe_prompts.py, detect_node.py (/detect/ask);
                      sim_truth.py (Gazebo stand-in: YOLO-World sees nothing in the sim world);
-                     config/detect.yaml (vocabulary, labels, centering)
+                     config/detect.yaml (vocabulary, labels, centering, bin_check);
+                     bin_check.py (Phase 4: judge a bin from its level + up photos);
+                     replay_bin_checks.py (re-judge a run's saved detections, --truth)
+  servo/             camera tilt (Phase 4): tilt.py (deg <-> us, /pico/imu/std), servo_test.py;
+                     config/servo.yaml (calibration, up_deg)
   data/photos/phase3/  labeled ESP32-CAM photo set: shots.yaml (shot list), labels.yaml
+  data/photos/phase4/  tilted photo set (level + up looks, day + night): shots.yaml
   models/            YOLO-World + CLIP weights (git-ignored, downloaded on first use)
 walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
 docs/plans/          approved phase plans (phase-N-plan.md)
@@ -132,10 +138,15 @@ make sim-route-check                                    # Phase 1: drive the rou
                                                         # (launch with PROFILE=plastic_pid: the robot's firmware + surface)
                                                         # (MISPLACE=12: bins 12 deg off what the follower is told;
                                                         #  Phase 3 centering + detection checks, ground-truth detector)
+                                                        # (RESTART="13 2": Pico restart at 13 s, 2 s offline;
+                                                        #  JUMP="13 0.3": EKF estimate jumps 30 cm sideways)
+make sim-bin-check                                      # Phase 4: servo sweep + route + every bin judged
+                                                        # (launch SCENARIO=mixed, then SCENARIO=bincheck)
 python3 -m unittest discover -s walle-app/tests         # park, route, memory tests (host or container)
 python3 walle-app/memory/import_runs.py --rebuild       # rebuild robot.sqlite from results/route/
 make detect-eval                                        # Phase 3: score the detector on the photo set
 python3 walle-app/detect/capture_set.py --camera-url http://192.168.1.201/capture   # take the set (host)
+python3 /workspace/walle-app/servo/servo_test.py --sweep    # Phase 4: move the camera servo (container)
 ```
 
 Route follower on the robot (after `make launch`, robot on corner 1 facing corner 2):

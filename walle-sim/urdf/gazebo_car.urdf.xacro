@@ -146,10 +146,13 @@
       <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
     </inertial>
   </link>
+  <!-- WALL-E Phase 4: the only change to the Module 6 model. The camera now hangs on the
+       tilt servo (camera_tilt_link, added in walle_sim.urdf.xacro at this same spot), so
+       at tilt 0 it is exactly where it was. -->
   <joint name="camera_joint" type="fixed">
-    <parent link="base_link"/>
+    <parent link="camera_tilt_link"/>
     <child link="camera_link"/>
-    <origin xyz="${camera_x} 0 ${camera_z}"/>
+    <origin xyz="0 0 0"/>
   </joint>
 
   <!-- ===== Gazebo sensors ===== -->

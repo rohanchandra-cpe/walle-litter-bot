@@ -1,0 +1,79 @@
+# Phase 4 labeled photo set (ROADMAP Phase 4, item accuracy carried over from Phase 3).
+# DRAFT 2026-11-21: to agree with the user before taking it.
+#
+# The same on-bin and around-bin setups as Phase 3 (shots 7-14, 15, 17, 25, 28), each taken
+# twice from the bin stop: a LEVEL look (tilt 0) and an UP look (tilt 15 deg, servo.yaml
+# up_deg), in daylight and under the room lamps: 12 setups x 2 looks x 2 lights = 48 shots.
+# eval_photos.py scores an up look on the items ON the bin and a level look on the items on
+# the FLOOR, exactly as the bin check uses them:
+#
+#     docker exec walle-pilot bash -lc "cd /workspace && python3 walle-app/detect/eval_photos.py \
+#         --set-dir walle-app/data/photos/phase4 --by-light"        # then again with --zoom
+#
+# HOW TO TAKE IT
+#   - Robot side up (`make up`, `make launch`): the camera servo needs the Pico. Nothing sends
+#     /pico/cmd_vel, so the wheels stay still (the Pico's 500 ms watchdog).
+#   - The robot sits on the bin's corner facing the bin, as at a bin stop (bin center 0.88 m
+#     out on the corner's diagonal from the corner; park.py prints the positions).
+#   - From the host:
+#       python3 walle-app/detect/capture_set.py --camera-url http://192.168.1.201/capture \
+#           --set-dir walle-app/data/photos/phase4 --light day      # (later: --light night)
+#     Before each shot it prints the servo command to run in a container shell
+#     (`make shell`), e.g. python3 /workspace/walle-app/servo/servo_test.py --deg 15 --stay
+#   - Place the items once per setup; take its level shot, tilt, take its up shot.
+#
+# PLACES: as in phase3/shots.yaml (on_bin = on top of the bin, seen above the rim;
+# around_bin = on the floor next to or in front of the bin, where the robot can see it).
+
+shots:
+  # --- day: sunlight in the room ---
+  - {id: 1, setup: A, light: day, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[paper_towel, on_bin]], note: "Phase 3 shots 7 / 43"}
+  - {id: 2, setup: A, light: day, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[paper_towel, on_bin]], note: "Phase 3 shots 7 / 43"}
+  - {id: 3, setup: B, light: day, look: level, tilt_deg: 0, where: corner, bin: 2, items: [[milk_jug, on_bin]], note: "Phase 3 shots 8 / 44: the jug the level camera never saw whole"}
+  - {id: 4, setup: B, light: day, look: up, tilt_deg: 15, where: corner, bin: 2, items: [[milk_jug, on_bin]], note: "Phase 3 shots 8 / 44: the jug the level camera never saw whole"}
+  - {id: 5, setup: C, light: day, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 9 / 45 (grocery bag)"}
+  - {id: 6, setup: C, light: day, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 9 / 45 (grocery bag)"}
+  - {id: 7, setup: D, light: day, look: level, tilt_deg: 0, where: corner, bin: 2, items: [[can, on_bin]], note: "Phase 3 shots 10 / 46"}
+  - {id: 8, setup: D, light: day, look: up, tilt_deg: 15, where: corner, bin: 2, items: [[can, on_bin]], note: "Phase 3 shots 10 / 46"}
+  - {id: 9, setup: E, light: day, look: level, tilt_deg: 0, where: corner, bin: 3, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 11 / 47 (spinach bag)"}
+  - {id: 10, setup: E, light: day, look: up, tilt_deg: 15, where: corner, bin: 3, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 11 / 47 (spinach bag)"}
+  - {id: 11, setup: F, light: day, look: level, tilt_deg: 0, where: corner, bin: 4, items: [[yogurt_container, on_bin]], note: "Phase 3 shots 12 / 48"}
+  - {id: 12, setup: F, light: day, look: up, tilt_deg: 15, where: corner, bin: 4, items: [[yogurt_container, on_bin]], note: "Phase 3 shots 12 / 48"}
+  - {id: 13, setup: G, light: day, look: level, tilt_deg: 0, where: corner, bin: 3, items: [[paper_towel, on_bin], [foil, on_bin]], note: "Phase 3 shots 13 / 49"}
+  - {id: 14, setup: G, light: day, look: up, tilt_deg: 15, where: corner, bin: 3, items: [[paper_towel, on_bin], [foil, on_bin]], note: "Phase 3 shots 13 / 49"}
+  - {id: 15, setup: H, light: day, look: level, tilt_deg: 0, where: corner, bin: 4, items: [[paper_bag, on_bin], [plastic_bag, on_bin]], note: "Phase 3 shots 14 / 50"}
+  - {id: 16, setup: H, light: day, look: up, tilt_deg: 15, where: corner, bin: 4, items: [[paper_bag, on_bin], [plastic_bag, on_bin]], note: "Phase 3 shots 14 / 50"}
+  - {id: 17, setup: I, light: day, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[milk_jug, on_bin], [plastic_bag, around_bin]], note: "Phase 3 shots 25 / 51"}
+  - {id: 18, setup: I, light: day, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[milk_jug, on_bin], [plastic_bag, around_bin]], note: "Phase 3 shots 25 / 51"}
+  - {id: 19, setup: J, light: day, look: level, tilt_deg: 0, where: corner, bin: 4, items: [[plastic_bag, on_bin], [foil, around_bin], [paper_towel, around_bin]], note: "Phase 3 shots 28 / 52"}
+  - {id: 20, setup: J, light: day, look: up, tilt_deg: 15, where: corner, bin: 4, items: [[plastic_bag, on_bin], [foil, around_bin], [paper_towel, around_bin]], note: "Phase 3 shots 28 / 52"}
+  - {id: 21, setup: K, light: day, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[paper_towel, around_bin]], note: "Phase 3 shot 15: in front of the bin, a little left"}
+  - {id: 22, setup: K, light: day, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[paper_towel, around_bin]], note: "Phase 3 shot 15: in front of the bin, a little left"}
+  - {id: 23, setup: L, light: day, look: level, tilt_deg: 0, where: corner, bin: 2, items: [[plastic_bag, around_bin]], note: "Phase 3 shot 17"}
+  - {id: 24, setup: L, light: day, look: up, tilt_deg: 15, where: corner, bin: 2, items: [[plastic_bag, around_bin]], note: "Phase 3 shot 17"}
+
+  # --- night: room lamps only ---
+  - {id: 25, setup: A, light: night, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[paper_towel, on_bin]], note: "Phase 3 shots 7 / 43"}
+  - {id: 26, setup: A, light: night, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[paper_towel, on_bin]], note: "Phase 3 shots 7 / 43"}
+  - {id: 27, setup: B, light: night, look: level, tilt_deg: 0, where: corner, bin: 2, items: [[milk_jug, on_bin]], note: "Phase 3 shots 8 / 44: the jug the level camera never saw whole"}
+  - {id: 28, setup: B, light: night, look: up, tilt_deg: 15, where: corner, bin: 2, items: [[milk_jug, on_bin]], note: "Phase 3 shots 8 / 44: the jug the level camera never saw whole"}
+  - {id: 29, setup: C, light: night, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 9 / 45 (grocery bag)"}
+  - {id: 30, setup: C, light: night, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 9 / 45 (grocery bag)"}
+  - {id: 31, setup: D, light: night, look: level, tilt_deg: 0, where: corner, bin: 2, items: [[can, on_bin]], note: "Phase 3 shots 10 / 46"}
+  - {id: 32, setup: D, light: night, look: up, tilt_deg: 15, where: corner, bin: 2, items: [[can, on_bin]], note: "Phase 3 shots 10 / 46"}
+  - {id: 33, setup: E, light: night, look: level, tilt_deg: 0, where: corner, bin: 3, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 11 / 47 (spinach bag)"}
+  - {id: 34, setup: E, light: night, look: up, tilt_deg: 15, where: corner, bin: 3, items: [[plastic_bag, on_bin]], note: "Phase 3 shots 11 / 47 (spinach bag)"}
+  - {id: 35, setup: F, light: night, look: level, tilt_deg: 0, where: corner, bin: 4, items: [[yogurt_container, on_bin]], note: "Phase 3 shots 12 / 48"}
+  - {id: 36, setup: F, light: night, look: up, tilt_deg: 15, where: corner, bin: 4, items: [[yogurt_container, on_bin]], note: "Phase 3 shots 12 / 48"}
+  - {id: 37, setup: G, light: night, look: level, tilt_deg: 0, where: corner, bin: 3, items: [[paper_towel, on_bin], [foil, on_bin]], note: "Phase 3 shots 13 / 49"}
+  - {id: 38, setup: G, light: night, look: up, tilt_deg: 15, where: corner, bin: 3, items: [[paper_towel, on_bin], [foil, on_bin]], note: "Phase 3 shots 13 / 49"}
+  - {id: 39, setup: H, light: night, look: level, tilt_deg: 0, where: corner, bin: 4, items: [[paper_bag, on_bin], [plastic_bag, on_bin]], note: "Phase 3 shots 14 / 50"}
+  - {id: 40, setup: H, light: night, look: up, tilt_deg: 15, where: corner, bin: 4, items: [[paper_bag, on_bin], [plastic_bag, on_bin]], note: "Phase 3 shots 14 / 50"}
+  - {id: 41, setup: I, light: night, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[milk_jug, on_bin], [plastic_bag, around_bin]], note: "Phase 3 shots 25 / 51"}
+  - {id: 42, setup: I, light: night, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[milk_jug, on_bin], [plastic_bag, around_bin]], note: "Phase 3 shots 25 / 51"}
+  - {id: 43, setup: J, light: night, look: level, tilt_deg: 0, where: corner, bin: 4, items: [[plastic_bag, on_bin], [foil, around_bin], [paper_towel, around_bin]], note: "Phase 3 shots 28 / 52"}
+  - {id: 44, setup: J, light: night, look: up, tilt_deg: 15, where: corner, bin: 4, items: [[plastic_bag, on_bin], [foil, around_bin], [paper_towel, around_bin]], note: "Phase 3 shots 28 / 52"}
+  - {id: 45, setup: K, light: night, look: level, tilt_deg: 0, where: corner, bin: 1, items: [[paper_towel, around_bin]], note: "Phase 3 shot 15: in front of the bin, a little left"}
+  - {id: 46, setup: K, light: night, look: up, tilt_deg: 15, where: corner, bin: 1, items: [[paper_towel, around_bin]], note: "Phase 3 shot 15: in front of the bin, a little left"}
+  - {id: 47, setup: L, light: night, look: level, tilt_deg: 0, where: corner, bin: 2, items: [[plastic_bag, around_bin]], note: "Phase 3 shot 17"}
+  - {id: 48, setup: L, light: night, look: up, tilt_deg: 15, where: corner, bin: 2, items: [[plastic_bag, around_bin]], note: "Phase 3 shot 17"}

@@ -51,7 +51,8 @@ class TestCamera(unittest.TestCase):
     def test_from_park(self):
         cam = g.Camera.from_park(park.load_yaml(park.PARK_FILE)["robot"]["camera"])
         self.assertAlmostEqual(cam.bearing_deg(0), 30.0, places=6)
-        self.assertAlmostEqual(cam.height_m, 0.103)
+        self.assertAlmostEqual(cam.height_m, 0.125)       # on the Phase 4 tilt mount
+        self.assertAlmostEqual(cam.left_m, 0.011)
 
 
 class TestBin(unittest.TestCase):
