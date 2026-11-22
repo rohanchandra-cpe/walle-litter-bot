@@ -7,7 +7,8 @@ detector's format. Everything after the model (centering, on_bin / around_bin, o
 detections.json, the memory store) is the real code, checked against ground truth.
 The model's accuracy is judged on real ESP32-CAM photos (eval_photos.py), not here.
 
-    det = TruthDetector(world_layout, pose_fn=lambda: node.park_pose("ground_truth"))
+    det = TruthDetector(world_layout, pose_fn=lambda: node.park_pose("ground_truth"),
+                        tilt_fn=lambda: tilt.angle_deg())   # Phase 4: the camera's tilt
     det.detect(jpeg_bytes)       # same result shape as Detector.detect
 """
 
@@ -55,35 +56,56 @@ def item_half_extents(item, model):
 
 
 class TruthDetector:
-    def __init__(self, layout, pose_fn, cfg=None, hide_cut_bins=False):
+    def __init__(self, layout, pose_fn, cfg=None, hide_cut_bins=False, tilt_fn=None,
+                 lens_from_pivot_m=(0.0, 0.0)):
         """hide_cut_bins: miss a bin whose box runs off the frame's left or right side, as
-        YOLO-World did on the robot (run 20261121_035910, bin 2 scored 0.02)."""
+        YOLO-World did on the robot (run 20261121_035910, bin 2 scored 0.02).
+        tilt_fn: the camera's tilt in deg (+ = up) when the photo is taken, or None (level).
+        lens_from_pivot_m: [forward, up] of the lens from the tilt axis (servo.yaml sim)."""
         self.cfg = cfg or load_config()
         self.hide_cut_bins = hide_cut_bins
         self.layout, self.pose_fn = layout, pose_fn
+        self.tilt_fn = tilt_fn
+        self.lens_from_pivot_m = tuple(lens_from_pivot_m or (0.0, 0.0))
+        self.last_tilt_deg = 0.0
         self.cam = camera_settings(self.cfg)
         self.models = park.load_yaml(park.PARK_FILE)["items"]
         self.model_name = "ground_truth"
         self.source = "sim"
 
-    def project(self, pts, pose, w, h):
-        """Pixel box [x1, y1, x2, y2] of 3-D points seen from pose (x, y, heading rad),
-        clipped to the frame, and the nearest point's distance; None if out of view."""
+    def lens(self, tilt_deg):
+        """(forward_m, height_m) of the lens at this tilt: it turns about the tilt axis."""
+        df, dz = self.lens_from_pivot_m
+        t = math.radians(tilt_deg)
+        px, pz = self.cam["forward_m"] - df, self.cam["height_m"] - dz
+        return (px + df * math.cos(t) - dz * math.sin(t),
+                pz + df * math.sin(t) + dz * math.cos(t))
+
+    def project(self, pts, pose, w, h, tilt_deg=0.0):
+        """Pixel box [x1, y1, x2, y2] of 3-D points seen from pose (x, y, heading rad) with
+        the camera tilted tilt_deg up, clipped to the frame, and the nearest point's
+        distance; None if out of view."""
         x, y, hd = pose
         fx = (w / 2.0) / math.tan(math.radians(self.cam["horizontal_fov_deg"]) / 2.0)
         fy = (h / 2.0) / math.tan(math.radians(self.cam["vertical_fov_deg"]) / 2.0)
-        cx = x + self.cam["forward_m"] * math.cos(hd)
-        cy = y + self.cam["forward_m"] * math.sin(hd)
+        lens_f, lens_h = self.lens(tilt_deg)
+        lens_l = float(self.cam.get("left_m", 0.0))           # left of the center line
+        cx = x + lens_f * math.cos(hd) - lens_l * math.sin(hd)
+        cy = y + lens_f * math.sin(hd) + lens_l * math.cos(hd)
         c, s = math.cos(hd), math.sin(hd)
+        ct, st = math.cos(math.radians(tilt_deg)), math.sin(math.radians(tilt_deg))
         us, vs, near = [], [], math.inf
         for px, py, pz in pts:
-            fwd = c * (px - cx) + s * (py - cy)
+            ahead = c * (px - cx) + s * (py - cy)     # level frame: ahead, left, up
             left = -s * (px - cx) + c * (py - cy)
+            up = pz - lens_h
+            fwd = ahead * ct + up * st                # along the tilted optical axis
+            up_t = -ahead * st + up * ct
             if fwd < 0.02:
                 return None                     # partly behind the camera: skip
             us.append(w / 2.0 - fx * left / fwd)
-            vs.append(h / 2.0 - fy * (pz - self.cam["height_m"]) / fwd)
-            near = min(near, fwd)
+            vs.append(h / 2.0 - fy * up_t / fwd)
+            near = min(near, ahead)
         box = [max(0.0, min(us)), max(0.0, min(vs)), min(float(w), max(us)),
                min(float(h), max(vs))]
         if box[2] - box[0] < MIN_PX or box[3] - box[1] < MIN_PX:
@@ -97,6 +119,8 @@ class TruthDetector:
             image = Image.open(io.BytesIO(image))
         w, h = image.size
         pose = self.pose_fn()
+        tilt = (self.tilt_fn() if self.tilt_fn else None) or 0.0
+        self.last_tilt_deg = tilt
         dets = []
         bins = []
         for b in self.layout["bins"]:
@@ -106,7 +130,8 @@ class TruthDetector:
                 half = (b["size_m"][1] / 2.0, b["size_m"][0] / 2.0, bh / 2.0)
             else:
                 half = (b["radius_m"],) * 2 + (bh / 2.0,)
-            seen = self.project(box_corners((*b["position"], bh / 2.0), half, yaw), pose, w, h)
+            seen = self.project(box_corners((*b["position"], bh / 2.0), half, yaw), pose, w, h,
+                                tilt)
             if seen:
                 bins.append((seen, b))          # still hides what is behind it
                 edge = self.cfg.get("centering", {}).get("edge_px", 4)
@@ -121,7 +146,7 @@ class TruthDetector:
                     model = self.models[it["item"]]
                     pts = box_corners(it["position"], item_half_extents(it, model),
                                       math.radians(it.get("yaw_deg", 0.0)))
-                    seen = self.project(pts, pose, w, h)
+                    seen = self.project(pts, pose, w, h, tilt)
                     if not seen:
                         continue
                     seen = self.occlude(seen, bins, min(p[2] for p in pts))
@@ -133,7 +158,7 @@ class TruthDetector:
                                  "prompt": "ground truth", "conf": 1.0, "bbox": seen[0],
                                  "truth": it["name"], "truth_group": group})
         return {"detections": dets, "seconds": round(time.time() - t0, 3), "size": [w, h],
-                "model": self.model_name, "source": self.source,
+                "model": self.model_name, "source": self.source, "tilt_deg": round(tilt, 2),
                 **({"low_conf": []} if keep_low else {})}
 
     @staticmethod

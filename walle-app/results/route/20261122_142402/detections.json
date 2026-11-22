@@ -1,0 +1,725 @@
+{
+ "run_id": "20261122_142402",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 2,
+   "t_utc": "2026-11-22T14:25:28+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step2.jpg",
+   "pose": [
+    0.9968,
+    0.0004,
+    -29.38
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.612,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.46,
+    "bbox": [
+     163.0,
+     39.5,
+     526.9,
+     474.0
+    ]
+   },
+   "bin_bearing_deg": -2.58,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      185.5,
+      0.0,
+      483.1,
+      49.9
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent beige plastic film bag with a slight sheen.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": []
+  },
+  {
+   "step": 2,
+   "t_utc": "2026-11-22T14:25:38+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step2_up.jpg",
+   "pose": [
+    0.9968,
+    0.0004,
+    -29.38
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.245,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.226,
+    "bbox": [
+     163.2,
+     154.6,
+     517.7,
+     480.0
+    ]
+   },
+   "bin_bearing_deg": -2.19,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      190.5,
+      99.4,
+      527.6,
+      178.1
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent white plastic film bag with some printed text visible on its surface, showing slight sheen from ambient light.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": []
+  },
+  {
+   "step": 6,
+   "t_utc": "2026-11-22T14:26:51+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step6.jpg",
+   "pose": [
+    0.9998,
+    0.9959,
+    53.56
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 17.986,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.217,
+    "bbox": [
+     187.2,
+     130.1,
+     403.9,
+     367.4
+    ]
+   },
+   "bin_bearing_deg": 2.53,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      163.2,
+      11.7,
+      375.5,
+      136.5
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "A crumpled, translucent plastic bag with a shiny, reflective surface and visible blue branding or text.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      301.1,
+      76.5,
+      362.5,
+      130.8
+     ],
+     "vlm_name": "aluminum foil",
+     "vlm_description": "The object is made of shiny silver material, crumpled into an irregular shape with reflective highlights.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      62.7,
+      323.0,
+      220.8,
+      397.9
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "A crumpled white object made of soft, absorbent material with no shine, resting on a textured surface.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.212,
+      1.538
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      217.6,
+      326.9,
+      467.2,
+      415.2
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent green plastic film bag with some white residue on its surface.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.312,
+      1.41
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      373.8,
+      80.2,
+      467.2,
+      153.1
+     ],
+     "vlm_name": "crumpled brown paper takeout bag",
+     "vlm_description": "The object is made of brown paper, has an irregular crumpled shape, and shows no shine.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": []
+  },
+  {
+   "step": 6,
+   "t_utc": "2026-11-22T14:27:10+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step6_up.jpg",
+   "pose": [
+    0.9998,
+    0.9959,
+    53.56
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 18.057,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.143,
+    "bbox": [
+     186.3,
+     240.2,
+     397.4,
+     478.8
+    ]
+   },
+   "bin_bearing_deg": 3.01,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      177.2,
+      143.1,
+      383.7,
+      234.2
+     ],
+     "vlm_name": "plastic bag",
+     "vlm_description": "A crumpled, translucent plastic bag with a shiny, reflective surface and visible creases.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      196.2,
+      153.0,
+      291.9,
+      234.2
+     ],
+     "vlm_name": "tissue box",
+     "vlm_description": "A translucent plastic bag containing crumpled orange tissue paper, with a glossy sheen reflecting light.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      88.3,
+      433.9,
+      291.8,
+      478.6
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "A crumpled white object made of soft, fibrous material with no shine, consistent in appearance with paper towel or tissue.",
+     "place": "around_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      235.5,
+      426.2,
+      481.3,
+      478.6
+     ],
+     "vlm_name": "plastic film bag (grocery bag with handles, or a clear / printed salad or spinach bag)",
+     "vlm_description": "A crumpled, translucent green plastic bag with a glossy, reflective surface.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": []
+  },
+  {
+   "step": 10,
+   "t_utc": "2026-11-22T14:28:22+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step10.jpg",
+   "pose": [
+    -0.0007,
+    0.9992,
+    129.58
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 15.847,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.112,
+    "bbox": [
+     203.2,
+     142.6,
+     422.9,
+     387.5
+    ]
+   },
+   "bin_bearing_deg": 0.72,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "carton",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      230.0,
+      76.9,
+      395.1,
+      145.9
+     ],
+     "vlm_name": "food or broth carton",
+     "vlm_description": "A rectangular, reddish-brown cardboard box with a glossy finish and printed graphics, resembling a food or broth carton.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      309.1,
+      199.2,
+      370.6,
+      412.8
+     ],
+     "vlm_name": "plastic bottle",
+     "vlm_description": "A translucent white plastic bottle with a narrow neck and cylindrical body, featuring a glossy surface that reflects light.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.332,
+      1.405
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      195.2,
+      320.2,
+      321.3,
+      411.8
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "A crumpled, shiny silver object made of thin metallic material that reflects light, consistent with aluminum foil.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.379,
+      1.37
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      387.2,
+      307.7,
+      537.0,
+      411.8
+     ],
+     "vlm_name": "plastic bottle",
+     "vlm_description": "A blue plastic container with a glossy finish and printed branding, rectangular in shape.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.265,
+      1.464
+     ]
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.012,
+     "bbox": [
+      0.0,
+      0.0,
+      119.6,
+      124.6
+     ]
+    }
+   ]
+  },
+  {
+   "step": 10,
+   "t_utc": "2026-11-22T14:28:34+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step10_up.jpg",
+   "pose": [
+    -0.0007,
+    0.9992,
+    129.58
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 10.383,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.305,
+    "bbox": [
+     205.5,
+     429.6,
+     319.8,
+     480.0
+    ]
+   },
+   "bin_bearing_deg": 6.11,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "carton",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      214.5,
+      188.0,
+      386.3,
+      248.7
+     ],
+     "vlm_name": "food carton",
+     "vlm_description": "A rectangular, brown cardboard box with a glossy finish and printed imagery, resembling a food packaging container.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      309.1,
+      295.2,
+      382.1,
+      480.0
+     ],
+     "vlm_name": "plastic bottle",
+     "vlm_description": "A translucent white plastic bottle with a narrow neck and cylindrical body, appearing slightly glossy.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.028,
+     "bbox": [
+      0.0,
+      0.0,
+      239.5,
+      474.5
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.022,
+     "bbox": [
+      226.2,
+      179.6,
+      391.3,
+      252.7
+     ]
+    }
+   ]
+  },
+  {
+   "step": 14,
+   "t_utc": "2026-11-22T14:29:34+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step14.jpg",
+   "pose": [
+    -0.0014,
+    -0.0027,
+    -151.67
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 7.735,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.499,
+    "bbox": [
+     191.2,
+     77.2,
+     497.0,
+     434.9
+    ]
+   },
+   "bin_bearing_deg": -2.49,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      194.6,
+      79.2,
+      499.2,
+      432.0
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte gray plastic bin with a smooth, non-reflective surface and a tapered cylindrical shape."
+    }
+   ]
+  },
+  {
+   "step": 14,
+   "t_utc": "2026-11-22T14:29:44+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step14_up.jpg",
+   "pose": [
+    -0.0014,
+    -0.0027,
+    -151.67
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 9.778,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.196,
+    "bbox": [
+     190.2,
+     184.1,
+     488.5,
+     480.0
+    ]
+   },
+   "bin_bearing_deg": -2.07,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      188.2,
+      184.8,
+      487.7,
+      480.0
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte gray plastic container with smooth, rounded edges and no visible shine."
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      434.6,
+      0.0,
+      640.0,
+      479.0
+     ],
+     "vlm_name": "beige chair",
+     "vlm_description": "A beige upholstered chair with a smooth fabric texture and no shine."
+    }
+   ]
+  }
+ ]
+}

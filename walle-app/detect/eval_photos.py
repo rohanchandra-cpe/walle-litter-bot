@@ -15,6 +15,12 @@ lists, not boxes, so items are matched by count:
 - bearing (report only): bin-shift shots, detected bin bearing vs atan(shift / distance).
 Prints PASS or FAIL against config/detect.yaml `eval`, and writes report.json and
 per_photo.csv to results/detect/<time>/. Exit code 0 = PASS, 1 = FAIL.
+
+Phase 4 (--set-dir walle-app/data/photos/phase4 --by-light): a photo's tilt_deg goes into the
+camera geometry, and a photo with a `look` is scored as the bin check uses it: an up look on
+the items on top of the bin (on_bin), a level look on the items on the floor (around_bin,
+route), both on the truth and on what was reported. --by-light also requires recall,
+precision and category to pass in EACH light (day, night) on its own.
 """
 
 import argparse
@@ -37,10 +43,19 @@ from detect.detector import APP_DIR, load_config, make_detector  # noqa: E402
 SET_DIR = os.path.join(APP_DIR, "data", "photos", "phase3")
 
 
+LOOK_PLACES = {"up": {"on_bin"}, "level": {"around_bin", "route"}}
+
+
 def score_photo(truth, dets, cam, cfg):
     """Counts for one photo. truth: labels.yaml entry; dets: detector output list."""
     analysis = g.analyze_bin_stop(dets, cam, cfg=cfg) if truth.get("bin") else None
     items = analysis["items"] if analysis else [d for d in dets if d["kind"] == "item"]
+    t_items = truth["items"]
+    places = LOOK_PLACES.get(truth.get("look"))
+    if places:                       # Phase 4: score what the bin check takes from this look
+        t_items = [i for i in t_items if i["place"] in places]
+        items = [i for i in items if i.get("place", "route") in places]
+    truth = dict(truth, items=t_items)
     t_lab = Counter(i["label"] for i in truth["items"])
     p_lab = Counter(i["label"] for i in items)
     found = {lab: min(n, p_lab[lab]) for lab, n in t_lab.items()}
@@ -53,6 +68,7 @@ def score_photo(truth, dets, cam, cfg):
            "found": sum(found.values()),
            "category_right": sum(min(n, p_cat[c]) for c, n in t_cat.items()),
            "category_matchable": min(sum(t_lab.values()), sum(p_lab.values())),
+           "light": truth.get("light"), "look": truth.get("look"),
            "has_bin": bool(truth.get("bin")), "bin_found": None, "bin_bearing_deg": None,
            "expected_bearing_deg": None, "rim_visible": None,
            "place_right": 0, "place_checked": 0, "missed": [], "extra": []}
@@ -120,6 +136,8 @@ def main(argv=None):
     p.add_argument("--vlm-model", help="Ollama model for --method vlm (default: config)")
     p.add_argument("--ids", help="only these shots, e.g. 1-29 or 30-42 or 3,7,9")
     p.add_argument("--zoom", action="store_true", help="turn on vlm.zoom_bin_top for this run")
+    p.add_argument("--by-light", action="store_true",
+                   help="recall, precision and category must pass in each light on its own")
     a = p.parse_args(argv)
 
     cfg = load_config()
@@ -128,7 +146,12 @@ def main(argv=None):
     with open(os.path.join(a.set_dir, "labels.yaml")) as f:
         photos = yaml.safe_load(f)["photos"]
     park_cam = yaml.safe_load(open(os.path.join(APP_DIR, "config", "park.yaml")))["robot"]["camera"]
-    cam = g.Camera.from_park(park_cam)
+    set_cam = os.path.join(a.set_dir, "camera.yaml")     # where the camera was for THIS set
+    if os.path.exists(set_cam):
+        with open(set_cam) as f:
+            park_cam = dict(park_cam, **(yaml.safe_load(f) or {}))
+    from servo.tilt import Calibration
+    pivot = Calibration.load().lens_from_pivot_m
     if a.ids:
         keep = set()
         for part in a.ids.split(","):
@@ -144,6 +167,9 @@ def main(argv=None):
         res = det.detect(os.path.join(a.set_dir, truth["file"]), keep_low=True)
         seconds.append(res["seconds"])
         raw[truth["file"]] = res
+        w, h = res.get("size") or (640, 480)
+        cam = g.Camera.from_park(park_cam, w, h, tilt_deg=truth.get("tilt_deg") or 0.0,
+                                 lens_from_pivot_m=pivot)
         r = score_photo(truth, res["detections"], cam, cfg)
         r["seconds"] = res["seconds"]
         rows.append(r)
@@ -157,6 +183,20 @@ def main(argv=None):
                     if r["expected_bearing_deg"] else ""))
               + f"  [{res['seconds']:.2f} s]")
     s = summarize(rows, seconds, cfg["eval"])
+    s["by_light"], s["by_look"] = {}, {}
+    for key, group in (("by_light", "light"), ("by_look", "look")):
+        for val in sorted({r[group] for r in rows if r.get(group)}):
+            sub = [r for r in rows if r.get(group) == val]
+            sub_s = summarize(sub, [r["seconds"] for r in sub], cfg["eval"])
+            s[key][val] = {k: sub_s[k] for k in ("photos", "recall", "precision", "category")}
+            if key == "by_light" and a.by_light:
+                for k in ("recall", "precision", "category"):
+                    target = cfg["eval"].get(k)
+                    if target is not None:
+                        s["checks"][f"{k} ({val})"] = {
+                            "value": sub_s[k], "target": target,
+                            "pass": sub_s[k] is not None and sub_s[k] >= target}
+    s["pass"] = all(c["pass"] for c in s["checks"].values())
     s.update({"model": det.model_name, "ids": a.ids, "set": os.path.relpath(a.set_dir, APP_DIR),
               "config": {k: cfg[k] for k in ("min_conf", "iou", "imgsz")} |
               {"bin_min_conf": cfg["bin"]["min_conf"]}})
@@ -177,6 +217,10 @@ def main(argv=None):
     print(f"\n{s['photos']} photos, model {s['model']}")
     for lab, d in s["per_label"].items():
         print(f"  {lab:18s} found {d['found']}/{d['true']}, reported {d['reported']}")
+    for key in ("by_light", "by_look"):
+        for val, d in s[key].items():
+            print(f"  {key[3:]} {val:6s}: {d['photos']} photos, recall {d['recall']}, "
+                  f"precision {d['precision']}, category {d['category']}")
     print(f"  place right (report only): {s['place']}; bin bearing error: "
           f"{s['bin_bearing_abs_error_deg']}; latency p90 {s['latency_p90_s']} s")
     for key, c in s["checks"].items():

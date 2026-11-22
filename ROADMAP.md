@@ -25,7 +25,7 @@ commands. Metrics and an LLM judge are stretch goals.
 | 1 | Route following | ✅ done 2026-11-18 (bin centering moved to Phase 3) |
 | 2 | Memory store | ✅ done 2026-11-18 |
 | 3 | Object detection and trash/recycling classification | 🟨 all done but item accuracy, carried into Phase 4 (2026-11-21) |
-| 4 | Servo and bin monitoring | ⬜ |
+| 4 | Servo and bin monitoring | ✅ closed 2026-11-22 with recorded limits: robot bin checks 0.75 on the fair runs (target 0.80, accepted); item accuracy deferred |
 | 5 | Obstacle detection and avoidance | ⬜ |
 | 6 | WALL-E ROSA agent | ⬜ |
 | 7 | Stretch: metrics and LLM judge | ⬜ |
@@ -206,38 +206,57 @@ median latency ≤ 1 s per photo on the container CPU. Centering tolerance 3°.
 
 ## Phase 4: Servo and bin monitoring
 
-Tilt the camera up at a bin, estimate how full it is, and count litter around it.
+Tilt the camera up at a bin, judge how far it overflows, and count litter around it. The bins
+are opaque, so there is no fill level (decided in Phase 2): a bin check records
+`overflow_level` 0–3, `on_top_count`, `litter_count` and `outcome` (overflowing / litter /
+clean). Plan: [`docs/plans/phase-4-plan.md`](docs/plans/phase-4-plan.md).
 
 **Work**
-- Servo control in the Pico firmware, and a servo joint on the simulated robot.
-- A bin check: drive to the bin waypoint, face the bin, take photos at one or more tilt
-  angles, estimate fill level and overflow degree, and count litter on the ground around it.
-- Distance to the bin from ultrasonic and/or the calibrated depth model, as in RQ3.
-- Results go to the memory store.
+- Servo control in the Pico firmware (FS5106B on GP22), and a servo joint on the simulated
+  robot (`camera_tilt_joint`).
+- A bin check at each bin stop, after Phase 3 centering: the level photo counts the litter
+  on the floor; the camera tilts up (`servo.yaml` `up_deg`), the up photo judges what is
+  above the rim; the camera levels again before any motion (`detect/bin_check.py`).
+- ~~Distance to the bin from ultrasonic and/or the calibrated depth model, as in RQ3.~~
+  Dropped (agreed 2026-11-21): the layout and centering already give the distance. The
+  distance from the bin's pixel width and the HC-SR04 `echo_us` are recorded as diagnostics.
+- Results go to the memory store (`bin_checks.json` in the run folder → `bin_checks`).
 
 **Done when**
-- [ ] Servo moves to a commanded angle on the robot and in sim.
-- [ ] In sim: bins set to empty / full / overflowing / litter-around are classified correctly.
-- [ ] On the robot: the same states with the real bins, accuracy recorded (user).
+- [x] Servo moves to a commanded angle on the robot and in sim. *(Sim 2026-11-21:
+      `servo_test.py --sweep --sim --check`, joint within 0.01° at −10/0/15/30°. Robot
+      2026-11-21: calibrated (level 1575 µs, 10 µs/deg), readback matched every command,
+      `--deg 15` read about 15° up against the floor (user).)*
+- [x] In sim: bins set to clean / overflowing (levels 1–3) / litter around / overflowing with
+      litter are classified correctly ("full" dropped: it can't be seen). `make
+      sim-bin-check` PASS on `mixed` and `bincheck` (2026-11-21).
+- [ ] On the robot: the same states with the real bins, accuracy recorded (user). Target:
+      outcome right in ≥ 0.8 of bin checks, overflow level within ±1, litter count within ±1.
+      *(2026-11-22, three runs; the rules were frozen after run 1, so runs 2–3 are the fair
+      test: outcome 6/8 = 0.75, level ±1 8/8, litter ±1 7/8. All three with today's rules:
+      10/12 = 0.83. The misses left are detection: items not found, a box covering only part
+      of an item, items on top merged into one box.)* **Accepted below target (user,
+      2026-11-22):** the limit is the camera, lighting, model and one view per bin, not the
+      judging rules; more rule tuning would fit these scenes rather than improve the robot.
 - [ ] Item accuracy carried from Phase 3: on labeled ESP32-CAM photos taken with the tilted
       camera at the bin stops, recall and precision ≥ 0.80 and category ≥ 0.90, in daylight
-      and under the room lamps (`detect/eval_photos.py`).
+      and under the room lamps (`detect/eval_photos.py --set-dir
+      walle-app/data/photos/phase4 --by-light`; shot list drafted, not yet agreed or taken).
+      **Deferred (user, 2026-11-22):** it measures the detector, not the robot; useful for
+      the paper. Last measured: daylight 0.91 / 0.84, lamp light 0.69 / 0.70 (Phase 3 set).
 
-**Open decisions**
-- **Firmware limit:** micro-ROS is at 3 publishers / 2 subscriptions, all used. Options:
-  rebuild `libmicroros` with higher limits, or carry the servo angle in an unused field of
-  `/pico/cmd_vel` (e.g. `angular.x`). The second needs no rebuild but is a hack.
-- Which Pico pin and PWM settings for the servo; its power supply (servos draw spikes).
-- How to express "degree of overflow": a scale (e.g. 0 = empty … 4 = overflowing a lot), or a
-  percentage. Ground truth for it during testing.
-- **Fallback if the servo can't be made to work (user's idea, 2026-11-21): back up.** At the
-  bin stop the robot backs straight away from the bin, along the corner's diagonal into the
-  square, takes the photo, drives forward the same distance on the EKF, and resumes the
-  route. Geometry (nominal 47° vertical FOV, camera 10.3 cm high): to see 25 cm above a
-  29 cm rim the camera needs ~1.0 m to the bin's near face, vs ~0.65 m now, so back up
-  ~0.35–0.45 m. Costs: the bin and items look ~35% smaller (harder naming); the square's
-  inside must be clear; the drive code only goes forward today. Could run only when needed
-  (rim at the frame's top edge, or an item cut off there).
+**Decisions (2026-11-21, plan mode):** see the decision log. Servo command on a 4th value of
+`/pico/imu/std`, readback as a 5th value of `/pico/wheel_ticks`; calibration in
+`config/servo.yaml`; two looks (level + up); overflow level by count of items on top;
+litter within 0.4 m of the bin; no measured distance; backing up stays the fallback.
+
+**Fallback if the servo can't be made to work (user's idea, 2026-11-21): back up.** Not
+built. At the bin stop the robot backs straight away from the bin, along the corner's
+diagonal into the square, takes the photo, drives forward the same distance on the EKF, and
+resumes the route. Geometry (nominal 47° vertical FOV, camera 10.3 cm high): to see 25 cm
+above a 29 cm rim the camera needs ~1.0 m to the bin's near face, vs ~0.65 m now, so back up
+~0.35–0.45 m. Costs: the bin and items look ~35% smaller (harder naming); the square's inside
+must be clear; the drive code only goes forward today.
 
 ---
 
@@ -317,6 +336,13 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-22 | 4 | Phase 4 closed with recorded limits (user): "approaching the limit of what the camera can do" (cheap camera and microcontroller, room lamps, a small model, one view per bin). Robot bin checks accepted at 0.75 outcome on the runs the rules weren't tuned on (level ±1 8/8, litter ±1 7/8); the tilted-photo item-accuracy check is deferred. Last rule added: an item on top may hang 12% of the bin box's height below its top edge (soft items drape over the rim; seen on three scenes). Next: Phase 5. |
+| 2026-11-22 | 1/4 | Route follower guards after robot run 20261122_142402 (a Pico restart 2 s in; the fused estimate then went 40 cm sideways and the robot drove the lap 23 cm off), user-approved: a Pico restart (ping_seq going backwards, or the counts jumping > 20000) stops the robot until its data has been fresh 2 s, then repairs the estimate from the wheels; during the start hold, the start pose is taken again. Every 0.25 s while moving, the fused estimate may not move > 5 cm or turn > 20° more than the wheels; else stop and repair from the wheels. The overhang margin for items on a bin's rim (fix 1) is held back until varied setups show it again (user: avoid tuning to one scene). |
+| 2026-11-22 | 4 | Bin-stop judging rules after the first robot run (user-approved): bin boxes only near straight ahead (12°; measured from the photo's center, since centering just faced the bin); a faint bin box (low_conf) within 8° is the bin when none passed; an item on top must rest on the rim (bottom ≤ 10 cm above it); a floor item cut off at the level photo's bottom is placed at the frame's bottom row and can count as litter. |
+| 2026-11-21 | 4 | Sim litter and spills go on the corner side of each bin, within 24° of the camera's axis at the bin stop, so the robot can see them; before, they went mostly behind the bin (user's choice). The camera on the tilt mount is 12.5 cm high, 12.5 cm ahead of the axle, 1.1 cm left of center (user's measurement; `park.yaml` `robot.camera`). |
+| 2026-11-21 | 4 | Camera servo command: a 4th value on `/pico/imu/std` (pulse in µs; ≤ 0 or missing keeps it), readback as a 5th value of `/pico/wheel_ticks`. No micro-ROS rebuild; 3-value senders and 4-value readers are unaffected (user's choice). Servo: FITEC FS5106B, 50 Hz on GP22, powered from a 5–6 V buck/UBEC off the 9 V supply (not 9 V directly: it is a 4.8–6 V servo), ground shared with the Pico. Degrees ↔ µs and the tilt limits live in `walle-app/config/servo.yaml` (no reflash to recalibrate); the firmware clamps to 600–2400 µs and slews 1000 µs/s. |
+| 2026-11-21 | 4 | Bin check = two looks: the level dwell photo for litter, an up photo (15° up: the whole bin plus 44 cm above its near rim) for what is on top. Overflow level by count of items on top (1 / 4 / 7 → levels 1 / 2 / 3); the height-above-rim rule is off because it overlaps between levels in sim. Litter = floor items within 0.4 m of the bin's sides. Never drive tilted (the follower levels first). |
+| 2026-11-21 | 4 | "Full" dropped from the done criteria; no measured distance (layout + centering give it; pixel-width distance and HC-SR04 echo are logged); backing up stays the documented fallback, not built. Robot target: outcome ≥ 0.8, level ±1, litter ±1 (user's choices). Item accuracy (from Phase 3) judged on a new tilted photo set, `data/photos/phase4/`, scored per light. |
 | 2026-11-21 | 3→4 | Phase 3's item-accuracy box stays open and its target (recall and precision ≥ 0.80, category ≥ 0.90) is checked again in Phase 4 with the tilted camera, in daylight and lamp light. Measured on 52 photos: daylight 0.91 / 0.84, lamp light 0.69 / 0.70, all 0.787 / 0.768 (user's choice). |
 | 2026-11-21 | 3 | The zoomed second search over the bin's rim runs only in good light (photo color cast, red − blue ≤ 9; the user's lamps measure 11–22). On the on-bin setups it lifted daylight recall 0.73 → 0.93 but cut lamp-light recall 0.75 → 0.56 (user's choice). |
 | 2026-11-21 | 1/3 | The route follower stops and waits when the Pico's ticks or IMU are > 0.4 s old, and afterwards re-anchors the fused estimate on the wheels' motion across the gap (robot run 20261121_041923: the EKF spun on with no data and the follower made a real 73° pulse at the ghost heading). `route.yaml` `sensor_guard`; walle-sim `/sim/blackout` tests it. |

@@ -1,0 +1,270 @@
+{
+ "run_id": "20261122_142402",
+ "source": "robot",
+ "checks": [
+  {
+   "method": "tilt",
+   "overflow_level": 0,
+   "on_top_count": 0,
+   "litter_count": 0,
+   "outcome": "clean",
+   "level_by_count": 0,
+   "level_by_height": 0,
+   "top_height_above_rim_m": null,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [],
+   "litter": [],
+   "not_litter": [
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      185.5,
+      0.0,
+      483.1,
+      49.9
+     ],
+     "obj_xy": null
+    }
+   ],
+   "dist_from_width_m": 0.422,
+   "step": 2,
+   "facing_step": 1,
+   "t_utc": "2026-11-22T14:25:38+00:00",
+   "bin": "bin_2",
+   "bin_id": 2,
+   "level_photo": "photos/bin_2_step2.jpg",
+   "up_photo": "photos/bin_2_step2_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.766,
+   "echo_us": -2
+  },
+  {
+   "method": "tilt",
+   "overflow_level": 1,
+   "on_top_count": 2,
+   "litter_count": 2,
+   "outcome": "overflowing",
+   "level_by_count": 1,
+   "level_by_height": 0,
+   "top_height_above_rim_m": 0.189,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      177.2,
+      143.1,
+      383.7,
+      234.2
+     ],
+     "height_above_rim_m": 0.189,
+     "cut_top": false
+    },
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      196.2,
+      153.0,
+      291.9,
+      234.2
+     ],
+     "height_above_rim_m": 0.173,
+     "cut_top": false
+    }
+   ],
+   "litter": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      62.7,
+      323.0,
+      220.8,
+      397.9
+     ],
+     "obj_xy": [
+      1.212,
+      1.538
+     ]
+    },
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      217.6,
+      326.9,
+      467.2,
+      415.2
+     ],
+     "obj_xy": [
+      1.312,
+      1.41
+     ]
+    }
+   ],
+   "not_litter": [
+    {
+     "label": "paper_bag",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      373.8,
+      80.2,
+      467.2,
+      153.1
+     ],
+     "obj_xy": null
+    }
+   ],
+   "dist_from_width_m": 0.708,
+   "step": 6,
+   "facing_step": 5,
+   "t_utc": "2026-11-22T14:27:11+00:00",
+   "bin": "bin_3",
+   "bin_id": 3,
+   "level_photo": "photos/bin_3_step6.jpg",
+   "up_photo": "photos/bin_3_step6_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.762,
+   "echo_us": -2
+  },
+  {
+   "method": "tilt",
+   "overflow_level": 1,
+   "on_top_count": 1,
+   "litter_count": 3,
+   "outcome": "overflowing",
+   "level_by_count": 1,
+   "level_by_height": 0,
+   "top_height_above_rim_m": 0.115,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [
+    {
+     "label": "carton",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      214.5,
+      188.0,
+      386.3,
+      248.7
+     ],
+     "height_above_rim_m": 0.115,
+     "cut_top": false
+    }
+   ],
+   "litter": [
+    {
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      309.1,
+      199.2,
+      370.6,
+      412.8
+     ],
+     "obj_xy": [
+      -0.332,
+      1.405
+     ]
+    },
+    {
+     "label": "foil",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      195.2,
+      320.2,
+      321.3,
+      411.8
+     ],
+     "obj_xy": [
+      -0.379,
+      1.37
+     ]
+    },
+    {
+     "label": "plastic_bottle",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      387.2,
+      307.7,
+      537.0,
+      411.8
+     ],
+     "obj_xy": [
+      -0.265,
+      1.464
+     ]
+    }
+   ],
+   "not_litter": [],
+   "dist_from_width_m": 0.699,
+   "step": 10,
+   "facing_step": 9,
+   "t_utc": "2026-11-22T14:28:34+00:00",
+   "bin": "bin_4",
+   "bin_id": 4,
+   "level_photo": "photos/bin_4_step10.jpg",
+   "up_photo": "photos/bin_4_step10_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.755,
+   "echo_us": -2
+  },
+  {
+   "method": "tilt",
+   "overflow_level": 0,
+   "on_top_count": 0,
+   "litter_count": 0,
+   "outcome": "clean",
+   "level_by_count": 0,
+   "level_by_height": 0,
+   "top_height_above_rim_m": null,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [],
+   "litter": [],
+   "not_litter": [],
+   "dist_from_width_m": 0.502,
+   "step": 14,
+   "facing_step": 13,
+   "t_utc": "2026-11-22T14:29:44+00:00",
+   "bin": "bin_1",
+   "bin_id": 1,
+   "level_photo": "photos/bin_1_step14.jpg",
+   "up_photo": "photos/bin_1_step14_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.755,
+   "echo_us": -2
+  }
+ ]
+}

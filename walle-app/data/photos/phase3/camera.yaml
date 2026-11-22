@@ -1,0 +1,5 @@
+# Where the camera was when the Phase 3 set was taken (2026-11-19..21): over park.yaml
+# robot.camera for detect/eval_photos.py. The Phase 4 tilt mount (2026-11-21) moved the
+# lens to 12.5 cm high and 1.1 cm left; these photos were taken before that.
+height_m: 0.103
+left_m: 0.0

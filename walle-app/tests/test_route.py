@@ -95,3 +95,33 @@ class PulseTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class EstimateGuardTests(unittest.TestCase):
+    """Pico restart and estimate-jump guards (robot run 20261122_142402)."""
+
+    def test_sideways_jump_is_caught(self):
+        # that run, 0.5 s: fused +40 cm sideways, wheels 7 cm forward
+        extra_m, _, jump = rg.estimate_jump((0, 0, 0), (-0.04, 0.37, 0), (0, 0, 0),
+                                            (0.05, 0, -0.05), 0.05, 20.0)
+        self.assertTrue(jump)
+        self.assertGreater(extra_m, 0.3)
+
+    def test_normal_driving_and_turning_pass(self):
+        # 4 cm in 0.25 s, both agree within a cm; a 10 deg pulse the wheels see as 7
+        self.assertFalse(rg.estimate_jump((0, 0, 0), (0.04, 0.002, 0), (0, 0, 0),
+                                          (0.035, 0, 0), 0.05, 20.0)[2])
+        self.assertFalse(rg.estimate_jump((0, 0, 0), (0, 0, math.radians(10)), (0, 0, 0),
+                                          (0, 0, math.radians(7)), 0.05, 20.0)[2])
+
+    def test_heading_jump_is_caught(self):
+        self.assertTrue(rg.estimate_jump((0, 0, 0), (0, 0, math.radians(35)), (0, 0, 0),
+                                         (0, 0, 0), 0.05, 20.0)[2])
+
+    def test_pico_restarted(self):
+        self.assertFalse(rg.pico_restarted(None, (0, 0, 0), 20000))
+        self.assertFalse(rg.pico_restarted((51000, 50800, 40), (51040, 50830, 41), 20000))
+        self.assertTrue(rg.pico_restarted((51000, 50800, 40), (3, 2, 0), 20000))
+        # early in a session the counts are small, but ping_seq still goes backwards
+        self.assertTrue(rg.pico_restarted((900, 850, 120), (0, 0, 1), 20000))
+        self.assertFalse(rg.pico_restarted((900, 850), (0, 0), 20000))      # no seq: counts only

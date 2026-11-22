@@ -59,7 +59,7 @@ CREATE TABLE bin_checks (
     litter_count   INTEGER,                       -- items on the ground around the bin
     outcome        TEXT,                          -- overflowing | litter | clean | NULL
     photo          TEXT,
-    method         TEXT NOT NULL                  -- photo_only (Phase 2) | ...
+    method         TEXT NOT NULL                  -- photo_only (Phase 2) | tilt | level_only (Phase 4)
 );
 CREATE INDEX bin_checks_bin ON bin_checks(bin_id);
 

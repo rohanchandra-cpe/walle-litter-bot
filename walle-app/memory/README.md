@@ -68,8 +68,12 @@ the bin. A bin check records:
 
 A `clean` check is still recorded, which is how "how often is bin N fine" gets answered.
 There is no fill level, because the fill below the rim can't be seen. Phase 1 route runs
-record `method: photo_only` checks: the photo and the pose, with no assessment yet. Phase 4
-fills in the assessment.
+record `method: photo_only` checks: the photo and the pose, with no assessment yet. Since
+Phase 4 the follower judges each bin stop (`detect/bin_check.py`) and writes
+`bin_checks.json` in the run folder; `route_records.py` stores those checks with `method:
+tilt` (level photo for litter + camera tilted up for what is on top) or `level_only` (no
+servo, or the up photo failed). A bin stop with both looks stores its `on_bin` detections
+from the up photo and its `around_bin` ones from the level photo, so nothing is stored twice.
 
 **Current obstacles are derived from history.** An obstacle is on the route now if its
 latest sighting is `present = 1`. A report within `obstacle_match_radius_m` (0.10 m, same

@@ -5,12 +5,16 @@ Real robot (firmware/pico_pilot)         Simulation (this node)
 subscribes /pico/cmd_vel            ->   firmware model (firmware_models.py) -> motor
                                          plant -> /sim/cmd_vel (Gazebo DiffDrive)
 publishes /pico/wheel_ticks  50 Hz  <-   wheel joint angles (/joint_states) -> counts,
-  [left, right, ping_seq, echo_us]       plus the HC-SR04 model on /sim/ultrasonic/points
+  [left, right, ping_seq, echo_us,       plus the HC-SR04 model on /sim/ultrasonic/points,
+   servo_us]                             plus the tilt servo's pulse (Phase 4)
 publishes /pico/imu/data     50 Hz  <-   Gazebo IMU (/sim/imu) -> BNO055 in IMU mode:
                                          heading integrated from the gyro, gravity removed
 publishes /pico/drive/status        <-   0 stopped, 1 driving, 2 stopped by the 500 ms
                                          command watchdog
-subscribes /pico/imu/std            ->   live covariance tuning, as in the firmware
+subscribes /pico/imu/std            ->   live covariance tuning, as in the firmware;
+  [3] = camera tilt servo pulse (us)     the servo (servo.c: clamp, 1000 us/s slew) ->
+                                         /sim/camera_tilt (camera_tilt_joint, rad), with
+                                         walle-app/config/servo.yaml's sim calibration
 
 So pilot.launch.py (odometry + EKF), the pilot scripts, and the ROSA tools run
 unchanged against Gazebo.
@@ -38,7 +42,8 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, qos_profile_sensor_data
 from sensor_msgs.msg import Imu, JointState, PointCloud2
-from std_msgs.msg import Float32, Float32MultiArray, Int32, Int32MultiArray, String
+from std_msgs.msg import Float32, Float32MultiArray, Float64, Int32, Int32MultiArray, String
+import yaml
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from firmware_models import MotorPlant, make_firmware  # noqa: E402
@@ -47,6 +52,22 @@ from profiles import load_profile  # noqa: E402
 GRAVITY = 9.80665
 LOOP_S = 0.02           # PUBLISH_PERIOD_MS 20
 STATUS_STOPPED, STATUS_DRIVING, STATUS_TIMEOUT = 0, 1, 2
+# The camera tilt servo, as firmware/pico_pilot/servo.h
+SERVO_MIN_US, SERVO_MAX_US, SERVO_BOOT_US, SERVO_SLEW_US_PER_S = 600, 2400, 1500, 1000.0
+SERVO_CONFIG = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__)))), "walle-app", "config", "servo.yaml")
+
+
+def servo_calibration(path=SERVO_CONFIG):
+    """(level_us, us_per_deg) the simulated servo turns pulses into angles with."""
+    try:
+        with open(path) as f:
+            cfg = yaml.safe_load(f)
+    except OSError:
+        return 1500.0, 10.0
+    c = dict(cfg)
+    c.update(cfg.get("sim", {}))
+    return float(c.get("level_us", 1500)), float(c.get("us_per_deg", 10.0))
 
 
 def diagonal(variance):
@@ -131,12 +152,16 @@ class SimPicoBridge(Node):
         self.std = [self.imu_p["orientation_std_deg"], self.imu_p["gyro_std_rad_s"],
                     self.imu_p["accel_std_m_s2"]]
         self.clamp_warned = False
+        self.servo_us = float(SERVO_BOOT_US)        # pulse being output (slews)
+        self.servo_target_us = float(SERVO_BOOT_US)
+        self.servo_level_us, self.servo_us_per_deg = servo_calibration()
 
         self.ticks_pub = self.create_publisher(Int32MultiArray, "/pico/wheel_ticks",
                                                qos_profile_sensor_data)
         self.imu_pub = self.create_publisher(Imu, "/pico/imu/data", qos_profile_sensor_data)
         self.status_pub = self.create_publisher(Int32, "/pico/drive/status", 10)
         self.twist_pub = self.create_publisher(Twist, "/sim/cmd_vel", 10)
+        self.tilt_pub = self.create_publisher(Float64, "/sim/camera_tilt", 10)
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.profile_pub = self.create_publisher(String, "/sim/profile", latched)
         self.profile_pub.publish(String(data=json.dumps(self.profile, sort_keys=True)))
@@ -155,6 +180,14 @@ class SimPicoBridge(Node):
         # robot in run 20261121_041923. Tests the route follower's sensor guard.
         self.blackout_until = -1.0
         self.create_subscription(Float32, "/sim/blackout", self.on_blackout, 10)
+        # A Pico restart on demand: /sim/restart (seconds offline). As the real firmware
+        # rebooting: the encoder counts start again from 0, the motors stop, nothing is
+        # published while it reconnects, the BNO055 heading restarts at 0 wherever the robot
+        # points and waits for the gyro calibration again, and the servo goes to its boot
+        # pulse. (Robot run 20261122_142402: a restart 2 s into the run.)
+        self.count_offset = (0, 0)
+        self.raw_counts = (0, 0)
+        self.create_subscription(Float32, "/sim/restart", self.on_restart, 10)
         self.last_loop = None
         self.create_timer(LOOP_S, self.loop)
         self.get_logger().info(
@@ -164,6 +197,19 @@ class SimPicoBridge(Node):
 
     def now(self):
         return self.get_clock().now().nanoseconds * 1e-9
+
+    def on_restart(self, msg):
+        now = self.now()
+        self.count_offset = self.raw_counts
+        self.counts = (0, 0)
+        self.ping_seq, self.echo_us = 0, 0                 # the HC-SR04 count restarts too
+        self.firmware.stop()
+        self.blackout_until = now + float(msg.data)
+        self.yaw = 0.0
+        self.start_time = now + float(msg.data)           # gyro calibration starts again
+        self.servo_target_us = self.servo_us = float(SERVO_BOOT_US)
+        self.get_logger().warn(f"Pico RESTART: offline {msg.data:.1f} s, counts from 0, "
+                               "IMU heading from 0")
 
     def on_blackout(self, msg):
         self.blackout_until = self.now() + float(msg.data)
@@ -202,8 +248,10 @@ class SimPicoBridge(Node):
         self.send_twist(left, right)
 
         self.ping(now)
+        self.update_servo(dt)
         ticks = Int32MultiArray()
-        ticks.data = [int(self.counts[0]), int(self.counts[1]), self.ping_seq, self.echo_us]
+        ticks.data = [int(self.counts[0]), int(self.counts[1]), self.ping_seq, self.echo_us,
+                      int(round(self.servo_us))]
         if now >= self.blackout_until:
             self.ticks_link.send(now, ticks)
 
@@ -239,8 +287,11 @@ class SimPicoBridge(Node):
             return
         cpr = self.profile["firmware_params"]["counts_per_rev"]
         enc = self.profile["encoder"]
-        self.counts = (round(pos["left_wheel_joint"] / (2 * math.pi) * cpr * enc["left_scale"]),
-                       round(pos["right_wheel_joint"] / (2 * math.pi) * cpr * enc["right_scale"]))
+        self.raw_counts = (
+            round(pos["left_wheel_joint"] / (2 * math.pi) * cpr * enc["left_scale"]),
+            round(pos["right_wheel_joint"] / (2 * math.pi) * cpr * enc["right_scale"]))
+        self.counts = (self.raw_counts[0] - self.count_offset[0],
+                       self.raw_counts[1] - self.count_offset[1])
 
     # ----- HC-SR04 -----
     def on_points(self, msg):
@@ -262,11 +313,23 @@ class SimPicoBridge(Node):
             r = max(0.02, r + random.gauss(0.0, self.us["noise_std_m"]))
             self.echo_us = int(round(2.0 * r / c * 1e6))
 
+    # ----- camera tilt servo (servo.c) -----
+    def update_servo(self, dt):
+        step = SERVO_SLEW_US_PER_S * min(dt, 0.1)
+        diff = self.servo_target_us - self.servo_us
+        self.servo_us += max(-step, min(step, diff))
+        tilt_deg = (self.servo_us - self.servo_level_us) / self.servo_us_per_deg
+        self.tilt_pub.publish(Float64(data=-math.radians(tilt_deg)))   # URDF: + = down
+
     # ----- BNO055 -----
     def on_std(self, msg):
         for i, value in enumerate(msg.data[:3]):
             if value > 0.0:
                 self.std[i] = float(value)
+        if len(msg.data) > 3 and msg.data[3] > 0.0:
+            us = max(SERVO_MIN_US, min(SERVO_MAX_US, int(msg.data[3] + 0.5)))
+            self.servo_target_us = float(us)
+            self.get_logger().info(f"Camera servo -> {us} us")
 
     def on_imu(self, msg):
         t = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9

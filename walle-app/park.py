@@ -38,8 +38,14 @@ BIN_TYPES = ("trash", "recycling")
 # Overflow mound: items per layer above the rim, and items spilled at the base, per level
 MOUND_LAYERS = {1: [3], 2: [4, 2], 3: [5, 3, 2]}
 LAYER_STEP_M = 0.035
-LITTER_GAP_M = (0.03, 0.12)       # gap between the bin's side and a litter item
-LITTER_SPREAD_DEG = 70.0          # litter stays within this angle of the outward direction
+LITTER_GAP_M = (0.03, 0.25)       # gap between the bin's side and a litter item
+                                  # (was 0.12: a full level-3 bin + 6 litter often ran out of room)
+LITTER_VIEW_DEG = 24.0            # litter center within this of the camera's axis at the bin
+                                  # stop (half the 60 deg view, less room for the item's size)
+LITTER_SPREAD_DEG = 80.0          # litter stays within this angle of the inward direction
+                                  # (toward the corner the robot looks from), so the robot
+                                  # can see it: before 2026-11-21 it was the OUTWARD side,
+                                  # mostly hidden behind the bin
 
 
 class ParkError(ValueError):
@@ -377,33 +383,43 @@ def build_bin(geo, park, corner, spec, seed):
     if geo.bin_shape == "cylinder":
         out["radius_m"] = geo.bin_half[0]
     taken = [(bx, by, geo.bin_inner)]
+    fwd = float((geo.camera or {}).get("forward_m", 0.0))
+    view = (cx + fwd * ux, cy + fwd * uy, yaw)        # the camera at the bin stop
     for kind, count in (("spill", (level or 1) - 1), ("litter", litter)):
         for i in range(count):
             out[kind].append(place_on_floor(geo, rng, items, f"{name}_{kind}_{i}",
-                                            (bx, by), (ux, uy), taken))
+                                            (bx, by), (ux, uy), taken, view))
     return out
 
 
-def place_on_floor(geo, rng, items, model, center, outward, taken):
-    """An item lying on the floor beside the bin, on its outward side, clear of the route,
-    the corners, the bin, and the other items."""
-    base = math.atan2(outward[1], outward[0])
-    for _ in range(500):
-        item = rng.choice(items)
-        foot = geo.footprint(item, "lying")
-        a = base + math.radians(rng.uniform(-LITTER_SPREAD_DEG, LITTER_SPREAD_DEG))
-        d = geo.bin_extent(a - base) + rng.uniform(*LITTER_GAP_M) + foot
-        x, y = center[0] + d * math.cos(a), center[1] + d * math.sin(a)
-        if geo.dist_to_route(x, y) < geo.half_width + geo.margin + foot:
-            continue
-        if geo.dist_to_nearest_corner(x, y) < geo.turn_radius + geo.margin + foot:
-            continue
-        if geo.dist_to_bin(x, y, center, base) < LITTER_GAP_M[0] + foot:
-            continue
-        if any(math.hypot(x - tx, y - ty) < tr + foot + 0.01 for tx, ty, tr in taken[1:]):
-            continue
-        taken.append((x, y, foot))
-        return geo.placed(model, item, x, y, 0.0, "lying", rng.uniform(-math.pi, math.pi))
+def place_on_floor(geo, rng, items, model, center, outward, taken, view=None):
+    """An item lying on the floor beside the bin, on the side facing the corner the robot
+    looks from (so it is in view), clear of the route, the corners, the bin, and the other
+    items. view = (x, y, heading rad) of the camera at the bin stop: the item stays within
+    LITTER_VIEW_DEG of its axis. Only if that side has no room (a bin very near its corner)
+    does the item go on the outward side, where the robot may not see it."""
+    inward = math.atan2(-outward[1], -outward[0])
+    for base, limit in ((inward, view), (inward + math.pi, None)):
+        for _ in range(500):
+            item = rng.choice(items)
+            foot = geo.footprint(item, "lying")
+            a = base + math.radians(rng.uniform(-LITTER_SPREAD_DEG, LITTER_SPREAD_DEG))
+            d = geo.bin_extent(a - base) + rng.uniform(*LITTER_GAP_M) + foot
+            x, y = center[0] + d * math.cos(a), center[1] + d * math.sin(a)
+            if geo.dist_to_route(x, y) < geo.half_width + geo.margin + foot:
+                continue
+            if geo.dist_to_nearest_corner(x, y) < geo.turn_radius + geo.margin + foot:
+                continue
+            if geo.dist_to_bin(x, y, center, base) < LITTER_GAP_M[0] + foot:
+                continue
+            if limit is not None:
+                brg = math.atan2(y - limit[1], x - limit[0]) - limit[2]
+                if abs(math.degrees(math.atan2(math.sin(brg), math.cos(brg)))) > LITTER_VIEW_DEG:
+                    continue
+            if any(math.hypot(x - tx, y - ty) < tr + foot + 0.01 for tx, ty, tr in taken[1:]):
+                continue
+            taken.append((x, y, foot))
+            return geo.placed(model, item, x, y, 0.0, "lying", rng.uniform(-math.pi, math.pi))
     raise ParkError(f"No room for {model}: too much litter for the space beside the bin.")
 
 

@@ -92,6 +92,7 @@ sim:
   camera:                     # the walle-sim camera (urdf/gazebo_car.urdf.xacro), over park.yaml's
     height_m: 0.10
     forward_m: 0.07
+    left_m: 0.0
     vertical_fov_deg: 46.8
   centering:                  # over centering: below, in Gazebo
     turn_scale: 1.0
@@ -128,3 +129,30 @@ eval:
   bin_found: 0.95             # photos with a bin in which a bin is detected
   latency_median_s: 15.0      # was 1.0 (YOLO-World alone); 2026-11-20 the user put accuracy first (VLM); confirmed by the user
   bin_distance_m: 0.755       # camera to bin center at a bin stop (0.88 - 0.125), for bin_shift_cm bearings
+
+# The bin check (ROADMAP Phase 4, detect/bin_check.py): from the level photo (litter) and
+# the up photo (camera tilted servo.yaml up_deg: what is above the rim). The bins are opaque:
+# no fill level. overflow_level = the larger of the two levels below, at most 3.
+bin_check:
+  # items seen on top -> level 1, 2, 3 (the sim's mounds: 3, 6 and 10 items, park.py)
+  count_levels: [1, 4, 7]
+  # the highest item's top this far above the rim -> level 1, 2, 3 (null = not by height).
+  # OFF: measured over 40 random mounds per level x 4 bins (2026-11-21, robot camera at
+  # 15 deg up), the top's height above the rim overlaps between levels: level 1 6.9-13.9 cm,
+  # level 2 10.2-17.6, level 3 13.2-20.5. The counts don't: 2-3, 5-6, 9-10 items seen. The
+  # height is still recorded (top_height_above_rim_m); revisit with the robot's bins.
+  height_levels_m: [null, null, null]
+  # floor items (around_bin, with a ground point) within this of the bin's sides count as
+  # litter; farther ones (bin 2's clutter by the wall) are kept in the record, not counted
+  litter_radius_m: 0.40
+  min_conf: 0.0
+  # The photos at a bin stop after centering (robot run 20261122_134315, user-approved fixes):
+  pick_max_offset_deg: 12.0     # the bin box must be this near straight ahead (a Ziploc box
+                                # beside bin 4 was taken for the bin)
+  low_conf_max_offset_deg: 8.0  # with no bin box, a faint one (low_conf) this near is the bin
+                                # (bin 3's up photo: 0.025)
+  on_top_max_gap_m: 0.10        # an item on top rests on the rim: its bottom at most this
+                                # above it (a background speck 35 cm up was "on bin 1")
+  rim_margin_frac: 0.12         # an item on top may hang this share of the bin box's height
+                                # below its top edge (soft items drape over the rim: three
+                                # scenes, 2026-11-22); at least place.rim_margin_px

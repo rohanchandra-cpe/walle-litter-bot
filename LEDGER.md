@@ -1214,3 +1214,485 @@ Work done before the ledger started, summarized from git history:
   servo changes the view that fails (items on top of a bin, at 0.88 m, under lamp light).
 - **Decisions:** ROADMAP 2026-11-21 (accuracy target carried to Phase 4).
 - **Open / next:** Phase 4 in a new session.
+
+### 2026-11-21: Phase 4 plan and build: camera tilt servo, bin check (sim)
+
+- **Phase:** 4 (Servo and bin monitoring)
+- **Branch / commit:** `walle-phase-4` (moved to `walle-phase-3` @ `177ec2b` once the other
+  session's daylight-shots commit landed; Phase 3's PR is still unmerged) @ uncommitted
+- **Asked for:** start Phase 4 from the handoff prompt. In plan mode the user approved the
+  plan (`docs/plans/phase-4-plan.md`) and said "Proceed with the plan and ask me if you
+  need anything"; the servo isn't wired or measured yet.
+- **Done:**
+  - Firmware (`walle-pilot/firmware/pico_pilot/`):
+    - `servo.c`/`servo.h`: FS5106B on GP22, 50 Hz, clamp 600–2400 µs, boot 1500 µs,
+      slew 1000 µs/s. The PWM divider comes from the system clock (150 MHz on the Pico 2 W).
+    - `pico_pilot.c`: a 4th value of `/pico/imu/std` sets the pulse; a 5th value of
+      `/pico/wheel_ticks` reads it back.
+    - `CMakeLists.txt`.
+    - Watchdog and drive code untouched.
+  - Host servo (`walle-app/servo/`):
+    - `tilt.py` (`Calibration`, `Tilt`); `servo_test.py` (sweep / `--deg` / `--us` /
+      `--stay`; `--check` against the Gazebo joint);
+    - `config/servo.yaml`: calibration values are **placeholders**; `up_deg` 15.
+  - Geometry: `Camera` has a tilt (and an optional lens-off-axis offset), plus
+    `ray` / `project` / `height_at` / `expected_box_px`. At tilt 0 the numbers are unchanged.
+    `sim_truth.py` projects with the tilt.
+  - Bin check:
+    - `detect/bin_check.py` (`judge_bin`) and `detect.yaml` `bin_check`;
+    - `route_follower.py`: after the dwell photo, tilt up → photo → analyze → judge →
+      level;
+    - `send()` refuses motion while the camera is tilted (it levels it first);
+    - writes `bin_checks.json`;
+    - `--no-tilt`, `route.yaml` `bin_check`;
+    - no servo answering → `level_only`.
+  - Memory:
+    - `route_records.py` stores judged checks (`tilt` / `level_only`);
+    - with two looks, `on_bin` comes from the up photo and `around_bin` from the level
+      photo;
+    - `schema.sql` comment and `memory/README.md` updated.
+  - Sim:
+    - `camera_tilt_joint` + JointPositionController (`walle_sim.urdf.xacro`); one line of
+      the Module 6 model changed (`camera_joint`'s parent);
+    - `/sim/camera_tilt` bridge;
+    - the simulated Pico models the servo;
+    - `sim_trials.py bin-check` / `make sim-bin-check`;
+    - scenario `bincheck.yaml`.
+  - Photo-set tools:
+    - `capture_set.py`: `look` / `tilt_deg` / `light` per shot, and prints the servo
+      command;
+    - `eval_photos.py`: tilt per photo, scores each look on the places the bin check uses,
+      `by_light` / `by_look`, `--by-light` checks;
+    - **draft** shot list `data/photos/phase4/shots.yaml` (48 shots).
+  - Tests: `walle-app/tests/test_bin_check.py` (16 tests).
+  - Docs: ROADMAP Phase 4 rewritten (overflow, not fill; boxes; 3 decision-log rows);
+    `CLAUDE.md`; the plan copied with "as built" notes.
+- **Verified:**
+  - Unit tests 99/99 OK (1 skip on the host) on the host (3.13), `walle-pilot` and
+    `walle-sim` (3.10).
+  - Firmware **compiles** cleanly (scratch build with the user's Pico SDK 2.3.1 toolchain).
+    **Not flashed, not run on the Pico.**
+  - Sim (Gazebo, `plastic_pid`, headless, RTF 1.0):
+    - `servo_test.py --sweep --sim --check` PASS: the joint is within 0.01° at −10, 0, 15
+      and 30°;
+    - rendered photos confirm the camera looks up;
+    - `make sim-bin-check DWELL=3` PASS on `mixed` (levels 1 and 3, litter, clean) and on
+      `bincheck` (level 2, litter, clean): every outcome, level and visible-litter count is
+      right, the counts reach `sim.sqlite`, and it never drove tilted;
+    - `make sim-route-check MISPLACE=12` PASS (Phase 3 centering unchanged; bin checks
+      right with misplaced bins).
+  - Eval tool smoke test on 2 Phase 3 photos in the container (runs; scores not meaningful
+    on 2 photos).
+- **Scope:**
+  - In scope, with the plan's agreed changes: distance not measured, "full" dropped.
+  - Drift (mine, reported to the user): the height-above-rim rule for the overflow level was
+    planned but is **off**. Measured over 40 sim mounds per level, it overlaps between
+    levels; the count doesn't.
+  - Found: sim litter is mostly placed behind the bins (`park.py` `LITTER_SPREAD_DEG` 70°
+    from outward), where no camera on the route can see it. `sim-bin-check` judges against
+    the visible litter. In `bincheck`, bin 2's only litter item is hidden, so the truth is
+    "litter" and the judge says "clean". Not changed: it's park.py (Phases 0–3), so I'm
+    asking the user.
+- **Decisions:** 3 rows in the ROADMAP decision log (command path and servo hardware; the bin
+  check; dropped / kept items and targets).
+- **Open / next:**
+  - User: wire the servo (5–6 V buck/UBEC, GP22, common ground), build and flash, then run
+    `servo_test.py --sweep` and calibrate `servo.yaml`: `level_us`, `us_per_deg`,
+    `min_deg` / `max_deg`, `lens_from_pivot_m`, and the camera's level position in
+    `park.yaml` if the mount moved it.
+  - Agree the tilted shot list, then take it in day and night light and score it
+    `--by-light` (also `--zoom` under the lamps).
+  - Robot bin-check runs against the user's per-bin ground truth.
+  - Decide whether sim litter should be placed where the robot can see it.
+  - Sensor guard on the robot is still unrun (from Phase 3).
+
+### 2026-11-21: Sim litter in view; camera position on the tilt mount
+
+- **Phase:** 4 (Servo and bin monitoring)
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** "Make it visible" (sim litter, which was mostly hidden behind the bins).
+  Also: the camera is the same distance forward as before, but now 12.5 cm up from the
+  ground and 1.1 cm left of the robot's center.
+- **Done:**
+  - `park.py` `place_on_floor`:
+    - spills and litter go on the corner side of the bin (within 80° of the inward
+      direction), with their center within `LITTER_VIEW_DEG` 24° of the camera's axis at
+      the bin stop;
+    - `LITTER_GAP_M` widened to 0.03–0.25 m. A full level-3 bin plus 6 litter failed on
+      98 of 200 seeds before, with the same rate in either direction; now 0 of 200;
+    - falls back to the outward side only when the corner side has no room (a cylinder bin
+      0.34 m from its corner, test_park).
+  - Camera position:
+    - `park.yaml` `robot.camera`: `height_m` 0.125 (was 0.103), `forward_m` 0.125
+      unchanged, new `left_m` 0.011;
+    - `Camera` takes `left_m` (`project`, `ground_point`, expected box);
+    - `sim_truth` uses it too; the sim camera keeps 0 (`detect.yaml` `sim.camera`);
+    - the follower's `expected_bin` bearing and distance are measured from the lens.
+  - `data/photos/phase3/camera.yaml` (10.3 cm, 0 left): `eval_photos.py` reads a set's own
+    camera file, so the Phase 3 photos keep the camera they were taken with.
+  - `analyze_bin_stop`: an item box cut off at the frame's bottom gets no `obj_xy`. In the
+    up look, litter close in front of the bin was placed 18–20 cm off; it doesn't affect
+    the counts, which come from the level photo.
+  - `sim_trials.py` bin-check now wants the full litter count (and reports how many were
+    seen). Tests:
+    - lens-offset round trip;
+    - park camera values;
+    - every floor item in view over 25 seeds × 4 bins, by the ground-truth camera;
+    - no floor position when cut at the bottom;
+    - the sim judge test uses the full litter count.
+  - ROADMAP decision row; plan "as built" note.
+- **Verified:**
+  - Unit tests 103 OK (1 skip on the host); OK in `walle-pilot` and `walle-sim` too.
+  - Sim, headless, `plastic_pid`:
+    - `make sim-bin-check DWELL=3` PASS on `mixed`: litter 3/3 and 4/4 seen and counted;
+    - PASS on `bincheck`: bin 2's single litter item is now seen and judged "litter";
+      bin 4 6/6;
+    - `make sim-route-check MISPLACE=12` PASS.
+  - The first `mixed` run after moving the litter FAILED on up-look floor positions
+    (18–20 cm); fixed as above, then PASS.
+  - Robot: nothing run (servo not yet wired).
+- **Scope:** In scope (the user's answer to the open question, and their measurement).
+- **Decisions:** litter placement and camera position (ROADMAP decision log).
+- **Open / next:**
+  - Still unknown: `servo.yaml` calibration (placeholders) and `lens_from_pivot_m`; the
+    user gave the level position only.
+  - The 12.5 cm height shifts what the level and up looks frame a little (the rim now sits
+    lower in the level photo); `up_deg` 15 stays until the robot photos show otherwise.
+  - Rest as in the previous entry.
+
+### 2026-11-21: Robot servo flashed and calibrated (first pass)
+
+- **Phase:** 4 (Servo and bin monitoring)
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** help calibrating the camera servo after wiring it.
+- **Done:**
+  - Built the firmware in the user's `build/` folder (clean; the user flashed it).
+  - `servo.yaml` (robot) set from the user's measurements: level 1640 µs; a shorter pulse
+    tilts up; 1740 µs = 10° down → `us_per_deg` −10; safe range 1000–1750 µs →
+    `min_deg` −10, `max_deg` 60.
+- **Verified:**
+  - On the robot (user): every `servo_test.py --us` move's readback matched its command
+    (800–1900 µs); the 9 V motor supply is separate from the servo's 5.7 V buck.
+  - One twitch at power-up with no signal (old firmware), then it held: normal.
+  - `us_per_deg` is NOT confirmed. The up-side reading (1440 µs = 6° up, i.e. 33 µs/deg)
+    disagrees with the down side (10 µs/deg); I took the down side, which matches the servo
+    spec. Pending check: `--deg 15` should read 15° up on the inclinometer.
+  - Unit tests OK on the host.
+- **Scope:** In scope.
+- **Decisions:** none new.
+- **Open / next:**
+  - Confirm 15° up, then:
+    - the servo box in ROADMAP Phase 4 (robot half);
+    - `lens_from_pivot_m`;
+    - robot bin-check runs.
+
+### 2026-11-21: Servo rate re-measured
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user re-measured the tilt against the floor. `--deg 15` (1490 µs, at the
+  old 10 µs/deg) read about 18° up.
+- **Done:** `servo.yaml` (robot) `us_per_deg` −8.3 (150 µs / 18°), `min_deg` −12, `max_deg`
+  70; 15° up is now 1516 µs.
+- **Verified:** mapping printed; unit tests OK. Not re-checked on the robot yet: `--deg 15`
+  should now read about 15° up.
+- **Scope:** In scope. **Decisions:** none.
+- **Open / next:**
+  - `level_us` 1640 came from the first (phone) method; re-check that 1640 µs reads 0° with
+    the floor method.
+  - Then `lens_from_pivot_m` and the robot bin-check runs.
+
+### 2026-11-21: Servo level re-measured
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user found level at 1575 µs with the floor method, and said the 15° test
+  "looks good".
+- **Done:** `servo.yaml` `level_us` 1575.
+- **Verified:** not on the robot. Inconsistent: that 15° test sent 1516 µs (still with the
+  1640 level), only 59 µs from the true level, which implies about 4 µs/deg, not the −8.3
+  in the file. The earlier 1490 µs = 18° reading also gives about 4.7. The rate stays at
+  −8.3 (marked unsettled) until a longer move is measured.
+- **Scope:** In scope. **Decisions:** none.
+- **Open / next:**
+  - The user measures the angle at 1275 µs; then set `us_per_deg` and the limits from it.
+
+### 2026-11-21: Servo calibration settled
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user measured 1275 µs (300 µs up from the 1575 µs level) at about 30°
+  up, against the floor, and sent a photo of the mount at that angle (it agrees).
+- **Done:** `servo.yaml` (robot): `level_us` 1575, `us_per_deg` −10, `min_deg` −15 (1725 µs),
+  `max_deg` 55 (1025 µs), inside the measured 1000–1750 µs range; 15° up = 1425 µs. The
+  short-move readings (4–5 µs/deg) were reading error on small angles.
+- **Verified:** mapping printed; unit tests OK. On the robot: readbacks matched every
+  command; the angles are the user's estimates. Still to see: `--deg 15` under the final
+  values reads about 15°.
+- **Scope:** In scope. **Decisions:** none.
+- **Open / next:**
+  - `lens_from_pivot_m`: from the photo the lens sits well above the servo's axis (several
+    cm), so it moves when the camera tilts; the user to measure it with the camera level.
+  - Then tick the robot half of the servo box, and the robot bin-check runs.
+
+### 2026-11-21: Lens offset from the servo axis
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user measured the lens 4 cm above the servo horn's center, its edge 1 cm
+  ahead.
+- **Done:** `servo.yaml` `lens_from_pivot_m` [0.01, 0.04].
+- **Verified:** the geometry prints the lens at 12.5 cm ahead / 12.5 cm up at level, and
+  ~1 cm farther back at 15° up; unit tests OK. Robot: not run.
+- **Scope:** In scope. **Decisions:** none.
+- **Open / next:** `--deg 15` check on the robot, then the full route with the bin check.
+
+### 2026-11-21: Robot servo box ticked
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user confirmed `--deg 15` reads about 15° up, and asked what overflow
+  levels 0–3 mean before setting the scene for the first robot bin-check run.
+- **Done:** ROADMAP Phase 4: the servo box ticked (sim and robot).
+- **Verified:** user's measurement on the robot (about 15°, against the floor).
+- **Scope:** In scope. **Decisions:** none.
+- **Open / next:** the user's robot run with the bin check, with ground truth noted per bin.
+
+### 2026-11-22: First robot run with the bin check (20261122_134315)
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user ran the route with the bin check and gave the ground truth:
+  - bin 1 clean;
+  - bin 2: 1 item on top;
+  - bin 3: 2 on top (plastic bag, foil) and 3 around (paper towel, yogurt lid, plastic bag);
+  - bin 4: 1 on top (cardboard box) and 3 around (box, plastic bottle, plastic wrapping).
+  Also asked why `results/detect/` has no folder: only `eval_photos.py` writes there; a
+  route run keeps its detections in its own folder.
+- **Done:** scored the run (no code changed). The results were written only after the user
+  answered the end-of-run measurement prompts (the follower was waiting there).
+- **Verified (robot):**
+  - Route: done, all 4 bins centered, end error measured 0 cm. A 1.85 s sensor gap was
+    handled by the guard. 13 tilt moves all reached their target; never drove tilted.
+    HC-SR04 `echo_us` −2 throughout (no response, as before).
+  - Bin checks:
+
+    | Bin | Truth | Judged | Right? |
+    |---|---|---|---|
+    | 1 | clean | overflowing L1 | wrong: a 17×19 px background box, 35 cm above the rim, called a paper bag on top |
+    | 2 | L1 | overflowing L1, top 1 | right |
+    | 3 | overflowing L1, 2 on top, 3 litter | litter L0, litter 2 | wrong: up-photo bin only at conf 0.025, dropped, so its items were all around_bin; yogurt lid missed |
+    | 4 | overflowing L1, 1 on top, 3 litter | overflowing L1, top 1, litter 1 | outcome right; bottle cut at frame bottom gets no floor position (my 2026-11-21 rule); clear wrapping not detected |
+
+  - Outcome 2/4 = 0.50 (target 0.80: FAIL); level within ±1 4/4; litter within ±1 3/4.
+  - Bin 4's level photo took the Ziploc box for the bin (the real bin, partly hidden by the
+    bottle, wasn't detected).
+  - Diagnostic: the distance from bin width is 0.57–0.83 m vs 0.757 expected.
+- **Scope:** In scope (Phase 4 robot check).
+- **Decisions:** none yet. Proposed to the user:
+  1. accept a low-confidence bin of plausible size near straight ahead in the up look;
+  2. on_bin only when the item rests on the rim (bottom ≤ ~10 cm above it);
+  3. count bottom-cut floor items in front of the bin as litter;
+  4. prefer bin boxes near straight ahead after centering.
+- **Open / next:** the user's answer on the fixes; then sim + replay on this run's photos,
+  and another robot run.
+
+### 2026-11-22: Bin-stop judging fixes from the first robot run
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** "Yes, all four" (the fixes proposed after run 20261122_134315).
+- **Done:**
+  - `geometry.analyze_bin_stop` takes `stop=` for the bin-check photos (not centering, not
+    the Phase 3 eval), with settings in `detect.yaml` `bin_check`:
+    1. a faint bin box (low_conf) within `low_conf_max_offset_deg` 8° is the bin when none
+       passed;
+    2. an on_bin item must rest on the rim: its bottom ≤ `on_top_max_gap_m` 0.10 m above it,
+       otherwise `ignored`;
+    3. an around_bin item cut at the frame's bottom gets the frame-bottom floor point
+       (`obj_xy_from: frame_bottom`), only when that row is nearer than the bin (level look);
+    4. bin boxes only within `pick_max_offset_deg` 12° of straight ahead.
+  - The follower passes `stop=` for the level and up looks and records `ignored` in
+    `detections.json`.
+  - New `detect/replay_bin_checks.py`: re-judges a run's saved detections with the current
+    rules, against `--truth`.
+  - Sim harness: skips frame-bottom estimates in its floor-position check.
+  - 4 unit tests, built on this run's real boxes.
+  - CLAUDE.md layout; ROADMAP decision row.
+- **Verified:**
+  - Replay of 20261122_134315: outcome 4/4 (run: 2/4); levels all exact.
+    - bin 1: speck ignored (32 cm above the rim) → clean;
+    - bin 3: faint up-look bin (0.025) → overflowing, 2 on top;
+    - bin 4: bottle counted → litter 2 of 3.
+    - Litter is still 2/3 on bins 3 and 4 (yogurt lid, clear wrapping: detector misses).
+    - Saved detections only, the detector not re-run.
+  - Unit tests 107 OK (host; both containers OK).
+  - Sim: `sim-bin-check` PASS on `bincheck` (before fix 4's final form) and on `mixed`
+    (after); `sim-route-check MISPLACE=12` PASS.
+  - Found and fixed on the way: fix 4 first measured "near" from the configured bearing,
+    which threw out every real bin when bins were misplaced (MISPLACE=12 FAIL, 10
+    problems). It now measures from straight ahead (`stop.ahead_deg`, default 0).
+  - Robot: not re-run.
+- **Scope:** In scope.
+- **Decisions:** the four rules (ROADMAP decision log, 2026-11-22).
+- **Open / next:** a second robot run to check the rules live; the detector misses (clear
+  plastic, flat lids) belong to the item-accuracy box (tilted photo set).
+
+### 2026-11-22: Second robot run (20261122_142402): bin 2 missed, start-of-run veer
+
+- **Phase:** 4 (and Phase 1 route robustness)
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user ran again with the same scene; replay showed 3/4 outcomes right.
+  The robot "veered right" on the first side and ended 23 cm right of the start, a first.
+- **Done:** analysis only (no code changed).
+- **Verified (robot):**
+  - Score: outcome 3/4 = 0.75 (target 0.80); level within ±1 4/4; litter within ±1 4/4
+    (bin 3 2/3, bin 4 3/3).
+  - Bin 2 judged clean: the bag on top hangs over the front of the rim, its box bottom 23 px
+    below the bin box's top (margin 8 px), so it was around_bin. Same pattern as run 1's
+    bin 3 level photo (9.5 px). The robot was ~0.42 m from bin 2 (box 364 px wide vs ~200
+    expected) because of the offset below.
+  - Veer:
+    - In the first 0.5 s of driving, the fused estimate moved +0.40 m sideways (y) with its
+      heading at 0° and the wheels moving 7 cm forward: an impossible 0.8 m/s. A glitch,
+      not motion. The follower steered right to "get back", and the wheel odometry shows the
+      real path ending 23 cm right of the line, kept for the whole lap.
+    - Trigger: the Pico opened a NEW micro-ROS session at 14:24:04.99, 2.3 s after the
+      follower started (the only other one today was at 13:43:04, the power-up before run
+      1). `wheel_odometry` logged "Encoder counts jumped (Pico restarted?)" at 14:24:05.2.
+    - Sensor guard: one 0.48 s gap; the repair moved 0 cm.
+    - The exact path from restart to a 40 cm EKF step isn't pinned down from the logs.
+- **Scope:** In scope (robot check); the veer is Phase 1 robustness found in Phase 4.
+- **Decisions:** none yet. Proposed:
+  1. on_bin margin relative to the bin box (~12% of its height) for overhanging items;
+  2. the follower refuses to start or re-anchors when the Pico restarts;
+  3. an estimate-jump guard: fused motion far beyond what the wheels and the speed allow →
+     stop and repair from the wheels.
+- **Open / next:** ask the user whether the Pico was reset or power-bumped at the start.
+
+### 2026-11-22: Pico-restart and estimate-jump guards (route follower)
+
+- **Phase:** 1 robustness, found in Phase 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** "I like fixes 2 and 3". On fix 1 (the overhang margin) the user was concerned
+  about rules hyper-specific to the current scene. Answered: fix 1 is geometry, not tied to
+  item counts, but the real risk is checking rules on the scene they were tuned on. Fix 1
+  is held back; future runs vary the setup with the rules frozen, scored with the replay
+  tool (and the tilted photo set).
+- **Done:**
+  - `route_geometry.py`: `estimate_jump` (fused vs wheel motion over a window) and
+    `pico_restarted` (ping_seq goes backwards, or the counts jump > 20000).
+  - `route_follower.py`:
+    - restart detection on each tick, recorded as a sensor gap;
+    - while running: stop, `wait_settled` (2 s fresh), repair from the wheels;
+    - during the start hold: take the start pose again (up to 3 tries);
+    - `check_jump` every 0.25 s while moving: > 5 cm or > 20° more than the wheels → stop
+      and repair from the wheels over that window;
+    - `summary.json` `pico_restarts_s`, `estimate_jumps`;
+    - settings in `route.yaml` `sensor_guard`.
+  - walle-sim:
+    - `/sim/restart` in `sim_pico_bridge.py` (counts and ping_seq from 0, offline, IMU
+      heading from 0, calibration again, servo to boot);
+    - `harness/jump_ekf.py` (shifts the EKF via `/set_pose`);
+    - `route-check --restart AT FOR` / `--jump AT DY`, `make ... RESTART= JUMP=`.
+  - Tests: 4 guard tests. CLAUDE.md commands; ROADMAP decision row.
+- **Verified:**
+  - Unit tests 111 OK (host, both containers).
+  - Sim (`mixed`, `plastic_pid`):
+    - `RESTART="5 2"` (during the start hold): detected, start pose retaken, PASS (3.9 cm);
+    - `RESTART="13 2"` (driving): detected, stopped 2.0 s, repaired, PASS (1.3 cm);
+    - `JUMP="13 0.30"`: caught (29 cm), repaired 30 cm, PASS (0.8 cm);
+    - no false alarms with `MISPLACE=12`, `COAST=0.35`, `BLACKOUT="20 1.5"` and
+      `sim-bin-check`, all PASS.
+  - First try of restart detection by counts alone MISSED a restart early in a session
+    (counts still small); fixed with ping_seq. The firmware bumps ping_seq for every ping,
+    answered or not, so it works with the robot's silent HC-SR04.
+  - Offline replay of the jump test on robot trajectories:
+    - run 20261122_134315: no alarms (max excess 1 cm / 4°);
+    - run 20261122_142402: alarm at 10.4 s (28 cm), 0.3 s into the drive;
+    - run 20261121_041923: alarms at 115–119 s, the Wi-Fi ghost spin (a true glitch).
+  - Robot: not run with the guards yet. Why the restart produced a 40 cm EKF step is still
+    not pinned down.
+- **Scope:** Drift (agreed): Phase 1 robustness during Phase 4.
+- **Decisions:** ROADMAP decision log, 2026-11-22 (guards; fix 1 held back).
+- **Open / next:**
+  - Robot run with the guards and a varied scene (rules frozen), scored with
+    `replay_bin_checks.py`.
+  - Ask the user whether the Pico was reset or power-bumped at the start (possible brownout).
+
+### 2026-11-22: Third robot run (20261122_145845): new scene, rules frozen
+
+- **Phase:** 4
+- **Branch / commit:** `walle-phase-4` @ uncommitted
+- **Asked for:** the user ran a new scene with the rules unchanged:
+  - bin 1: 2 on top;
+  - bin 2: 1 litter (a milk jug);
+  - bin 3: 3 on top, 3 litter;
+  - bin 4: 6 on top. Backlit plastic wrapping; a shampoo bottle hidden behind the foil and
+    tissue box. The user notes a robot that drove around the bin would see more, but there's
+    no time to build that.
+- **Done:** analysis only. A throwaway trial of the held-back fix 1 (overhang margin) on all
+  three runs; no code changed.
+- **Verified (robot):**
+  - Route: done, end measured 0 cm, no veer. No Pico restarts, no estimate jumps; one 0.88 s
+    Wi-Fi gap handled.
+  - Score: outcome 3/4 (bin 2's litter missed); level within ±1 4/4; litter within ±1 3/4
+    (bin 3: 1 of 3).
+  - Why:
+    - bin 2: the jug's box covered only its top 70 px, so it floated above the horizon with
+      no floor point (a detector box error);
+    - bin 3: the green bag on the floor wasn't detected (it was in run 1), the flat lid
+      missed, and 3 items on top came back as one box;
+    - bin 4: 2 of 6 on top seen (the foil ball and backlit wrapping missed, the shampoo
+      hidden); L1 vs L2, within ±1;
+    - bin 1: the paper towel on the rim overhangs 18–23 px, so it was around_bin. The fix 1
+      case on a THIRD scene with a different item.
+  - Overall:
+    - runs 2–3, rules frozen after run 1: outcome 6/8 = 0.75 (below 0.80), level ±1 8/8,
+      litter ±1 7/8;
+    - all three with today's rules: 10/12 = 0.83 (run 1 is what the rules were tuned on).
+  - Fix 1 trial (margin max(8 px, 12% of the bin box height)): run 3 bin 1's on-top count
+    becomes exact (2); no outcome changes and no regressions across the three runs.
+  - Run 2's bin 2 stays wrong under fix 1: the robot was 23 cm off, so the rests-on-rim
+    height (which uses the planned distance) read 13 cm. The jump guard targets that offset.
+- **Scope:** In scope.
+- **Decisions:** none yet. Fix 1 has evidence from a scene it wasn't tuned on; asking the user.
+  The robot accuracy box stays open; ROADMAP notes the numbers.
+- **Open / next:**
+  - Decide fix 1.
+  - Most remaining misses are detector misses: Phase 3's item-accuracy box and the tilted
+    photo set.
+  - Scoring note: items no camera at the stop can see (bin 4's shampoo) count against the
+    robot; the user may want to score against visible items.
+
+### 2026-11-22: Overhang fix; Phase 4 closed; commit
+
+- **Phase:** 4 → 5
+- **Branch / commit:** `walle-phase-4` (the Phase 4 commit; the user opens the PRs, phase 3
+  first)
+- **Asked for:** "apply the fix, and then commit the changes to Phase 4". Before that the
+  user judged the camera close to its limit and asked whether to call it good enough and
+  move on (agreed).
+- **Done:**
+  - Fix 1: in the bin-check photos an item may hang `bin_check.rim_margin_frac` 0.12 of the
+    bin box's height below its top edge and still be on the bin (at least the old 8 px);
+    one unit test from run 3's real boxes. Phase 3's rule (eval, centering) is unchanged.
+  - ROADMAP:
+    - Phase 4 ✅ closed with recorded limits;
+    - robot bin-check box accepted below target (0.75 fair / 0.83 all);
+    - item accuracy (tilted photo set) deferred;
+    - decision row.
+- **Verified:**
+  - Unit tests 112 OK (host, both containers).
+  - `make sim-bin-check` PASS (`mixed`).
+  - Replays:
+    - run 3: bin 1's on-top count is now exact (2); outcomes 3/4;
+    - runs 1 and 2 unchanged (4/4, 3/4).
+- **Scope:** In scope. Phase 4's two unmet boxes are closed by the user's decision, not met.
+- **Decisions:** Phase 4 closed with limits (ROADMAP decision log).
+- **Not committed, on purpose:**
+  - the user's handoff-doc moves (`docs/handoff/` deletions and the `phase*-to-phase*`
+    folders);
+  - `walle-app/data/photos/_props.jpg`;
+  - the CLIP weight copies, `.DS_Store`, `.vscode/`.
+- **Open / next:** the user merges Phase 3, then Phase 4; then Phase 5 (start in plan mode).

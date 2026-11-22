@@ -1,0 +1,10 @@
+# Phase 4 bin check, with `mixed` covering the rest: overflow level 2, litter alone (one
+# item and the most allowed), and a clean bin. mixed has levels 1 and 3, litter with and
+# without overflow, and clean bins.
+bins:
+  1: {state: overflowing, level: 2}
+  2: {state: ok, litter: 1}
+  3: {state: ok}
+  4: {state: ok, litter: 6}
+obstacle: none
+seed: 11
