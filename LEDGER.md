@@ -2157,3 +2157,36 @@ Work done before the ledger started, summarized from git history:
   - If the bag has been picked up, the store still lists it until a lap drives side 2
     without seeing it.
   - Phase 6 (the WALL-E ROSA agent) starts in plan mode on `walle-phase-6`.
+
+### 2026-11-23: Phase 5 → 6 handoff documents
+
+- **Phase:** 5 → 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted (after `bd1614e`)
+- **Asked for:** "create a summary of what we did in this session, and a handoff document
+  for the agent … that will be executing Phase 6", structured like the earlier handoffs.
+- **Done:**
+  - `docs/handoff/phase5-to-phase-6/session-2026-11-22-summary.md`: branch state,
+    decisions, what was built, results (sim, detector eval, the nine robot runs), the
+    memory cleanup, gotchas, open items.
+  - `docs/handoff/phase5-to-phase-6/phase-6-prompt.md`: orientation, branch, what Phase 6
+    must deliver, the code it builds on, real-world conditions, eight open decisions for
+    plan mode, how to work.
+    - The code it builds on: the existing ROSA agents and approval, the route follower as
+      a CLI (no single-bin mode), `/detect/ask`, the store's read queries and both
+      stores' contents, the sim checks.
+- **Verified (facts in the prompt, checked against the code and the stores):**
+  - ROSA agent settings (`range_agent.py`, `ChatOllama` in the others);
+  - `odom_tools._approved`;
+  - the follower's flags (`--bins`, `--no-measure`, …) and `/walle/route/status`;
+  - `detect_node.py` and `camera_node.py` topics;
+  - the store read API;
+  - store counts (robot 20 runs / 6 obstacles, current: the plastic bag on side 2; sim
+    74 runs / 28 obstacles);
+  - the Ollama models on the host (`qwen3.5:4b`, `gemma4`, `llama3.2`,
+    `nomic-embed-text`);
+  - 134 unit tests (host).
+  - Nothing run on the robot or in the sim.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** Phase 6 starts in plan mode from the prompt. The handoff folder and this
+  entry are uncommitted until the user says.
