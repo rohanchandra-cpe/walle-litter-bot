@@ -6,7 +6,7 @@ SVC     := pilot
 .DEFAULT_GOAL := help
 .PHONY: help up build down restart shell launch fake logs agent-logs ps \
         sim-up sim-build sim-down sim-shell sim-launch sim-check sim-worlds \
-        sim-park sim-park-check sim-route-check sim-bin-check detect-eval
+        sim-park sim-park-check sim-route-check sim-bin-check sim-obstacle-check detect-eval
 
 # Gazebo simulator (walle-sim/README.md): a separate Compose project and ROS domain
 SIM_COMPOSE := docker compose -f docker-compose.sim.yml
@@ -28,6 +28,8 @@ HIDE_CUT ?=
 BLACKOUT ?=
 RESTART  ?=
 JUMP     ?=
+RUNS     ?=
+CASES    ?=
 MODEL    ?=
 
 help:
@@ -54,6 +56,7 @@ help:
 	@echo "make sim-park-check  world park: every bin/item/obstacle in place? LOOK_AT=\"bin_2 obstacle\" saves photos"
 	@echo "make sim-route-check  world park: drive the route (LAPS=1 DWELL=s COAST=s MISPLACE=deg HIDE_CUT=1 BLACKOUT="every_s for_s"), PASS if it ends within 5 cm"
 	@echo "make sim-bin-check  world park, Phase 4: servo sweep + route-check with every bin check judged against the world (same options)"
+	@echo "make sim-obstacle-check  Phase 5: launches each obstacle case headless (no launch may be running), PASS if 9 of 10 pass (RUNS=n CASES=\"near lying\")"
 	@echo "make sim-worlds  regenerate walle-sim/worlds/*.sdf after editing generate_worlds.py"
 	@echo "make sim-down    stop the simulator"
 	@echo "Desktop: http://localhost:6080/vnc.html"
@@ -119,6 +122,10 @@ sim-route-check:
 
 sim-bin-check:
 	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) bin-check --laps $(LAPS) $(if $(DWELL),--dwell $(DWELL)) $(if $(COAST),--coast-time $(COAST)) $(if $(MISPLACE),--misplace-deg $(MISPLACE)) $(if $(HIDE_CUT),--hide-cut-bins) $(if $(BLACKOUT),--blackout $(BLACKOUT)) $(if $(RESTART),--restart $(RESTART)) $(if $(JUMP),--jump $(JUMP))"
+
+# Phase 5: obstacle cases, one headless world each (walle-sim/harness/obstacle_trials.py)
+sim-obstacle-check:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/obstacle_trials.py $(if $(RUNS),--runs $(RUNS)) $(if $(CASES),--only $(CASES))"
 
 # Phase 3: score YOLO-World on the labeled ESP32-CAM photos (walle-app/data/photos/phase3/)
 detect-eval:

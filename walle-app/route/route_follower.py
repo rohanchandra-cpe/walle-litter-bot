@@ -38,6 +38,7 @@ import os
 import sys
 import threading
 import time
+from collections import deque
 from datetime import datetime, timezone
 
 APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,11 +48,16 @@ sys.path[:0] = [APP_DIR, os.path.dirname(os.path.abspath(__file__)),
 
 import yaml  # noqa: E402
 
+import obstacle as ob  # noqa: E402
 import park  # noqa: E402
 import route_geometry as rg  # noqa: E402
 
 ROUTE_CONFIG = os.path.join(APP_DIR, "config", "route.yaml")
 SIM_ROBOT = "walle"          # the robot's model name in walle-sim
+
+
+class ObstacleBlocked(RuntimeError):
+    """No way around an obstacle (Phase 5 fallback): the run stops with status 'blocked'."""
 
 
 def load_config(path=ROUTE_CONFIG):
@@ -105,6 +111,14 @@ def make_follower_class():
             self.last_level = None           # (analysis, photo) of the last level look
             self.tilt_guard = []             # motion refused because the camera was tilted
             self.last_echo_us = None         # HC-SR04, /pico/wheel_ticks [3] (diagnostic)
+            # Phase 5: obstacles (route/obstacle.py, route.yaml obstacle); setup_obstacles()
+            self.oc, self.obs_on, self.robot = None, False, None
+            self.pings = deque(maxlen=64)    # (ping_seq, echo_us) of each finished ping
+            self.obstacles = []              # one record per obstacle met -> obstacles.json
+            self.obstacle_looks = []         # every obstacle look (photo + what was in it)
+            self.side_known = []             # obstacles the corner look found on this side
+            self.sides_done = []             # sides driven with obstacle watching on
+            self.truth_obstacle = None       # Gazebo: where the obstacle really is
             # Sensor guard: when each Pico stream last arrived, the gaps seen, the waits made
             self.guard = cfg.get("sensor_guard", {"enabled": False})
             self.last_seen = {}              # topic -> monotonic time of the last message
@@ -129,6 +143,9 @@ def make_follower_class():
         def _on_ticks(self, msg):
             if len(msg.data) >= 4:
                 self.last_echo_us = int(msg.data[3])
+                seq = int(msg.data[2])
+                if not self.pings or self.pings[-1][0] != seq:
+                    self.pings.append((seq, self.last_echo_us))
             if len(msg.data) >= 2:
                 counts = tuple(int(v) for v in msg.data[:3])
                 if rg.pico_restarted(self.last_counts, counts,
@@ -397,19 +414,27 @@ def make_follower_class():
                     time.sleep(period)
 
         # ----- moves -----
-        def drive_side(self, a, b, heading):
+        def drive_side(self, a, b, heading, learn=True, watch=None):
             """Follow the side a -> b and stop on b. If the robot ends more than
-            correct_tol_m past (or short of) b, creep back (or on) along the side."""
+            correct_tol_m past (or short of) b, creep back (or on) along the side.
+            watch(pose, remaining) (Phase 5, the sonar): a non-None result stops the robot
+            where it is and is returned; else None."""
             sc = self.cfg["side"]
-            self.side_leg(a, b, heading, follow_line=True, learn=True)
+            hit = self.side_leg(a, b, heading, follow_line=True, learn=learn, watch=watch)
+            if hit:
+                return hit
             for _ in range(sc["max_corrections"]):
                 _, remaining, _ = rg.side_progress(self.park_pose(), a, b)
                 if abs(remaining) <= sc["correct_tol_m"]:
                     break
                 self.corrections += 1
-                self.side_leg(a, b, heading, follow_line=False, learn=False)
+                hit = self.side_leg(a, b, heading, follow_line=False, learn=False,
+                                    watch=watch if remaining > 0 else None)
+                if hit:
+                    return hit
+            return None
 
-        def side_leg(self, a, b, heading, follow_line, learn):
+        def side_leg(self, a, b, heading, follow_line, learn, watch=None):
             sc, cc = self.cfg["side"], self.cfg["coast"]
             max_corr = math.radians(sc["max_correction_deg"])
             end = time.time() + sc["timeout_s"]
@@ -430,6 +455,12 @@ def make_follower_class():
                 if sign * remaining <= sc["tolerance_m"] + self.lead(0, sign):
                     v_stop = abs(v_now)
                     break
+                hit = watch(p, remaining) if (watch and sign > 0) else None
+                if hit:
+                    self.stop()
+                    self.settle()
+                    print(f"  SONAR: something {hit['range_m'] * 100:.0f} cm ahead, stopped")
+                    return hit
                 v = sign * rg.clamp(sc["speed_gain"] * abs(remaining), sc["min_speed_mps"],
                                     sc["max_speed_mps"])
                 # Short corrections (and backing up) hold the side's heading only
@@ -448,6 +479,7 @@ def make_follower_class():
             if learn and cc["adapt"] and v_stop > 0.03:
                 self.coast_side = rg.clamp(self.coast_side + cc["adapt_gain"] * over / v_stop,
                                            0.0, cc["max_s"])
+            return None
 
         def turn_to(self, heading):
             """Turn in place to an absolute park heading, then correct a miss larger than
@@ -633,10 +665,21 @@ def make_follower_class():
             bins = {b["name"]: b for b in self.layout["bins"]}
             for i, step in enumerate(steps):
                 kind = step[0]
-                if kind == "drive":
+                if kind == "look_side":
+                    _, c_from, c_to, a, b, heading = step
+                    print(self.fmt(self.report(state="looking", step=i, corner=c_from)))
+                    try:                        # a look must never abort the drive
+                        self.look_side(i, c_from, a, b, heading)
+                    except Exception as e:      # noqa: BLE001
+                        self.side_known = []
+                        self.level_camera()
+                        print(f"  obstacle look on side {c_from} failed: {e}")
+                elif kind == "drive":
                     _, c_from, c_to, a, b, heading = step
                     print(self.fmt(self.report(state="driving", step=i, corner=c_to)))
-                    self.drive_side(a, b, heading)
+                    self.drive_with_obstacles(i, c_from, a, b, heading)
+                    if self.obs_on:
+                        self.sides_done.append(c_from)
                     snap = self.snapshot()
                     ev = {"step": i, "event": "arrived", "t_utc": utc_now(), "corner": c_to,
                           "target": list(b),
@@ -1000,6 +1043,344 @@ def make_follower_class():
                     rg.wrap(bearing - math.radians(g[2]))), 2)
             return ev
 
+        # ----- Phase 5: obstacles on the sides (route/obstacle.py) -----
+        def setup_obstacles(self):
+            """route.yaml obstacle (+ its sim overrides in Gazebo) and the robot footprint."""
+            oc = dict(self.cfg.get("obstacle") or {})
+            if self.in_sim:
+                oc.update(oc.get("sim") or {})
+            self.oc = oc
+            self.obs_on = bool(oc.get("enabled"))
+            r = park.load_yaml(park.PARK_FILE)["robot"]
+            self.robot = {k: float(r[k]) for k in ("half_width_m", "turn_radius_m", "margin_m")}
+
+        def sonar_watch(self):
+            """A fresh sonar trigger for one move (None when obstacles are off)."""
+            if not self.obs_on:
+                return None
+            trig = ob.SonarTrigger(self.oc, self.oc["sensor_forward_m"])
+            self.pings.clear()
+
+            def watch(pose, remaining):
+                while self.pings:
+                    _, echo = self.pings.popleft()
+                    r = trig.feed(echo, remaining)
+                    if r is not None:
+                        return {"range_m": round(r, 4), "echo_us": echo,
+                                "pose": [round(pose[0], 4), round(pose[1], 4),
+                                         round(math.degrees(pose[2]), 2)],
+                                "t_s": round(time.monotonic() - self.t_start, 2)}
+                return None
+            return watch
+
+        def obstacle_photo(self, name):
+            """Tilt the camera down (if there is a servo), one photo, detect, level again.
+            Returns (look, None) or (None, error); look has the photo, the detector result,
+            the Camera of the photo and the pose it was taken from."""
+            tilt_used = 0.0
+            try:
+                if self.tilt is not None:
+                    tilt_used = self.tilt.set(float(self.oc["look_tilt_deg"]))
+                shot, error = self.up_photo(name)
+                if not shot:
+                    return None, error
+                pose = self.park_pose()
+                with open(os.path.join(self.run_dir, shot), "rb") as f:
+                    res = self.detector.detect(f.read(), keep_low=True)
+                return {"photo": shot, "res": res, "tilt_deg": tilt_used, "pose": pose,
+                        "cam": self.camera_model(res["size"], tilt_used)}, None
+            except Exception as e:              # noqa: BLE001 (the drive goes on)
+                return None, str(e)
+            finally:
+                self.level_camera()
+
+        def look_items(self, look, a, b, here_along):
+            """The items in an obstacle look, placed on the floor, and whether each is in
+            the way on the side a -> b ahead of here_along."""
+            edge = (self.detect_cfg or {}).get("centering", {}).get("edge_px", 4)
+            out = []
+            for d in look["res"]["detections"]:
+                if d["kind"] != "item":
+                    continue
+                fp = ob.footprint_from_box(d["bbox"], look["cam"], look["pose"], self.oc, edge)
+                if fp is None:
+                    continue
+                blocks, along, cross = ob.blocks_side(fp["center"], fp["radius_m"], a, b,
+                                                      self.robot, here_along)
+                # the size floor uses the width as seen, not the clamped radius
+                small = fp["width_m"] < float(self.oc.get("min_size_m", 0.0))
+                out.append({"label": d["label"], "category": d.get("category") or "unknown",
+                            "conf": d.get("conf"), "bbox": d["bbox"],
+                            "center": [round(v, 4) for v in fp["center"]],
+                            "radius_m": fp["radius_m"], "width_m": fp["width_m"],
+                            "dist_m": fp["dist_m"], "cut": fp["cut"],
+                            "along": round(along, 4), "cross": round(cross, 4),
+                            "blocks": blocks and not small, "small": small,
+                            **{k: d[k] for k in ("vlm_name", "vlm_description") if d.get(k)},
+                            **({"truth": d["truth"]} if d.get("truth") else {})})
+            return out
+
+        def rejected_boxes(self, look):
+            """What the detector dropped in a look (not_trash, tape, low score), with the
+            model's own words, for diagnosing a look later."""
+            return [{k: d[k] for k in ("label", "bbox", "vlm_name", "vlm_description",
+                                       "rejected_by", "conf") if d.get(k) is not None}
+                    for d in look["res"].get("low_conf", []) if d.get("kind") == "item"]
+
+        def pose_deg(self, p):
+            return [round(p[0], 4), round(p[1], 4), round(math.degrees(p[2]), 2)]
+
+        def new_obstacle(self, i, side, found_by, item=None, look=None):
+            """A record for obstacles.json, from a look's item (camera) or none (sonar)."""
+            rec = {"id": len(self.obstacles) + 1, "step": i, "side": side, "t_utc": utc_now(),
+                   "found_by": found_by, "label": "unknown", "category": "unknown",
+                   "conf": None, "radius_m": float(self.oc["default_radius_m"]),
+                   "obj_xy": None, "position_source": None, "camera_xy": None,
+                   "camera_cut": None, "sonar_xy": None, "sonar": None, "along": None,
+                   "cross": 0.0, "photo": look["photo"] if look else None,
+                   "pose": self.pose_deg(look["pose"]) if look else None,
+                   "action": None, "detour": None, "confirmed": True}
+            if item:
+                rec.update({"label": item["label"], "category": item["category"],
+                            "conf": item["conf"], "radius_m": item["radius_m"],
+                            "camera_xy": item["center"], "camera_cut": item["cut"],
+                            "obj_xy": item["center"], "position_source": "camera",
+                            "along": item["along"], "cross": item["cross"],
+                            "bbox": item["bbox"], "vlm_name": item.get("vlm_name"),
+                            "vlm_description": item.get("vlm_description")})
+            if self.truth_obstacle:
+                t = self.truth_obstacle
+                rec["truth"] = {"item": t["item"], "side": t["side"], "at": t["at"],
+                                "position": t["position"][:2]}
+            self.obstacles.append(rec)
+            return rec
+
+        def look_side(self, i, side, a, b, heading):
+            """Phase 5 corner look: standing on the side's first corner, facing along it,
+            look down the side (camera tilted down) for items in the way."""
+            self.side_known = []
+            if not (self.obs_on and self.detector):
+                return
+            look, error = self.obstacle_photo(f"side{side}_step{i}_look")
+            rec = {"step": i, "side": side, "kind": "corner_look", "t_utc": utc_now()}
+            self.obstacle_looks.append(rec)
+            if look is None:
+                rec["error"] = error
+                print(f"  side {side} look: no photo ({error}); the sonar still watches")
+                return
+            here = rg.side_progress(look["pose"], a, b)[0]
+            items = self.look_items(look, a, b, here)
+            rec.update({"photo": look["photo"], "tilt_deg": round(look["tilt_deg"], 2),
+                        "pose": self.pose_deg(look["pose"]),
+                        "seconds": look["res"]["seconds"], "items": items,
+                        "rejected": self.rejected_boxes(look)})
+            trust = float(self.oc.get("trust_range_m", 99.0))
+            for it in items:
+                if it["blocks"]:
+                    o = self.new_obstacle(i, side, "look", it, look)
+                    o["confirmed"] = it["dist_m"] <= trust
+                    self.side_known.append(o)
+            print(f"  side {side} look: " + (", ".join(
+                f"{o['label']} at {o['along']:.2f} m (r {o['radius_m'] * 100:.0f} cm"
+                + (", cut off" if o["camera_cut"] else "")
+                + ("" if o["confirmed"] else ", far: look again from closer") + ")"
+                for o in self.side_known) or "clear") + f"  [{look['res']['seconds']:.2f} s]")
+
+        def relook(self, i, side, a, b, pending, n):
+            """Closer look at unconfirmed obstacles (far ones from the corner look). They are
+            dropped (action not_confirmed); what this look finds in the way replaces them,
+            confirmed if within trust_range_m. No photo: they are taken as confirmed."""
+            trust = float(self.oc.get("trust_range_m", 99.0))
+            merge = float(self.oc["merge_m"])
+            old = [o for o in pending if not o.get("confirmed", True)]
+            look, error = self.obstacle_photo(f"side{side}_step{i}_relook{n}")
+            rec = {"step": i, "side": side, "kind": "relook", "t_utc": utc_now(),
+                   "checking": [o["id"] for o in old]}
+            self.obstacle_looks.append(rec)
+            if look is None:
+                rec["error"] = error
+                for o in old:
+                    o["confirmed"] = True
+                print(f"  re-look: no photo ({error}); acting on the corner look")
+                return
+            here = rg.side_progress(look["pose"], a, b)[0]
+            items = self.look_items(look, a, b, here)
+            rec.update({"photo": look["photo"], "tilt_deg": round(look["tilt_deg"], 2),
+                        "pose": self.pose_deg(look["pose"]),
+                        "seconds": look["res"]["seconds"], "items": items,
+                        "rejected": self.rejected_boxes(look)})
+            for o in old:
+                pending.remove(o)
+                o["action"] = "not_confirmed"
+            found = []
+            for it in items:
+                if not it["blocks"]:
+                    continue
+                if any(abs(p["along"] - it["along"]) <= merge + p["radius_m"]
+                       for p in pending):
+                    continue                     # a confirmed one already has it
+                o = self.new_obstacle(i, side, "relook", it, look)
+                o["confirmed"] = it["dist_m"] <= trust
+                pending.append(o)
+                found.append(o)
+            pending.sort(key=lambda r: r["along"])
+            print(f"  re-look ({', '.join(o['label'] for o in old)}): " + (", ".join(
+                f"{o['label']} at {o['along']:.2f} m"
+                + ("" if o["confirmed"] else " (still far)") for o in found)
+                or "nothing in the way") + f"  [{look['res']['seconds']:.2f} s]")
+
+        def on_sonar_hit(self, i, side, a, b, hit, pending):
+            """The sonar stopped the robot. A hit near a known obstacle refines it (it is
+            nearer than the camera put it); else look, identify, and add a new obstacle."""
+            pose = (hit["pose"][0], hit["pose"][1], math.radians(hit["pose"][2]))
+            fwd, merge = float(self.oc["sensor_forward_m"]), float(self.oc["merge_m"])
+            for o in pending:
+                c = ob.sonar_center(pose, hit["range_m"], fwd, o["radius_m"])
+                along, _ = ob.to_side(c, a, b)
+                if abs(along - o["along"]) <= merge + o["radius_m"]:
+                    o["sonar_xy"], o["sonar"] = [round(v, 4) for v in c], hit
+                    o["along"] = round(min(o["along"], along), 4)
+                    o["confirmed"] = True        # the sonar measured it, near
+                    if o["camera_cut"] or o["camera_xy"] is None:
+                        o["obj_xy"], o["position_source"] = o["sonar_xy"], "sonar"
+                    print(f"  that is the {o['label']}: now at {o['along']:.2f} m")
+                    return
+            look = None
+            if self.detector:
+                look, error = self.obstacle_photo(f"side{side}_step{i}_sonar{len(self.obstacles)}")
+                self.obstacle_looks.append({"step": i, "side": side, "kind": "sonar_look",
+                                            "t_utc": utc_now(), "sonar": hit,
+                                            **({"error": error} if look is None else {})})
+            c0 = ob.sonar_center(pose, hit["range_m"], fwd, float(self.oc["default_radius_m"]))
+            s_along, _ = ob.to_side(c0, a, b)
+            best = None
+            if look:
+                here = rg.side_progress(look["pose"], a, b)[0]
+                items = self.look_items(look, a, b, here)
+                self.obstacle_looks[-1].update({"photo": look["photo"], "items": items,
+                                                "pose": self.pose_deg(look["pose"]),
+                                                "seconds": look["res"]["seconds"],
+                                                "rejected": self.rejected_boxes(look)})
+                near = [it for it in items if it["blocks"]
+                        and abs(it["along"] - s_along) <= merge + it["radius_m"] + 0.1]
+                best = min(near, key=lambda it: abs(it["along"] - s_along)) if near else None
+            o = self.new_obstacle(i, side, "sonar", best, look)
+            c = ob.sonar_center(pose, hit["range_m"], fwd, o["radius_m"])
+            along, cross = ob.to_side(c, a, b)
+            o["sonar_xy"], o["sonar"] = [round(v, 4) for v in c], hit
+            if best is None or best["cut"]:
+                o["obj_xy"], o["position_source"] = o["sonar_xy"], "sonar"
+                o["along"], o["cross"] = round(along, 4), (o["cross"] if best else 0.0)
+            else:
+                o["along"] = round(min(o["along"], along), 4)
+            pending.append(o)
+            pending.sort(key=lambda r: r["along"])
+            print(f"  obstacle: {o['label']} ({o['category']}) at {o['along']:.2f} m along "
+                  f"side {side}, position from the {o['position_source']}")
+
+        def block(self, o, reason):
+            """Fallback: no way around. Record it and end the run."""
+            self.stop()
+            o["action"], o["blocked_reason"] = "blocked", reason
+            at = f" at {o['along']:.2f} m" if o.get("along") is not None else ""
+            raise ObstacleBlocked(f"blocked on side {o['side']} by the {o['label']}{at}: "
+                                  f"{reason}")
+
+        def drive_with_obstacles(self, i, side, a, b, heading):
+            """Drive the side a -> b. With obstacles on: the sonar watches every move;
+            each obstacle found (corner look or sonar) gets a detour inside the square
+            (approach on the line, out, past, back), rejoining the line or corner b."""
+            if not self.obs_on:
+                self.drive_side(a, b, heading)
+                return
+            ux, uy, _ = ob.side_unit(a, b)
+            a_line = (a[0] - ux, a[1] - uy)      # 1 m behind a, so on-line moves can back up
+            pending = sorted(self.side_known, key=lambda r: r["along"])
+            plain = not pending                  # a full side from rest: learn the coast
+            hits, relooks = 0, 0
+            while True:
+                here = rg.side_progress(self.park_pose(), a, b)[0]
+                if hits > int(self.oc.get("max_hits_per_side", 6)):
+                    o = pending[0] if pending else self.new_obstacle(i, side, "sonar")
+                    self.block(o, f"the sonar stopped the robot {hits} times on this side")
+                if not pending:
+                    hit = self.drive_side(a if plain else a_line, b, heading, learn=plain,
+                                          watch=self.sonar_watch())
+                    plain = False
+                    if hit is None:
+                        return
+                    hits += 1
+                    self.on_sonar_hit(i, side, a, b, hit, pending)
+                    continue
+                plain = False
+                if not pending[0].get("confirmed", True):
+                    relooks += 1
+                    if relooks > int(self.oc.get("max_relooks", 3)):
+                        for o in pending:
+                            o["confirmed"] = True     # act on what was seen
+                        continue
+                    target = pending[0]["along"] - float(self.oc.get("relook_at_m", 0.6))
+                    if target > here + float(self.oc.get("leg_min_m", 0.01)):
+                        hit = self.drive_side(a_line, ob.from_side(target, 0.0, a, b), heading,
+                                              learn=False, watch=self.sonar_watch())
+                        if hit:
+                            hits += 1
+                            self.on_sonar_hit(i, side, a, b, hit, pending)
+                            continue
+                    self.relook(i, side, a, b, pending, relooks)
+                    continue
+                # one detour round the first obstacle and every one within its reach (robot
+                # run 20261122_204947 detoured round a second object, then tried again)
+                group, plan = ob.group_ahead(pending, self.robot, self.oc, a, b, here)
+                o = group[0]
+                names = " + ".join(g["label"] for g in group)
+                if "error" not in plan:
+                    # nor may it touch what this run already found elsewhere (robot run
+                    # 20261123_043408: side 3's detour swept into the bag on side 2)
+                    keep = [o for o in self.obstacles if o not in group and o.get("obj_xy")
+                            and o.get("action") != "not_confirmed"]
+                    gap = ob.plan_clearance(plan, [(o["obj_xy"], o["radius_m"]) for o in keep],
+                                            self.robot)
+                    if gap < self.robot["margin_m"]:
+                        near = min(keep, key=lambda o: ob.plan_clearance(
+                            plan, [(o["obj_xy"], o["radius_m"])], self.robot))
+                        plan = {"error": f"the detour would pass {gap * 100:.0f} cm from the "
+                                         f"{near['label']} found on side {near['side']}"}
+                if "error" in plan:
+                    for g in group:
+                        g["detour"] = {"error": plan["error"], "group": [x["id"] for x in group]}
+                        g["action"], g["blocked_reason"] = "blocked", plan["error"]
+                    self.block(group[-1], plan["error"])
+                rec = {k: plan[k] for k in ("start_along", "end_along", "offset_m", "depth_m",
+                                            "rejoins_corner")}
+                rec["group"] = [g["id"] for g in group]
+                for g in group:
+                    g["detour"] = dict(rec)
+                print(f"  detour around the {names}: from {plan['start_along']:.2f} m, "
+                      f"{plan['offset_m'] * 100:.0f} cm inside, back at "
+                      f"{plan['end_along']:.2f} m")
+                if plan["approach"]:
+                    hit = self.drive_side(a_line, plan["approach"][1], heading, learn=False,
+                                          watch=self.sonar_watch())
+                    if hit:
+                        hits += 1
+                        self.on_sonar_hit(i, side, a, b, hit, pending)
+                        continue                 # replan with what the sonar saw
+                for p, q, h in plan["legs"]:
+                    self.turn_to(h)
+                    hit = self.drive_side(p, q, h, learn=False, watch=self.sonar_watch())
+                    if hit:
+                        for g in group:
+                            g["detour"]["sonar"] = hit
+                        self.block(o, f"something {hit['range_m'] * 100:.0f} cm ahead on "
+                                      "the detour")
+                for g in group:
+                    g["action"] = "detour"
+                    pending.remove(g)
+                if plan["rejoins_corner"]:
+                    return
+                self.turn_to(heading)
+
         def fmt(self, msg):
             p = msg["pose"]
             where = f"({p[0]:+.3f}, {p[1]:+.3f}, {p[2]:+6.1f} deg)" if p else "(no pose)"
@@ -1100,6 +1481,12 @@ def parse_args(argv=None):
                    help="no YOLO-World at the bin stops (no centering, no detections)")
     p.add_argument("--no-tilt", action="store_true",
                    help="bin check without the camera servo (level photo only)")
+    p.add_argument("--no-obstacles", action="store_true",
+                   help="Phase 5 off: no corner looks, no sonar stops (refuses a layout "
+                   "with an obstacle)")
+    p.add_argument("--sim-hide-obstacle", action="store_true",
+                   help="Gazebo: the ground-truth detector misses the route obstacle (only "
+                   "the sonar can find it)")
     p.add_argument("--no-memory", action="store_true",
                    help="do not record the run in the memory store (walle-app/data/memory/)")
     return p.parse_args(argv)
@@ -1119,10 +1506,19 @@ def main(argv=None):
             layout = json.load(f)
     else:
         layout = park.load_park(a.scenario, bins=a.bins, obstacle="none")
-    if layout.get("obstacle"):
-        raise SystemExit("This layout has an obstacle on the route; avoiding it is Phase 5. "
-                         "Use a scenario without one (or OBSTACLE=none in Gazebo).")
-    steps = rg.build_plan(layout, cfg["laps"], cfg["dwell_s"], cfg["face_bins"])
+    # Phase 5: the follower is never told where an obstacle is; it has to find it. In
+    # Gazebo the world's obstacle stays in the truth layout (the ground-truth detector, and
+    # obstacles.json's truth).
+    world = layout
+    layout = dict(layout, obstacle=None)
+    obstacles_on = bool((cfg.get("obstacle") or {}).get("enabled")) and not a.no_obstacles
+    if not obstacles_on:
+        cfg.setdefault("obstacle", {})["enabled"] = False
+        if world.get("obstacle"):
+            raise SystemExit("This layout has an obstacle on the route and obstacle handling "
+                             "is off (--no-obstacles or route.yaml obstacle.enabled).")
+    steps = rg.build_plan(layout, cfg["laps"], cfg["dwell_s"], cfg["face_bins"],
+                          look_sides=obstacles_on)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = os.path.join(APP_DIR, cfg["results_dir"])
@@ -1149,16 +1545,22 @@ def main(argv=None):
             node.coast_side = node.coast_turn = a.coast_time
         node.anchor()
         node.state["run_id"] = run_id
-        truth = layout
+        node.setup_obstacles()
+        truth = world
         if a.truth_layout:
             with open(a.truth_layout) as f:
                 truth = json.load(f)
             node.truth_bins = {b["name"]: b for b in truth["bins"]}
-        if cfg.get("detect", True) and cfg["face_bins"] and cfg.get("camera_url") \
-                and not a.no_detect:
-            load_detector(node, truth, a.sim_hide_cut_bins)
-        if node.detector and cfg.get("bin_check", True):
-            setup_bin_check(node, use_tilt=not a.no_tilt)
+        if node.in_sim and truth.get("obstacle"):
+            node.truth_obstacle = truth["obstacle"]
+        if cfg.get("detect", True) and (cfg["face_bins"] or node.obs_on) \
+                and cfg.get("camera_url") and not a.no_detect:
+            load_detector(node, truth, a.sim_hide_cut_bins, a.sim_hide_obstacle)
+        if node.detector and ((cfg["face_bins"] and cfg.get("bin_check", True)) or node.obs_on):
+            setup_bin_check(node, use_tilt=not a.no_tilt,
+                            bin_check=cfg["face_bins"] and cfg.get("bin_check", True))
+        print(f"Obstacles: " + ("off" if not node.obs_on else
+              "corner looks + sonar" if node.detector else "sonar only (no detector)"))
         bins = [b["name"] for b in layout["bins"]] if cfg["face_bins"] else []
         print(f"Run {run_id}: {cfg['laps']} lap(s), bins {', '.join(bins) or 'none'}, "
               f"dwell {cfg['dwell_s']:.0f} s, steering by {cfg['feedback_topic']}, "
@@ -1189,6 +1591,9 @@ def main(argv=None):
             raise RuntimeError("the Pico kept restarting during the start")
         node.run(steps)
         status = "done"
+    except ObstacleBlocked as e:      # Phase 5 fallback: report and stop
+        status, reason = "blocked", str(e)
+        print(f"\nRun stopped: {e}")
     except KeyboardInterrupt:
         reason = "stopped with Ctrl+C"
         print("\nInterrupted.")
@@ -1222,7 +1627,12 @@ def main(argv=None):
                    "pico_restarts_s": [round(t - node.t_start, 2) for t in node.restarts],
                    "estimate_jumps": node.jumps,
                    "tilt_moves": node.tilt.log if node.tilt else [],
-                   "tilt_guard": node.tilt_guard}
+                   "tilt_guard": node.tilt_guard,
+                   "obstacles": [{k: o.get(k) for k in ("id", "side", "label", "category",
+                                                         "obj_xy", "position_source",
+                                                         "found_by", "action")}
+                                 for o in node.obstacles],
+                   "sides_done": node.sides_done}
         if node.anchors:
             summary.update(end_report(node, started, status, reason))
         else:
@@ -1245,7 +1655,7 @@ def main(argv=None):
     with open(os.path.join(run_dir, "summary.json"), "w") as f:
         json.dump(summary, f, indent=2)
     with open(os.path.join(run_dir, "layout.json"), "w") as f:
-        json.dump(layout, f, indent=2)
+        json.dump(world, f, indent=2)            # as given, its obstacle kept (Phase 5)
     if node.detector:
         with open(os.path.join(run_dir, "detections.json"), "w") as f:
             json.dump({"run_id": run_id, "model": node.detector.model_name,
@@ -1254,15 +1664,20 @@ def main(argv=None):
         with open(os.path.join(run_dir, "bin_checks.json"), "w") as f:
             json.dump({"run_id": run_id, "source": summary.get("source"),
                        "checks": node.bin_checks}, f, indent=1)
+    if node.obs_on:
+        with open(os.path.join(run_dir, "obstacles.json"), "w") as f:
+            json.dump({"run_id": run_id, "source": summary.get("source"),
+                       "sides_done": node.sides_done, "looks": node.obstacle_looks,
+                       "obstacles": node.obstacles, "truth": node.truth_obstacle}, f, indent=1)
     if not in_sim and node.anchors:
         print(f"Recorded in {append_robot_row(results_dir, run_id, summary)}")
     if not a.no_memory and node.anchors:
-        record_in_memory(summary, layout, run_dir)
+        record_in_memory(summary, world, run_dir)
     print(f"Run log: {run_dir}")
     return 0 if status == "done" else 1
 
 
-def load_detector(node, truth_layout, hide_cut_bins=False):
+def load_detector(node, truth_layout, hide_cut_bins=False, hide_obstacle=False):
     """YOLO-World for the bin stops (Phase 3). In Gazebo, where YOLO-World sees nothing, the
     ground-truth stand-in (detect/sim_truth.py) projects truth_layout into the camera. If the
     detector can't be loaded (no ultralytics, no weights), the run goes on without it."""
@@ -1278,7 +1693,8 @@ def load_detector(node, truth_layout, hide_cut_bins=False):
                                           cfg=node.detect_cfg, hide_cut_bins=hide_cut_bins,
                                           tilt_fn=node.tilt_deg,
                                           lens_from_pivot_m=Calibration.load(
-                                              sim=True).lens_from_pivot_m)
+                                              sim=True).lens_from_pivot_m,
+                                          hide_obstacle=hide_obstacle)
         else:
             node.detector = make_detector(source="robot", cfg=node.detect_cfg)
         print(f"Detector: {node.detector.model_name} ({node.detector.source}), "
@@ -1288,11 +1704,12 @@ def load_detector(node, truth_layout, hide_cut_bins=False):
         print(f"Detector NOT loaded, no centering or detections this run: {e}")
 
 
-def setup_bin_check(node, use_tilt=True):
+def setup_bin_check(node, use_tilt=True, bin_check=True):
     """Phase 4: the bin check at each bin stop. With the servo (its readback arrives on
     /pico/wheel_ticks [4]) it adds the up look; without it the check judges on the level
-    photo alone. Leaves the camera level."""
-    node.bin_check_on = True
+    photo alone. Leaves the camera level. bin_check=False: only the servo (Phase 5's
+    obstacle looks tilt it down)."""
+    node.bin_check_on = bin_check
     if not use_tilt:
         print("Bin check: level photo only (--no-tilt)")
         return

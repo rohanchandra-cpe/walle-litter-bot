@@ -127,7 +127,8 @@ VLM_NAME_PROMPT = (
     "This is a close crop of one object found on the floor by a robot (it was described as "
     "\"{name}\"). First describe it in one sentence: material, color, shape, shine. Then "
     "choose the label that matches best:\n{labels}\n- not_trash: not a piece of trash "
-    "(furniture, a trash bin, floor, wall, shadow, a shoe...)")
+    "(furniture, a trash bin, floor, tape or markings stuck on the floor, wall, shadow, a "
+    "shoe...)")
 
 
 class VLMDetector(Detector):
@@ -150,6 +151,7 @@ class VLMDetector(Detector):
         self.zoom_prompt = VLM_ZOOM_PROMPT.format(
             examples=", ".join(describe.get(k, k.replace("_", " ")) for k in self.labels))
         self.zoom = v.get("zoom_bin_top", {}) or {}
+        self.reject_words = {w.lower() for w in v.get("reject_names", [])}
         self.label_lines = "\n".join(f"- {k}: {describe.get(k, k.replace('_', ' '))}"
                                       for k in self.labels)
         self.find_schema = {"type": "object", "properties": {"objects": {"type": "array",
@@ -199,6 +201,12 @@ class VLMDetector(Detector):
                       min(img.height, y2 + py)))
         scale = max(1.0, min_side / max(1, min(c.size)))
         return c.resize((round(c.width * scale), round(c.height * scale))) if scale > 1 else c
+
+    def rejects(self, name):
+        """True if the FIND step's name for a box has a word from vlm.reject_names (e.g.
+        "tape": the park's own floor tape, robot run 20261122_204947)."""
+        import re
+        return bool(self.reject_words & set(re.findall(r"[a-z]+", str(name).lower())))
 
     def find(self, img, prompt, region=None):
         """FIND step on img (or on the region [x1, y1, x2, y2] of it, zoomed): boxes in
@@ -263,6 +271,11 @@ class VLMDetector(Detector):
                 out["zoom_region"] = region
         rejected = []
         for box, name in found:
+            if self.rejects(name):          # the FIND step already said what it is
+                rejected.append({"kind": "item", "label": "not_trash", "category": "unknown",
+                                 "prompt": self.vlm_model, "conf": None, "bbox": box,
+                                 "vlm_name": name, "rejected_by": "reject_names"})
+                continue
             named = self.chat(VLM_NAME_PROMPT.format(name=name, labels=self.label_lines),
                               self.jpeg(self.crop(img, box)), self.name_schema)
             d = {"kind": "item", "label": named["label"],

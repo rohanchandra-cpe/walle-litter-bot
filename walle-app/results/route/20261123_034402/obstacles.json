@@ -1,0 +1,271 @@
+{
+ "run_id": "20261123_034402",
+ "source": "robot",
+ "sides_done": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:44:31+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    -0.01
+   ],
+   "seconds": 7.941,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      246.4,
+      51.4,
+      349.4,
+      316.3
+     ],
+     "center": [
+      0.452,
+      0.0245
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0573,
+     "dist_m": 0.4526,
+     "cut": false,
+     "along": 0.452,
+     "cross": 0.0245,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a light cream-colored label and blue accents, featuring text and nutritional information; it has a smooth, slightly reflective surface typical of aluminum cans."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:45:47+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9933,
+    0.0059,
+    90.28
+   ],
+   "seconds": 11.652,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      534.4,
+      102.7,
+      618.9,
+      165.6
+     ],
+     "center": [
+      1.4427,
+      1.1501
+     ],
+     "radius_m": 0.0717,
+     "width_m": 0.1435,
+     "dist_m": 1.2293,
+     "cut": false,
+     "along": 1.1501,
+     "cross": -0.4427,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white object made of soft, absorbent material with a matte finish and irregular folds."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:46:52+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9981,
+    1.0001,
+    179.41
+   ],
+   "seconds": 4.558,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      25.0,
+      272.2,
+      117.8,
+      330.2
+     ],
+     "center": [
+      0.5662,
+      0.8502
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0486,
+     "dist_m": 0.4572,
+     "cut": false,
+     "along": 0.4338,
+     "cross": 0.1498,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "paper",
+     "vlm_description": "A flat, off-white sheet with subtle texture and slight sheen, consistent with paper."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 15,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:48:00+00:00",
+   "photo": "photos/side4_step15_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0056,
+    0.9975,
+    -87.79
+   ],
+   "seconds": 5.039,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      0.0,
+      75.8,
+      405.8,
+      142.6
+     ],
+     "vlm_name": "carpet",
+     "vlm_description": "A cylindrical object made of textured beige fabric with a slight sheen, resembling a rolled-up carpet."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-23T03:44:31+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.452,
+    0.0245
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.452,
+    0.0245
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.452,
+   "cross": 0.0245,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    -0.01
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.202,
+    "end_along": 0.892,
+    "offset_m": 0.2205,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    246.4,
+    51.4,
+    349.4,
+    316.3
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "A cylindrical metal can with a light cream-colored label and blue accents, featuring text and nutritional information; it has a smooth, slightly reflective surface typical of aluminum cans."
+  },
+  {
+   "id": 2,
+   "step": 10,
+   "side": 3,
+   "t_utc": "2026-11-23T03:46:52+00:00",
+   "found_by": "look",
+   "label": "paper_towel",
+   "category": "trash",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.5662,
+    0.8502
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.5662,
+    0.8502
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4338,
+   "cross": 0.1498,
+   "photo": "photos/side3_step10_look.jpg",
+   "pose": [
+    0.9981,
+    1.0001,
+    179.41
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1838,
+    "end_along": 0.8738,
+    "offset_m": 0.3458,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     2
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    25.0,
+    272.2,
+    117.8,
+    330.2
+   ],
+   "vlm_name": "paper",
+   "vlm_description": "A flat, off-white sheet with subtle texture and slight sheen, consistent with paper."
+  }
+ ],
+ "truth": null
+}

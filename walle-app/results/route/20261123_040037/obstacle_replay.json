@@ -1,0 +1,44 @@
+{
+ "run": "walle-app/results/route/20261123_040037",
+ "tol_cm": 10.0,
+ "truth": [
+  {
+   "side": 2,
+   "along_m": 0.6,
+   "position": [
+    1.0,
+    0.6
+   ]
+  }
+ ],
+ "records": [
+  {
+   "id": 1,
+   "side": 2,
+   "label": "plastic_bag",
+   "category": "trash",
+   "found_by": "look",
+   "position_source": "camera",
+   "action": "blocked",
+   "obj_xy": [
+    0.9047,
+    0.6758
+   ],
+   "camera_xy": [
+    0.9047,
+    0.6758
+   ],
+   "sonar_xy": null,
+   "radius_m": 0.15,
+   "truth": [
+    1.0,
+    0.6
+   ],
+   "obj_error_cm": 12.2,
+   "camera_error_cm": 12.2,
+   "within_tol": false
+  }
+ ],
+ "missed": [],
+ "pass": false
+}

@@ -1,0 +1,271 @@
+{
+ "run_id": "20261123_035324",
+ "source": "robot",
+ "sides_done": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:53:53+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "seconds": 4.896,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      24.3,
+      218.9,
+      178.6,
+      359.0
+     ],
+     "center": [
+      0.404,
+      0.1275
+     ],
+     "radius_m": 0.0361,
+     "width_m": 0.0722,
+     "dist_m": 0.4236,
+     "cut": false,
+     "along": 0.404,
+     "cross": 0.1275,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:54:56+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9951,
+    0.005,
+    90.83
+   ],
+   "seconds": 5.166,
+   "items": [
+    {
+     "label": "yogurt_container",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      0.0,
+      0.0,
+      30.7,
+      180.0
+     ],
+     "center": [
+      0.5233,
+      0.9417
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0436,
+     "dist_m": 1.0489,
+     "cut": false,
+     "along": 0.9417,
+     "cross": 0.4767,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "white plastic yogurt tub",
+     "vlm_description": "The object is made of white plastic, has a cylindrical shape with a slightly tapered top, and exhibits a matte finish."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:55:56+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9975,
+    0.9965,
+    178.93
+   ],
+   "seconds": 5.628,
+   "items": [
+    {
+     "label": "milk_jug",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      113.9,
+      0.0,
+      540.8,
+      423.8
+     ],
+     "center": [
+      0.5987,
+      0.997
+     ],
+     "radius_m": 0.0803,
+     "width_m": 0.1606,
+     "dist_m": 0.3988,
+     "cut": false,
+     "along": 0.4013,
+     "cross": 0.003,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "plastic milk jug (gallon)",
+     "vlm_description": "A translucent white plastic jug with a glossy surface and a printed label indicating it contains 2% reduced fat milk."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 15,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T03:57:16+00:00",
+   "photo": "photos/side4_step15_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    -0.0027,
+    0.9993,
+    -92.08
+   ],
+   "seconds": 4.932,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      0.0,
+      75.8,
+      364.2,
+      145.9
+     ],
+     "vlm_name": "carpet",
+     "vlm_description": "This object is made of fibrous material, has a beige color, cylindrical shape, and no shine."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-23T03:53:53+00:00",
+   "found_by": "look",
+   "label": "paper_towel",
+   "category": "trash",
+   "conf": null,
+   "radius_m": 0.0361,
+   "obj_xy": [
+    0.404,
+    0.1275
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.404,
+    0.1275
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.404,
+   "cross": 0.1275,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1479,
+    "end_along": 0.8379,
+    "offset_m": 0.3296,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    24.3,
+    218.9,
+    178.6,
+    359.0
+   ],
+   "vlm_name": "tissue",
+   "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine."
+  },
+  {
+   "id": 2,
+   "step": 10,
+   "side": 3,
+   "t_utc": "2026-11-23T03:55:56+00:00",
+   "found_by": "look",
+   "label": "milk_jug",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.0803,
+   "obj_xy": [
+    0.5987,
+    0.997
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.5987,
+    0.997
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4013,
+   "cross": 0.003,
+   "photo": "photos/side3_step10_look.jpg",
+   "pose": [
+    0.9975,
+    0.9965,
+    178.93
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.101,
+    "end_along": 0.791,
+    "offset_m": 0.2493,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     2
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    113.9,
+    0.0,
+    540.8,
+    423.8
+   ],
+   "vlm_name": "plastic milk jug (gallon)",
+   "vlm_description": "A translucent white plastic jug with a glossy surface and a printed label indicating it contains 2% reduced fat milk."
+  }
+ ],
+ "truth": null
+}

@@ -1,0 +1,8 @@
+# Phase 5 hard case: an obstacle near the side's end (0.75): the detour rejoins at the corner.
+bins:
+  1: {state: ok}
+  2: {state: ok}
+  3: {state: ok}
+  4: {state: ok}
+obstacle: {side: 2, at: 0.75, item: paper_cup}
+seed: 1

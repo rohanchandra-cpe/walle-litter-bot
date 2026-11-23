@@ -1,0 +1,217 @@
+{
+ "run_id": "20261123_042112",
+ "source": "robot",
+ "sides_done": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:21:39+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "seconds": 5.565,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      254.7,
+      50.4,
+      367.4,
+      320.6
+     ],
+     "center": [
+      0.4468,
+      0.0164
+     ],
+     "radius_m": 0.0308,
+     "width_m": 0.0616,
+     "dist_m": 0.4471,
+     "cut": false,
+     "along": 0.4468,
+     "cross": 0.0164,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A white cylindrical can with printed text and graphics, featuring a metallic sheen typical of aluminum beverage containers."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:23:08+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9952,
+    0.0004,
+    88.16
+   ],
+   "seconds": 4.913,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      491.5,
+      107.5,
+      598.4,
+      165.6
+     ],
+     "center": [
+      1.4374,
+      1.1478
+     ],
+     "radius_m": 0.0908,
+     "width_m": 0.1815,
+     "dist_m": 1.2297,
+     "cut": false,
+     "along": 1.1478,
+     "cross": -0.4374,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white object made of soft, absorbent material with a matte finish and irregular folds."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:24:42+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9988,
+    0.9964,
+    -177.21
+   ],
+   "seconds": 8.75,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      117.1,
+      0.0,
+      208.0,
+      141.1
+     ],
+     "vlm_name": "foot",
+     "vlm_description": "A pale, flesh-toned human foot with visible toes and arch, resting on a light-colored surface."
+    },
+    {
+     "label": "not_trash",
+     "bbox": [
+      176.6,
+      0.0,
+      266.9,
+      135.8
+     ],
+     "vlm_name": "leg",
+     "vlm_description": "A smooth, pale beige object with rounded edges and a slightly glossy surface, resembling a human foot or leg."
+    }
+   ]
+  },
+  {
+   "step": 15,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:25:50+00:00",
+   "photo": "photos/side4_step15_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    -0.0024,
+    0.9988,
+    -90.78
+   ],
+   "seconds": 4.779,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      0.0,
+      75.8,
+      380.2,
+      146.9
+     ],
+     "vlm_name": "carpet",
+     "vlm_description": "A cylindrical object made of textured, light gray material with a matte finish and no shine."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-23T04:21:39+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.0308,
+   "obj_xy": [
+    0.4468,
+    0.0164
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.4468,
+    0.0164
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4468,
+   "cross": 0.0164,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.196,
+    "end_along": 0.886,
+    "offset_m": 0.2132,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    254.7,
+    50.4,
+    367.4,
+    320.6
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "A white cylindrical can with printed text and graphics, featuring a metallic sheen typical of aluminum beverage containers."
+  }
+ ],
+ "truth": null
+}

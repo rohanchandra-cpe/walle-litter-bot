@@ -1,0 +1,158 @@
+{
+ "run_id": "20261123_040037",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 3,
+   "t_utc": "2026-11-23T04:01:54+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3.jpg",
+   "pose": [
+    0.9979,
+    -0.0004,
+    -43.67
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.577,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.102,
+    "bbox": [
+     153.8,
+     0.0,
+     472.9,
+     339.9
+    ]
+   },
+   "bin_bearing_deg": 0.69,
+   "rim_visible": false,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.013,
+     "bbox": [
+      7.1,
+      218.2,
+      77.4,
+      242.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      421.1,
+      166.6,
+      639.4,
+      312.5
+     ],
+     "vlm_name": "cushion",
+     "vlm_description": "A cylindrical object made of woven fabric with a matte, non-shiny surface, appearing beige or light brown in color."
+    }
+   ]
+  },
+  {
+   "step": 3,
+   "t_utc": "2026-11-23T04:02:00+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3_up.jpg",
+   "pose": [
+    0.9979,
+    -0.0004,
+    -43.67
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.023,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.298,
+    "bbox": [
+     150.7,
+     91.9,
+     456.2,
+     455.5
+    ]
+   },
+   "bin_bearing_deg": 1.77,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.03,
+     "bbox": [
+      5.9,
+      88.6,
+      47.3,
+      122.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.014,
+     "bbox": [
+      0.0,
+      55.0,
+      20.7,
+      108.3
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      152.3,
+      98.4,
+      457.0,
+      458.9
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black, rectangular container with rounded corners and smooth sides that lacks any significant shine."
+    }
+   ]
+  }
+ ]
+}

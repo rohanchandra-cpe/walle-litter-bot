@@ -1,0 +1,768 @@
+{
+ "run_id": "20261123_035324",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 3,
+   "t_utc": "2026-11-23T03:54:42+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3.jpg",
+   "pose": [
+    0.9958,
+    0.003,
+    -46.02
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.232,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.295,
+    "bbox": [
+     152.7,
+     0.5,
+     457.8,
+     340.9
+    ]
+   },
+   "bin_bearing_deg": 1.52,
+   "rim_visible": false,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.017,
+     "bbox": [
+      122.8,
+      229.3,
+      148.1,
+      250.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      157.4,
+      0.0,
+      470.4,
+      344.6
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular container with rounded corners and a smooth surface."
+    }
+   ]
+  },
+  {
+   "step": 3,
+   "t_utc": "2026-11-23T03:54:48+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3_up.jpg",
+   "pose": [
+    0.9958,
+    0.003,
+    -46.01
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 4.85,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.358,
+    "bbox": [
+     159.3,
+     110.8,
+     446.7,
+     456.6
+    ]
+   },
+   "bin_bearing_deg": 1.82,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.02,
+     "bbox": [
+      415.1,
+      279.5,
+      639.9,
+      444.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.012,
+     "bbox": [
+      38.4,
+      80.8,
+      127.4,
+      115.3
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      152.3,
+      117.6,
+      451.8,
+      451.2
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black, rectangular prism-shaped object with smooth, non-reflective surfaces."
+    }
+   ]
+  },
+  {
+   "step": 8,
+   "t_utc": "2026-11-23T03:55:37+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step8.jpg",
+   "pose": [
+    0.9996,
+    0.997,
+    44.95
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.885,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.185,
+    "bbox": [
+     206.5,
+     19.7,
+     456.7,
+     302.4
+    ]
+   },
+   "bin_bearing_deg": -1.2,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      280.3,
+      228.5,
+      579.2,
+      384.0
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.486,
+      1.364
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      330.9,
+      242.4,
+      613.8,
+      306.2
+     ],
+     "vlm_name": "plastic film bag (grocery bag with handles, or a clear / printed salad or spinach bag)",
+     "vlm_description": "A crumpled, translucent white plastic film bag with green printed text and handles, showing some shine from ambient light.",
+     "place": "around_bin",
+     "obj_xy": [
+      2.02,
+      1.627
+     ]
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.024,
+     "bbox": [
+      121.9,
+      98.0,
+      220.3,
+      182.9
+     ]
+    }
+   ]
+  },
+  {
+   "step": 8,
+   "t_utc": "2026-11-23T03:55:47+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step8_up.jpg",
+   "pose": [
+    0.9996,
+    0.997,
+    44.95
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.456,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.265,
+    "bbox": [
+     207.1,
+     141.5,
+     449.0,
+     423.8
+    ]
+   },
+   "bin_bearing_deg": -0.86,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      307.8,
+      349.4,
+      638.7,
+      479.0
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      181.1,
+      22.1,
+      485.8,
+      147.8
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent plastic film bag with printed text and logos, showing some shine from ambient lighting.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 18 cm above the rim"
+    }
+   ],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.023,
+     "bbox": [
+      529.1,
+      300.0,
+      567.0,
+      369.3
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.012,
+     "bbox": [
+      107.2,
+      295.0,
+      224.8,
+      383.1
+     ]
+    }
+   ]
+  },
+  {
+   "step": 13,
+   "t_utc": "2026-11-23T03:56:59+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step13.jpg",
+   "pose": [
+    -0.0036,
+    0.9998,
+    130.93
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.893,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.427,
+    "bbox": [
+     199.0,
+     21.7,
+     454.3,
+     318.0
+    ]
+   },
+   "bin_bearing_deg": -0.69,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      408.3,
+      237.6,
+      625.3,
+      296.6
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "The object is made of paper, white in color, crumpled into an irregular shape with a matte finish.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.565,
+      2.292
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      581.1,
+      75.8,
+      638.7,
+      254.9
+     ],
+     "vlm_name": "plastic film bag (grocery bag with handles, or a clear / printed salad or spinach bag)",
+     "vlm_description": "A crumpled, translucent white plastic film bag with a slight sheen and irregular folds.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.011,
+     "bbox": [
+      0.0,
+      234.5,
+      25.8,
+      252.0
+     ]
+    }
+   ]
+  },
+  {
+   "step": 13,
+   "t_utc": "2026-11-23T03:57:07+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step13_up.jpg",
+   "pose": [
+    -0.0036,
+    0.9998,
+    130.93
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 7.456,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.384,
+    "bbox": [
+     199.7,
+     133.1,
+     457.4,
+     426.3
+    ]
+   },
+   "bin_bearing_deg": -0.91,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      246.4,
+      22.1,
+      414.1,
+      153.1
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "The object is made of dark paper with printed text and graphics, has an irregular crumpled shape, and appears matte without shine.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 17 cm above the rim"
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      214.4,
+      14.4,
+      286.1,
+      71.0
+     ],
+     "vlm_name": "paper",
+     "vlm_description": "A crumpled white object with a matte finish and irregular folds, consistent in appearance to paper.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 30 cm above the rim"
+    }
+   ],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.022,
+     "bbox": [
+      600.4,
+      286.6,
+      640.0,
+      377.6
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.02,
+     "bbox": [
+      0.0,
+      0.7,
+      242.2,
+      380.4
+     ]
+    }
+   ]
+  },
+  {
+   "step": 18,
+   "t_utc": "2026-11-23T03:58:10+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step18.jpg",
+   "pose": [
+    -0.0012,
+    -0.0006,
+    -147.44
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 7.247,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.313,
+    "bbox": [
+     180.7,
+     0.8,
+     453.7,
+     320.9
+    ]
+   },
+   "bin_bearing_deg": 0.29,
+   "rim_visible": false,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      220.8,
+      0.0,
+      491.5,
+      24.5
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "A crumpled white object with a matte finish and irregular folds, consistent in appearance with paper towel or tissue.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.029,
+     "bbox": [
+      0.0,
+      105.6,
+      17.5,
+      191.2
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.028,
+     "bbox": [
+      0.0,
+      178.6,
+      38.1,
+      242.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.013,
+     "bbox": [
+      0.0,
+      97.6,
+      38.2,
+      242.8
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.012,
+     "bbox": [
+      468.0,
+      189.1,
+      499.2,
+      224.6
+     ]
+    }
+   ]
+  },
+  {
+   "step": 18,
+   "t_utc": "2026-11-23T03:58:21+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step18_up.jpg",
+   "pose": [
+    -0.0012,
+    -0.0006,
+    -147.44
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 9.768,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.321,
+    "bbox": [
+     183.8,
+     110.3,
+     462.8,
+     436.5
+    ]
+   },
+   "bin_bearing_deg": -0.35,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      293.1,
+      32.2,
+      492.2,
+      144.5
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 18 cm above the rim"
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      163.2,
+      0.0,
+      309.1,
+      144.5
+     ],
+     "vlm_name": "brown paper bag",
+     "vlm_description": "A crumpled brown paper object with a matte finish and irregular folds, consistent with a discarded takeout bag.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 18 cm above the rim"
+    }
+   ],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.029,
+     "bbox": [
+      0.0,
+      203.4,
+      28.5,
+      354.0
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.025,
+     "bbox": [
+      613.1,
+      0.0,
+      640.0,
+      116.5
+     ]
+    }
+   ]
+  }
+ ]
+}

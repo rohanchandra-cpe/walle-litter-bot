@@ -12,3 +12,12 @@ run_id,started_utc,status,scenario,laps,bins,measured_dx_cm,measured_dy_cm,measu
 20261122_134315,2026-11-22T13:43:15+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.1,4.002,4/4,
 20261122_142402,2026-11-22T14:24:02+00:00,done,default,1,4,0.0,-23.0,23.0,0.0,0.3,4.563,4/4,"On the first side of the square,the robot veered right. It was able to maintain the square after that, and find the bins, but iet ended about 23cm off of the starting point."
 20261122_145845,2026-11-22T14:58:45+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.3,4.012,4/4,No veering this time. Movement was good. Servo moved as expected.
+20261122_204947,2026-11-22T20:49:47+00:00,blocked,default,1,4,0.0,-100.0,100.0,180.0,100.6,3.996,2/2,It hallucinated an obstacle
+20261122_211939,2026-11-22T21:19:39+00:00,blocked,default,1,4,100.0,100.0,141.4,180.0,141.1,2.391,2/2,Still hallucinating
+20261123_034402,2026-11-23T03:44:02+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.4,5.156,4/4,
+20261123_035324,2026-11-23T03:53:24+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.1,5.178,4/4,It hallucinated an obstacle on the first side.
+20261123_040037,2026-11-23T04:00:37+00:00,blocked,default,1,4,,,,,99.7,1.005,0/1,
+20261123_042112,2026-11-23T04:21:12+00:00,done,default,1,4,,,,,0.1,4.447,0/4,
+20261123_042752,2026-11-23T04:27:52+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.1,4.503,4/4,
+20261123_043408,2026-11-23T04:34:08+00:00,done,default,1,4,0.0,0.0,0.0,0.0,0.1,5.238,4/4,
+20261123_045424,2026-11-23T04:54:24+00:00,blocked,default,1,4,,,,,99.0,1.669,0/1,

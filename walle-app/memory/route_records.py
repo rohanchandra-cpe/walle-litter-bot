@@ -10,6 +10,12 @@ then a bin stop's check carries its overflow level, counts and outcome (method t
 level_only) instead of photo_only. A bin stop with an up look (camera tilted) has two photos:
 its on_bin items come from the up photo and its around_bin items from the level photo, as in
 the judge, so nothing is stored twice.
+Since Phase 5 a run folder may hold obstacles.json (route/obstacle.py: the obstacles met on
+the sides, where they were and what the robot did). Each becomes a detection (place
+obstacle) and an obstacle sighting (report_obstacle: the same obstacle if one is still on the
+route within the store's match radius, on the same side). An obstacle the store had on a
+side this run drove with obstacle watching on, and that this run did not see, is marked
+absent (cleared).
 """
 
 import json
@@ -48,6 +54,7 @@ def record_route_summary(store, summary, layout, run_dir):
             store.add_bin_check(run_id, ids[ev["bin"]], pose=pose, photo=photo,
                                 method="photo_only", t_utc=ev.get("t_utc") or started)
     record_detections(store, run_id, run_dir)
+    record_obstacles(store, run_id, run_dir, t_utc=summary.get("ended_utc") or started)
     measured = summary.get("measured") or {}
     store.end_run(run_id, status=summary.get("status"), ended_utc=summary.get("ended_utc"),
                   reason=summary.get("reason"), distance_m=summary.get("distance_m"),
@@ -93,3 +100,40 @@ def record_detections(store, run_id, run_dir):
                 model=photo.get("model") or data.get("model"), t_utc=photo.get("t_utc"))
             n += 1
     return n
+
+
+def record_obstacles(store, run_id, run_dir, t_utc=None):
+    """Add <run_dir>/obstacles.json (if any): each obstacle with a position becomes a
+    detection and a sighting; store obstacles on the sides this run drove (sides_done) that
+    it did not see again are marked absent, at t_utc (the run's end, so a rebuild keeps the
+    order). Returns (reported, cleared)."""
+    path = os.path.join(run_dir, "obstacles.json")
+    if not os.path.exists(path):
+        return 0, 0
+    with open(path) as f:
+        data = json.load(f)
+    before = store.current_obstacles()          # what was on the route before this run
+    seen = set()
+    n = 0
+    for o in data.get("obstacles", []):
+        if not o.get("obj_xy") or o.get("action") == "not_confirmed":
+            continue                    # a far sighting a closer look didn't confirm
+        photo = os.path.join(run_dir, o["photo"]) if o.get("photo") else None
+        det = store.add_detection(run_id, o.get("label") or "unknown",
+                                  o.get("category") or "unknown", place="obstacle",
+                                  confidence=o.get("conf"), pose=o.get("pose"),
+                                  obj_xy=o["obj_xy"], bbox=o.get("bbox"), photo=photo,
+                                  t_utc=o.get("t_utc"))
+        seen.add(store.report_obstacle(run_id, o.get("label") or "unknown",
+                                       o.get("category") or "unknown", o["obj_xy"],
+                                       side=o.get("side"), pose=o.get("pose"),
+                                       detection_id=det, action=o.get("action"),
+                                       t_utc=o.get("t_utc")))
+        n += 1
+    driven = set(data.get("sides_done", []))
+    cleared = 0
+    for o in before:
+        if o["id"] not in seen and o.get("side") in driven:
+            store.mark_absent(run_id, o["id"], t_utc=t_utc)
+            cleared += 1
+    return n, cleared

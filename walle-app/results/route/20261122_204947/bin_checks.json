@@ -1,0 +1,124 @@
+{
+ "run_id": "20261122_204947",
+ "source": "robot",
+ "checks": [
+  {
+   "method": "tilt",
+   "overflow_level": 0,
+   "on_top_count": 0,
+   "litter_count": 0,
+   "outcome": "clean",
+   "level_by_count": 0,
+   "level_by_height": 0,
+   "top_height_above_rim_m": null,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [],
+   "litter": [],
+   "not_litter": [],
+   "dist_from_width_m": 0.517,
+   "step": 3,
+   "facing_step": 2,
+   "t_utc": "2026-11-22T20:52:03+00:00",
+   "bin": "bin_2",
+   "bin_id": 2,
+   "level_photo": "photos/bin_2_step3.jpg",
+   "up_photo": "photos/bin_2_step3_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.76,
+   "echo_us": 3657
+  },
+  {
+   "method": "tilt",
+   "overflow_level": 1,
+   "on_top_count": 2,
+   "litter_count": 2,
+   "outcome": "overflowing",
+   "level_by_count": 1,
+   "level_by_height": 0,
+   "top_height_above_rim_m": 0.321,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      162.9,
+      62.9,
+      437.1,
+      199.2
+     ],
+     "height_above_rim_m": 0.321,
+     "cut_top": false
+    },
+    {
+     "label": "paper_bag",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      414.7,
+      146.4,
+      505.6,
+      205.4
+     ],
+     "height_above_rim_m": 0.181,
+     "cut_top": false
+    }
+   ],
+   "litter": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      279.0,
+      248.2,
+      627.8,
+      402.2
+     ],
+     "obj_xy": [
+      1.45,
+      1.329
+     ]
+    },
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      313.6,
+      263.0,
+      627.8,
+      338.9
+     ],
+     "obj_xy": [
+      1.702,
+      1.462
+     ]
+    }
+   ],
+   "not_litter": [],
+   "dist_from_width_m": 0.603,
+   "step": 8,
+   "facing_step": 7,
+   "t_utc": "2026-11-22T20:53:42+00:00",
+   "bin": "bin_3",
+   "bin_id": 3,
+   "level_photo": "photos/bin_3_step8.jpg",
+   "up_photo": "photos/bin_3_step8_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.756,
+   "echo_us": 4436
+  }
+ ]
+}

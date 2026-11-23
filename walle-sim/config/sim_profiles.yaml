@@ -145,6 +145,15 @@ profiles:
     camera: {capture_latency_s: 0.4}
     placement: {position_std_m: 0.005, yaw_std_deg: 1.5}
 
+  # Phase 5: plastic_pid with no ultrasonic answer (the camera alone must find obstacles).
+  plastic_pid_sonar_dead:
+    firmware: pid
+    firmware_params: {max_wheel_speed_mps: 0.432}
+    motor: {left_gain: 1.01, right_gain: 0.99, stall_duty: 0.25, breakaway_duty: 0.32}
+    encoder: {left_scale: 1.02, right_scale: 1.03}
+    imu: {gyro_bias_dps: 0.001}
+    ultrasonic: {no_response_prob: 1.0}
+
   # The pilot's RQ3 failure (draft IV-F): no ultrasonic response on any ping.
   ultrasonic_dead:
     ultrasonic: {no_response_prob: 1.0}

@@ -90,7 +90,8 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   config/scenarios/  test scenarios: which bins, their state, the obstacle
   park.py            park.yaml + scenario (+ overrides) -> layout; shared by sim and robot
   config/route.yaml  route follower settings
-  route/             route_follower.py (Phase 1: drives the route on the EKF)
+  route/             route_follower.py (Phase 1: drives the route on the EKF);
+                     obstacle.py (Phase 5: corridor, sonar trigger, detour; no ROS)
   memory/            memory store (Phase 2): SQLite + recall; config/memory.yaml
   data/memory/       robot.sqlite, sim.sqlite (git-ignored; rebuilt by memory/import_runs.py)
   detect/            YOLO-World detector (Phase 3): detector.py, geometry.py, eval_photos.py,
@@ -98,7 +99,8 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
                      sim_truth.py (Gazebo stand-in: YOLO-World sees nothing in the sim world);
                      config/detect.yaml (vocabulary, labels, centering, bin_check);
                      bin_check.py (Phase 4: judge a bin from its level + up photos);
-                     replay_bin_checks.py (re-judge a run's saved detections, --truth)
+                     replay_bin_checks.py (re-judge a run's saved detections, --truth);
+                     replay_obstacles.py (Phase 5: score a run's obstacles.json, --truth)
   servo/             camera tilt (Phase 4): tilt.py (deg <-> us, /pico/imu/std), servo_test.py;
                      config/servo.yaml (calibration, up_deg)
   data/photos/phase3/  labeled ESP32-CAM photo set: shots.yaml (shot list), labels.yaml
@@ -142,6 +144,9 @@ make sim-route-check                                    # Phase 1: drive the rou
                                                         #  JUMP="13 0.3": EKF estimate jumps 30 cm sideways)
 make sim-bin-check                                      # Phase 4: servo sweep + route + every bin judged
                                                         # (launch SCENARIO=mixed, then SCENARIO=bincheck)
+make sim-obstacle-check                                 # Phase 5: 10 obstacle cases, each launches its own
+                                                        # headless world (stop any launch first); 9/10 = PASS
+                                                        # (CASES="near lying" or RUNS=3 for a subset)
 python3 -m unittest discover -s walle-app/tests         # park, route, memory tests (host or container)
 python3 walle-app/memory/import_runs.py --rebuild       # rebuild robot.sqlite from results/route/
 make detect-eval                                        # Phase 3: score the detector on the photo set

@@ -131,3 +131,50 @@ center_bins: true
 # camera, and record it (bin_checks.json, memory store). No servo answering: judged on the
 # level photo alone. --no-tilt for one run without the servo; false = no bin check.
 bin_check: true
+
+# Phase 5 (route/obstacle.py, docs/plans/phase-5-plan.md): obstacles on the sides.
+# Before each side, standing on its corner, the camera tilts look_tilt_deg (down) and one
+# photo is searched for items in the side's corridor (the strip the body sweeps, grown by
+# the item's radius). While driving, the HC-SR04 stops the robot when confirm_pings pings in
+# a row are within trigger_m of the sensor and nearer than the end of the current leg (so
+# things beyond the corner don't count). Then: look again, record, detour INSIDE the square
+# (left of the CCW route): out sideways, past, back to the line (clamped to the corner).
+# No way around -> stop, record it as blocked, end the run (status "blocked").
+# Robot test 2026-11-22: steady to +-0.5 us at 20-40 cm, the milk jug read 32 cm at ~30 cm;
+# a flat bag or paper towel gives no echo (only the camera can find those).
+obstacle:
+  enabled: true
+  look_tilt_deg: -15.0       # camera down for the corner look (clamped to servo.yaml min_deg)
+  sensor_forward_m: 0.125    # HC-SR04 face ahead of the axle (robot: below the camera)
+  trigger_m: 0.35            # sonar range that stops the robot (from the sensor)
+  confirm_pings: 3           # in a row (60 ms each)
+  leg_end_slack_m: 0.0
+  # Items narrower than this, as seen in the photo, are driven over. 0.04 (user, 2026-11-22,
+  # after robot run 20261122_211939 stopped for a ~2 cm speck): specks, pins, a dot of tape.
+  # Anything with height is still caught by the sonar.
+  min_size_m: 0.04
+  # Far positions are unreliable (run 20261122_211939: the cross tape 1.00 m away was placed
+  # at 0.69 m; tilt or vertical FOV off). An item the corner look places farther than
+  # trust_range_m from the axle is UNCONFIRMED: the robot drives until it is relook_at_m
+  # away, looks again, and only that closer look can start a detour. At most max_relooks per
+  # side.
+  trust_range_m: 0.70
+  relook_at_m: 0.60
+  max_relooks: 3
+  min_radius_m: 0.03         # radius from a box's width is clamped to these
+  max_box_radius_m: 0.15
+  default_radius_m: 0.10     # radius when only the sonar saw it
+  max_radius_m: 0.20         # bigger: no detour, blocked
+  assumed_depth_m: 0.25      # a photo can't see how DEEP an object is (a bottle lying along
+                             # the path): turn back only this far past its near face (the
+                             # tissue box is 24 cm); shrinks to the measured size at a corner
+  uncertainty_m: 0.03        # added to every clearance (position error of the estimate)
+  max_offset_m: 0.50         # widest detour sideways (inside the 1 m square; keeps >= 0.5 m
+                             # from the opposite side). 0.40 refused the flat bag at 0.41 m
+                             # (robot run 20261123_040037)
+  max_back_past_corner_m: 0.0
+  leg_min_m: 0.01
+  merge_m: 0.15              # a sonar hit this near a known obstacle (along the side) is it
+  max_hits_per_side: 6       # more sonar stops than this on one side: blocked
+  sim:                       # walle-sim's Module 6 robot: the sensor is 7 cm ahead
+    sensor_forward_m: 0.07

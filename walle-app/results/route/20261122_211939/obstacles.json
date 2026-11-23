@@ -1,0 +1,242 @@
+{
+ "run_id": "20261122_211939",
+ "source": "robot",
+ "sides_done": [
+  1,
+  2
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-22T21:20:26+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "seconds": 24.508,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      297.6,
+      37.9,
+      403.2,
+      306.2
+     ],
+     "center": [
+      0.4678,
+      -0.0085
+     ],
+     "radius_m": 0.0308,
+     "cut": false,
+     "along": 0.4678,
+     "cross": -0.0085,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a light blue rim and white body, featuring printed text and nutritional information; it has a smooth, slightly reflective surface."
+    }
+   ],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      246.1,
+      0.0,
+      304.8,
+      17.7
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular object with rounded corners and a slightly reflective surface."
+    }
+   ]
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-22T21:21:29+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9916,
+    0.0017,
+    87.18
+   ],
+   "seconds": 4.853,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      521.0,
+      83.0,
+      636.8,
+      146.9
+     ],
+     "center": [
+      1.7001,
+      1.4977
+     ],
+     "radius_m": 0.1319,
+     "cut": false,
+     "along": 1.4977,
+     "cross": -0.7001,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white object made of soft, absorbent material with a matte finish and irregular folds."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-22T21:22:45+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9989,
+    0.9961,
+    179.87
+   ],
+   "seconds": 9.1,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      293.1,
+      176.2,
+      306.6,
+      182.9
+     ],
+     "center": [
+      0.0775,
+      0.9584
+     ],
+     "radius_m": 0.03,
+     "cut": false,
+     "along": 0.9225,
+     "cross": 0.0416,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A small, crumpled white object with a matte finish and irregular edges, consistent with a used tissue."
+    }
+   ],
+   "rejected": []
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-22T21:20:26+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.0308,
+   "obj_xy": [
+    0.4678,
+    -0.0085
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.4678,
+    -0.0085
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4678,
+   "cross": -0.0085,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.217,
+    "end_along": 0.907,
+    "offset_m": 0.1968,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "bbox": [
+    297.6,
+    37.9,
+    403.2,
+    306.2
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "A cylindrical metal can with a light blue rim and white body, featuring printed text and nutritional information; it has a smooth, slightly reflective surface."
+  },
+  {
+   "id": 2,
+   "step": 10,
+   "side": 3,
+   "t_utc": "2026-11-22T21:22:45+00:00",
+   "found_by": "look",
+   "label": "paper_towel",
+   "category": "trash",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.0775,
+    0.9584
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.0775,
+    0.9584
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.9225,
+   "cross": 0.0416,
+   "photo": "photos/side3_step10_look.jpg",
+   "pose": [
+    0.9989,
+    0.9961,
+    179.87
+   ],
+   "action": "blocked",
+   "detour": {
+    "error": "object 0.05 m from the corner: no room to turn after it",
+    "group": [
+     2
+    ]
+   },
+   "bbox": [
+    293.1,
+    176.2,
+    306.6,
+    182.9
+   ],
+   "vlm_name": "tissue",
+   "vlm_description": "A small, crumpled white object with a matte finish and irregular edges, consistent with a used tissue.",
+   "blocked_reason": "object 0.05 m from the corner: no room to turn after it"
+  }
+ ],
+ "truth": null
+}

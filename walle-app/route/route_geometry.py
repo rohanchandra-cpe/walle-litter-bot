@@ -82,8 +82,10 @@ def line_heading(side_heading, cross, gain, max_correction):
     return wrap(side_heading - clamp(math.atan(gain * cross), -max_correction, max_correction))
 
 
-def build_plan(layout, laps=1, dwell_s=15.0, face_bins=True):
+def build_plan(layout, laps=1, dwell_s=15.0, face_bins=True, look_sides=False):
     """The route as a list of steps, in the park frame:
+        ("look_side", corner_from, corner_to, (ax, ay), (bx, by), heading)
+                                   look down the side for obstacles (Phase 5; look_sides)
         ("drive", corner_from, corner_to, (ax, ay), (bx, by), heading)
         ("face_bin", corner, bin_name, heading)       turn to face the bin
         ("dwell", corner, bin_name, seconds)
@@ -102,6 +104,8 @@ def build_plan(layout, laps=1, dwell_s=15.0, face_bins=True):
         for i, wp in enumerate(wps):
             to = int(wp["corner"])
             heading = math.radians(wp["heading_deg"])
+            if look_sides:
+                steps.append(("look_side", here, to, corners[here], corners[to], heading))
             steps.append(("drive", here, to, corners[here], corners[to], heading))
             if face_bins and to in bins:
                 b = bins[to]

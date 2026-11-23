@@ -1,0 +1,144 @@
+{
+ "run_id": "20261123_040037",
+ "source": "robot",
+ "sides_done": [
+  1
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:01:05+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    -0.01
+   ],
+   "seconds": 6.003,
+   "items": [
+    {
+     "label": "yogurt_container",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      318.7,
+      112.8,
+      362.9,
+      129.6
+     ],
+     "center": [
+      2.0858,
+      -0.0613
+     ],
+     "radius_m": 0.0736,
+     "width_m": 0.1471,
+     "dist_m": 2.0867,
+     "cut": false,
+     "along": 2.0858,
+     "cross": -0.0613,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "white plastic yogurt tub",
+     "vlm_description": "The object is made of white plastic, has a cylindrical shape with a slightly tapered top, and exhibits a matte finish."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:02:09+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9971,
+    0.0035,
+    87.25
+   ],
+   "seconds": 5.02,
+   "items": [
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      0.0,
+      176.6,
+      414.1,
+      263.5
+     ],
+     "center": [
+      0.9047,
+      0.6758
+     ],
+     "radius_m": 0.15,
+     "width_m": 0.3015,
+     "dist_m": 0.6786,
+     "cut": false,
+     "along": 0.6758,
+     "cross": 0.0953,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent plastic film bag with a shiny surface and visible printed labels."
+    }
+   ],
+   "rejected": []
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 5,
+   "side": 2,
+   "t_utc": "2026-11-23T04:02:09+00:00",
+   "found_by": "look",
+   "label": "plastic_bag",
+   "category": "trash",
+   "conf": null,
+   "radius_m": 0.15,
+   "obj_xy": [
+    0.9047,
+    0.6758
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.9047,
+    0.6758
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.6758,
+   "cross": 0.0953,
+   "photo": "photos/side2_step5_look.jpg",
+   "pose": [
+    0.9971,
+    0.0035,
+    87.25
+   ],
+   "action": "blocked",
+   "detour": {
+    "error": "detour 0.41 m wide > max_offset_m 0.4",
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    0.0,
+    176.6,
+    414.1,
+    263.5
+   ],
+   "vlm_name": "plastic film bag",
+   "vlm_description": "A crumpled, translucent plastic film bag with a shiny surface and visible printed labels.",
+   "blocked_reason": "detour 0.41 m wide > max_offset_m 0.4"
+  }
+ ],
+ "truth": null
+}

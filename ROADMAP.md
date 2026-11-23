@@ -26,7 +26,7 @@ commands. Metrics and an LLM judge are stretch goals.
 | 2 | Memory store | ✅ done 2026-11-18 |
 | 3 | Object detection and trash/recycling classification | 🟨 all done but item accuracy, carried into Phase 4 (2026-11-21) |
 | 4 | Servo and bin monitoring | ✅ closed 2026-11-22 with recorded limits: robot bin checks 0.75 on the fair runs (target 0.80, accepted); item accuracy deferred |
-| 5 | Obstacle detection and avoidance | ⬜ |
+| 5 | Obstacle detection and avoidance | ✅ closed 2026-11-23 with recorded limits: sim 9/10 (positions ≤ 9.4 cm), robot 2/3 without contact; see the decision log |
 | 6 | WALL-E ROSA agent | ⬜ |
 | 7 | Stretch: metrics and LLM judge | ⬜ |
 
@@ -271,15 +271,23 @@ Notice something on the path, identify it, drive around it, and rejoin the route
 - A fallback when there is no way around (report and stop, or skip that waypoint).
 
 **Done when**
-- [ ] In sim: obstacles placed at random on the route are detected, recorded, and passed in
-      N of M runs without collisions.
-- [ ] On the robot: passes a real obstacle on the route and rejoins it (user).
-- [ ] Obstacle positions in the memory store are within X cm of truth (sim).
+- [x] In sim: obstacles placed at random on the route are detected, recorded, and passed in
+      9 of 10 runs without collisions (`make sim-obstacle-check`; pass also needs the lap
+      to end within 5 cm). 2026-11-22: 9/10, no collision in any case; the miss
+      (camera_miss: the sonar alone, object 0.26 m from the far corner) stopped safely as
+      `blocked`.
+- [x] On the robot: passes a real obstacle on the route and rejoins it (user): no contact
+      in at least 2 of 3 runs, the setup changed between runs. 2026-11-23 (tape removed):
+      can and milk jug passed without contact, positions 5.6 / 7.3 cm; the flat bag was
+      passed (7.3 cm) but touched later, when side 3's detour round a false tape patch swept
+      into it. That cause is fixed (detours now keep clear of obstacles found on other sides);
+      not yet rerun on the robot.
+- [x] Obstacle positions in the memory store are within 10 cm of truth (sim). 2026-11-22:
+      all 10 cases, 0.3–9.4 cm (worst: the bottle lying along the path, whose depth the
+      camera can't see).
 
-**Open decisions**
-- The HC-SR04 sees only straight ahead: how wide the detour is, and how to check the side is
-  clear (turn and ping, or the camera).
-- Whether the robot avoids an object it identifies as small enough to ignore.
+**Open decisions:** settled 2026-11-22 (decision log): a corner look plus the sonar, a
+rectangular detour inside the square, avoid everything, report and stop when blocked.
 
 ---
 
@@ -336,6 +344,11 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-23 | 5 | Phase 5 closed with recorded limits (user: "Let's move on with preparing for Phase 6"; the suggested confirmation run with the bag at ~0.5 m was not done). Limits: flat paper-like things on the floor (tape patches) can be read as paper, so the test floor is kept clear of loose tape; far camera positions are biased (the down-tilted camera is not calibrated; far items get a closer re-look); a sonar-only object near a side's end stops the run (`blocked`); grouping and the other-sides clearance check are unit-tested only (the sim has one obstacle per lap); labels can be wrong (a plastic bag read as `paper_bag`). Last bag run (20261123_045424): blocked at corner 2, the bag's far edge 16 cm from corner 3 (needs 16.5); tape patches still on side 1. Next: Phase 6. |
+| 2026-11-23 | 5 | A detour is also checked against every obstacle the run found on other sides (its turns and legs keep the margin), else the robot reports `blocked` (robot run 20261123_043408: side 3's detour swept into side 2's bag). |
+| 2026-11-23 | 5 | Widest detour 0.50 m (was 0.40): the flat bag across the line needed 0.41 m (robot run 20261123_040037); the detour stays ≥ 0.5 m from the square's opposite side. Loose tape patches on the test floor are removed (user): the detector reads a flat tape rectangle as paper, and no prompt change fixed it. |
+| 2026-11-22 | 5 | After robot runs 20261122_204947 and 211939 (user's choice of fixes): boxes the detector's FIND step names "tape" or "marking" are dropped (`detect.yaml` `vlm.reject_names`); obstacles close together get one detour; **items narrower than 4 cm as seen are driven over** (`min_size_m` 0.04, replacing "avoid everything"); **an item the corner look places more than 0.7 m away is unconfirmed**: the robot drives to 0.6 m from it and looks again, and only that look (or a sonar echo) can start a detour. Far camera positions were ~30% short (the 1.00 m cross tape read 0.69 m); calibrating the down-tilted camera is deferred. |
+| 2026-11-22 | 5 | Phase 5 plan (user-approved, `docs/plans/phase-5-plan.md`). **Sensing:** before each side the robot stands at its corner, tilts the camera 15° down and takes one photo (floor from ~0.28 m ahead of the axle to the far corner, flat items included); while driving, the HC-SR04 stops it for anything missed (3 pings ≤ 0.35 m, nearer than the corner). **Detour:** inside the square only, a rectangle of turns in place and straight legs; sideways by object radius + half width + margin + 3 cm; past until the turn radius clears it, clamped to the corner. **Avoid everything** (no drive-over size). **Fallback:** report and stop (`blocked`). **Recording:** camera ground point (sonar range if no usable box), `obstacles.json` per run; `mark_absent` at import. **Targets:** sim 9 of 10 passes without collisions, positions within 10 cm; robot 3 varied runs, no contact in at least 2. |
 | 2026-11-22 | 4 | Phase 4 closed with recorded limits (user): "approaching the limit of what the camera can do" (cheap camera and microcontroller, room lamps, a small model, one view per bin). Robot bin checks accepted at 0.75 outcome on the runs the rules weren't tuned on (level ±1 8/8, litter ±1 7/8); the tilted-photo item-accuracy check is deferred. Last rule added: an item on top may hang 12% of the bin box's height below its top edge (soft items drape over the rim; seen on three scenes). Next: Phase 5. |
 | 2026-11-22 | 1/4 | Route follower guards after robot run 20261122_142402 (a Pico restart 2 s in; the fused estimate then went 40 cm sideways and the robot drove the lap 23 cm off), user-approved: a Pico restart (ping_seq going backwards, or the counts jumping > 20000) stops the robot until its data has been fresh 2 s, then repairs the estimate from the wheels; during the start hold, the start pose is taken again. Every 0.25 s while moving, the fused estimate may not move > 5 cm or turn > 20° more than the wheels; else stop and repair from the wheels. The overhang margin for items on a bin's rim (fix 1) is held back until varied setups show it again (user: avoid tuning to one scene). |
 | 2026-11-22 | 4 | Bin-stop judging rules after the first robot run (user-approved): bin boxes only near straight ahead (12°; measured from the photo's center, since centering just faced the bin); a faint bin box (low_conf) within 8° is the bin when none passed; an item on top must rest on the rim (bottom ≤ 10 cm above it); a floor item cut off at the level photo's bottom is placed at the frame's bottom row and can count as litter. |

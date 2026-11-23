@@ -1,0 +1,161 @@
+{
+ "run_id": "20261123_045424",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 3,
+   "t_utc": "2026-11-23T04:55:46+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3.jpg",
+   "pose": [
+    0.9912,
+    0.0014,
+    -46.92
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.133,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.165,
+    "bbox": [
+     159.6,
+     0.0,
+     478.5,
+     346.5
+    ]
+   },
+   "bin_bearing_deg": 0.1,
+   "rim_visible": false,
+   "items": [
+    {
+     "kind": "item",
+     "label": "can",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      107.5,
+      171.4,
+      188.2,
+      206.4
+     ],
+     "vlm_name": "metal bowl",
+     "vlm_description": "A small, metallic bowl with a dull silver finish and rounded edges.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.01,
+     "bbox": [
+      0.0,
+      220.3,
+      70.6,
+      250.9
+     ]
+    },
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.01,
+     "bbox": [
+      119.9,
+      226.4,
+      145.8,
+      249.0
+     ]
+    }
+   ]
+  },
+  {
+   "step": 3,
+   "t_utc": "2026-11-23T04:55:52+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3_up.jpg",
+   "pose": [
+    0.9912,
+    0.0014,
+    -46.91
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 5.268,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.359,
+    "bbox": [
+     156.7,
+     80.6,
+     463.6,
+     447.4
+    ]
+   },
+   "bin_bearing_deg": 1.05,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.014,
+     "bbox": [
+      131.6,
+      20.5,
+      178.9,
+      72.6
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      165.1,
+      83.5,
+      473.0,
+      439.7
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular container with rounded corners and a smooth surface."
+    }
+   ]
+  }
+ ]
+}

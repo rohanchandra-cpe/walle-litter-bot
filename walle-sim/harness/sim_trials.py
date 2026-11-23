@@ -125,6 +125,11 @@ def parse_args():
                    "20261122_142402; tests the estimate-jump guard")
     p.add_argument("--center-tol-deg", type=float, default=3.0,
                    help="Phase 3: a centered bin is within this of straight ahead (truth)")
+    p.add_argument("--hide-obstacle", action="store_true",
+                   help="Phase 5: the ground-truth detector misses the route obstacle, so "
+                   "only the sonar can find it")
+    p.add_argument("--obstacle-tol-cm", type=float, default=10.0,
+                   help="Phase 5: the recorded obstacle position must be this near the truth")
     # Phase 4: route-check + the camera servo sweep, and every bin judged right
     b = sub.add_parser("bin-check", parents=[], help="world park: Phase 4 bin check - the "
                        "servo moves to commanded angles, then a route-check whose bin "
@@ -736,6 +741,110 @@ def misplace_bins(layout, deg):
     return out
 
 
+# walle-sim's Module 6 body (urdf/gazebo_car.urdf.xacro): chassis from 0.131 m behind the
+# axle to the sensors 0.076 m ahead; wheels' outer faces 0.086 m to each side.
+SIM_BODY = {"half_width_m": 0.086, "body_front_m": 0.08, "body_back_m": 0.135}
+
+
+def obstacle_outline(o, model, step=0.005):
+    """Points on the obstacle's footprint outline (park frame): a circle for an upright
+    cylinder or a sphere, a rectangle (length x diameter, turned by its yaw) for a lying
+    cylinder."""
+    x, y = o["position"][:2]
+    r = model["radius_m"]
+    if model["shape"] == "cylinder" and o.get("pose") == "lying":
+        # park_world.py rolls the cylinder 90 deg about x, then turns it by yaw: its axis
+        # lies along the yaw's left (y) direction
+        yaw = math.radians(o.get("yaw_deg", 0.0))
+        ax, ay = -math.sin(yaw), math.cos(yaw)          # along the axis
+        bx, by = math.cos(yaw), math.sin(yaw)           # across it
+        half = model["length_m"] / 2.0
+        pts = []
+        n = int(2 * half / step)
+        for k in range(n + 1):
+            t = -half + 2 * half * k / n
+            for side in (-r, r):
+                pts.append((x + ax * t + bx * side, y + ay * t + by * side))
+        m = int(2 * r / step)
+        for k in range(m + 1):
+            t = -r + 2 * r * k / m
+            for end in (-half, half):
+                pts.append((x + ax * end + bx * t, y + ay * end + by * t))
+        return pts
+    n = max(16, int(2 * math.pi * r / step))
+    return [(x + r * math.cos(2 * math.pi * k / n), y + r * math.sin(2 * math.pi * k / n))
+            for k in range(n)]
+
+
+def obstacle_checks(summary, layout, out_dir):
+    """Phase 5 checks when the world has an obstacle: it was found and recorded on its side,
+    its recorded position is within --obstacle-tol-cm of the truth, it reached the memory
+    store, and the robot's body (Gazebo truth, every logged pose) never touched it."""
+    o = layout.get("obstacle")
+    if not o:
+        return []
+    sys.path.insert(0, os.path.join(REPO_DIR, "walle-app", "route"))
+    sys.path.insert(0, os.path.join(REPO_DIR, "walle-app"))
+    import obstacle as ob
+    import park
+    pk = park.load_yaml(park.PARK_FILE)
+    radius = park.Geometry(pk).footprint(o["item"], o["pose"])
+    outline = obstacle_outline(o, pk["items"][o["item"]])
+    out = []
+    path = os.path.join(out_dir, "obstacles.json")
+    recs = []
+    if os.path.exists(path):
+        with open(path) as f:
+            recs = [r for r in json.load(f).get("obstacles", [])
+                    if r.get("action") != "not_confirmed"]   # far sightings a re-look replaced
+    mine = [r for r in recs if r.get("side") == o["side"] and r.get("obj_xy")]
+    best = min(mine, key=lambda r: math.hypot(r["obj_xy"][0] - o["position"][0],
+                                              r["obj_xy"][1] - o["position"][1])) if mine else None
+    out.append(("obstacle found and passed", bool(best) and best.get("action") == "detour",
+                (f"{best['label']} ({best['category']}) by the {best['found_by']}, "
+                 f"{best['action']}" if best else
+                 f"none recorded on side {o['side']} ({len(recs)} records)")
+                + f"; truth {o['item']} {o['pose']} at {o['at']:.2f} of side {o['side']}"))
+    if best:
+        err = math.hypot(best["obj_xy"][0] - o["position"][0],
+                         best["obj_xy"][1] - o["position"][1]) * 100
+        out.append((f"obstacle position within {ARGS.obstacle_tol_cm:.0f} cm",
+                    err <= ARGS.obstacle_tol_cm,
+                    f"{err:.1f} cm (from the {best['position_source']}; camera "
+                    f"{best.get('camera_xy')}, sonar {best.get('sonar_xy')}, truth "
+                    f"{[round(v, 3) for v in o['position'][:2]]})"))
+        best["truth_error_cm"] = round(err, 2)
+    extra = [r for r in recs if r is not best]
+    if extra:
+        out.append(("no false obstacles", False,
+                    ", ".join(f"{r['label']} on side {r['side']} at {r.get('obj_xy')}"
+                              for r in extra)))
+    poses = []
+    traj = os.path.join(out_dir, "trajectory.csv")
+    if os.path.exists(traj):
+        import csv
+        with open(traj) as f:
+            for row in csv.DictReader(f):
+                if row["source"] == "ground_truth":
+                    poses.append((float(row["x_m"]), float(row["y_m"]),
+                                  math.radians(float(row["theta_deg"]))))
+    gap = min(ob.min_clearance(poses, pt, 0.0, SIM_BODY) for pt in outline) if poses else None
+    out.append(("no collision with the obstacle", gap is not None and gap > 0,
+                f"closest {gap * 100:.1f} cm (body vs the {o['item']}'s {o['pose']} outline)"
+                if gap is not None else "no ground-truth trajectory"))
+    if best and summary.get("status") == "done":
+        try:
+            from memory.store import MemoryStore
+            with MemoryStore("sim") as mem:
+                now = [c for c in mem.current_obstacles() if c["last_run_id"] ==
+                       summary["run_id"]]
+            out.append(("obstacle in the memory store", bool(now),
+                        f"{len(now)} current obstacle(s) last seen in this run"))
+        except Exception as e:                         # noqa: BLE001
+            out.append(("obstacle in the memory store", False, str(e)))
+    return out
+
+
 def detection_checks(summary, layout, out_dir):
     """Phase 3 checks on a run with detection (sim: the ground-truth stand-in): each bin
     centered within --center-tol-deg (truth), the detected bin is the right one, items have
@@ -792,7 +901,10 @@ def detection_checks(summary, layout, out_dir):
     try:
         import sqlite3
         con = sqlite3.connect(db)
-        stored = con.execute("SELECT COUNT(*) FROM detections WHERE run_id = ?",
+        # bin-stop detections only: Phase 5's obstacle sightings (place obstacle) are
+        # checked by obstacle_checks
+        stored = con.execute("SELECT COUNT(*) FROM detections WHERE run_id = ? "
+                             "AND place != 'obstacle'",
                              (summary["run_id"],)).fetchone()[0]
         con.close()
     except Exception as e:
@@ -872,9 +984,6 @@ def cmd_route_check(sim):
     layout = sim.world.info.get("park")
     if layout is None:
         raise SystemExit(f"World '{sim.world.name}' is not the park. Launch world:=park.")
-    if layout["obstacle"]:
-        raise SystemExit("This park has an obstacle on the route (Phase 5). Relaunch with "
-                         "OBSTACLE=none, or SCENARIO=default.")
     sim.wait_robot(("ticks", "wheel", "ekf", "imu"))
     rtf = warn_rtf(sim)
     out_dir = os.path.join(RUN_DIR, "route", time.strftime("%Y%m%d_%H%M%S"))
@@ -904,6 +1013,8 @@ def cmd_route_check(sim):
         cmd += ["--dwell", str(ARGS.dwell)]
     if getattr(ARGS, "hide_cut_bins", False):
         cmd += ["--sim-hide-cut-bins"]
+    if getattr(ARGS, "hide_obstacle", False):
+        cmd += ["--sim-hide-obstacle"]
     if ARGS.feedback:
         cmd += ["--feedback", ARGS.feedback]
     if ARGS.coast_time is not None:
@@ -970,6 +1081,7 @@ def cmd_route_check(sim):
                            f"extent {h:.2f} wide / {v:.2f} tall of the half-frame"
                            + (f", photo {ev['photo']}" if ev.get("photo") else "")))
     checks += detection_checks(summary, layout, out_dir)
+    checks += obstacle_checks(summary, layout, out_dir)
     if getattr(ARGS, "blackout", None):
         gaps, waits = summary.get("sensor_gaps", []), summary.get("sensor_guard_waits", [])
         bad = [p for p in summary.get("pulses", []) if p.get("sensor_gap") or p.get("outlier")]
