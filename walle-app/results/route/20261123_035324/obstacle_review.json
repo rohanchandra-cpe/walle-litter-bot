@@ -1,0 +1,9 @@
+{
+ "run_id": "20261123_035324",
+ "reviewed_utc": "2026-11-23",
+ "reviewed_by": "user (via Claude), from the run photos",
+ "note": "obstacles.json is the run's log, left as written; memory/route_records.py applies this file on import: false_positive ids are not stored, relabel replaces label and category.",
+ "false_positive": {
+  "1": "a flat tape patch on the floor, read as paper (user removed the loose tape after these runs)"
+ }
+}

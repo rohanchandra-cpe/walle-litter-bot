@@ -288,3 +288,31 @@ class TapeRejectTests(unittest.TestCase):
         for name in ("paper towel", "plastic milk jug", "metal drink or coffee can",
                      "crumpled paper"):
             self.assertFalse(VLMDetector.rejects(me, name), name)
+
+
+class ReviewTests(unittest.TestCase):
+    """obstacle_review.json: reviewed false positives are not stored; relabels apply."""
+
+    def test_false_positive_and_relabel(self):
+        import json
+        import tempfile
+        from memory.route_records import record_obstacles
+        from memory.store import MemoryStore
+        root = tempfile.mkdtemp()
+        d = os.path.join(root, "r1")
+        os.makedirs(d)
+        obs = [{"id": 1, "side": 2, "label": "paper_bag", "category": "recycling",
+                "obj_xy": [1.0, 0.67], "action": "detour", "t_utc": "2026-11-23T04:34:00Z"},
+               {"id": 2, "side": 3, "label": "paper_towel", "category": "trash",
+                "obj_xy": [0.59, 0.90], "action": "detour", "t_utc": "2026-11-23T04:35:00Z"}]
+        with open(os.path.join(d, "obstacles.json"), "w") as f:
+            json.dump({"obstacles": obs, "sides_done": [1, 2, 3, 4]}, f)
+        with open(os.path.join(d, "obstacle_review.json"), "w") as f:
+            json.dump({"false_positive": {"2": "tape"},
+                       "relabel": {"1": {"label": "plastic_bag", "category": "trash"}}}, f)
+        with MemoryStore("robot", path=os.path.join(root, "m.sqlite"), embedder=None) as s:
+            s.start_run(run_id="r1", started_utc="2026-11-23T04:30:00Z")
+            self.assertEqual(record_obstacles(s, "r1", d)[0], 1)
+            now = s.current_obstacles()
+            self.assertEqual([(o["side"], o["label"], o["category"]) for o in now],
+                             [(2, "plastic_bag", "trash")])

@@ -2125,3 +2125,35 @@ Work done before the ledger started, summarized from git history:
     Before Phase 6 relies on "where are the obstacles right now?", rebuild it or let a
     clean lap clear them.
   - Optional: calibrate the down-tilted camera; remove the last tape patches on side 1.
+
+### 2026-11-23: robot.sqlite rebuilt without the false obstacles
+
+- **Phase:** 5 → 6 (data cleanup before Phase 6 answers "where are the obstacles?")
+- **Branch / commit:** `walle-phase-6` (from `origin/main` @ `4cce337`, PR #13 merged), first commit
+- **Asked for:** "Can you please rebuild the store and remove the bad objects?"
+- **Done:**
+  - `walle-app/results/route/<run>/obstacle_review.json` for six runs (204947, 211939,
+    034402, 035324, 043408, 045424).
+    - 9 false positives listed by record id: tape patches or the corner 4 cross line read
+      as paper, and run 211939's ~2 cm speck. Each was checked against the run's photos
+      in earlier entries.
+    - One relabel: run 043408 #1 `paper_bag` (recycling) → `plastic_bag` (trash).
+    - `obstacles.json` (the robot's log) is left as written.
+  - `memory/route_records.py`: `load_obstacle_review`; `record_obstacles` skips reviewed
+    false positives (no detection, no sighting, not counted as seen) and applies relabels.
+    One new test.
+  - `robot.sqlite` backed up as `robot.sqlite.bak-20261123` (git-ignored), then rebuilt
+    with `import_runs.py --rebuild` in the robot container.
+- **Verified:**
+  - Unit tests OK on the host.
+  - Before: 14 obstacles, 5 current (4 false + the bag as `paper_bag`).
+  - After: 20 runs, 6 obstacles (can ×2, milk jug ×2, plastic bag ×2, one per placement
+    set), 9 obstacle detections, everything embedded.
+  - Current obstacles: only the plastic bag on side 2 (last seen in run 045424). The can
+    and jug were cleared by later laps over their sides, as designed.
+- **Scope:** In scope.
+- **Decisions:** none (a reviewed-run file is a data correction, not a rule).
+- **Open / next:**
+  - If the bag has been picked up, the store still lists it until a lap drives side 2
+    without seeing it.
+  - Phase 6 (the WALL-E ROSA agent) starts in plan mode on `walle-phase-6`.

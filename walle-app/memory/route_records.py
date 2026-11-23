@@ -102,6 +102,18 @@ def record_detections(store, run_id, run_dir):
     return n
 
 
+def load_obstacle_review(run_dir):
+    """<run_dir>/obstacle_review.json, written after a person checked the run's photos
+    (2026-11-23: tape patches read as paper): {"false_positive": {id: why}, "relabel":
+    {id: {"label", "category", "why"}}}. The run's obstacles.json stays as the robot wrote
+    it. {} if there is none."""
+    path = os.path.join(run_dir, "obstacle_review.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return json.load(f)
+
+
 def record_obstacles(store, run_id, run_dir, t_utc=None):
     """Add <run_dir>/obstacles.json (if any): each obstacle with a position becomes a
     detection and a sighting; store obstacles on the sides this run drove (sides_done) that
@@ -112,12 +124,20 @@ def record_obstacles(store, run_id, run_dir, t_utc=None):
         return 0, 0
     with open(path) as f:
         data = json.load(f)
+    review = load_obstacle_review(run_dir)
+    false = {str(k) for k in review.get("false_positive", {})}
+    relabel = {str(k): v for k, v in review.get("relabel", {}).items()}
     before = store.current_obstacles()          # what was on the route before this run
     seen = set()
     n = 0
     for o in data.get("obstacles", []):
         if not o.get("obj_xy") or o.get("action") == "not_confirmed":
             continue                    # a far sighting a closer look didn't confirm
+        if str(o.get("id")) in false:
+            continue                    # reviewed: nothing was there (obstacle_review.json)
+        if str(o.get("id")) in relabel:
+            o = dict(o, label=relabel[str(o["id"])]["label"],
+                     category=relabel[str(o["id"])]["category"])
         photo = os.path.join(run_dir, o["photo"]) if o.get("photo") else None
         det = store.add_detection(run_id, o.get("label") or "unknown",
                                   o.get("category") or "unknown", place="obstacle",
