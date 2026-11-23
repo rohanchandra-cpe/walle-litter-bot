@@ -1738,3 +1738,390 @@ Work done before the ledger started, summarized from git history:
   `docs/handoff/phase4-to-phase-5/phase-5-prompt.md`. This entry, the new handoff folder and
   `phase-4-initial-plan.md` are committed (user's go-ahead). The user's handoff-doc moves
   and `_props.jpg` are not.
+
+### 2026-11-22: Phase 5 started: branch, orientation, plan approved
+
+- **Phase:** 5 (obstacle detection and avoidance)
+- **Branch / commit:** `walle-phase-5` (from `origin/main` @ `4d5c4ee`, upstream unset) @
+  uncommitted
+- **Asked for:** read the Phase 5 start prompt and the Phase 4 summary, then "Yes, start".
+- **Done:**
+  - Phase 4 was merged (PR #12, with the handoff commit and the last ledger entry), so the
+    branch was cut from `origin/main` per the prompt.
+  - Read `ROADMAP.md`, the ledger, the memory README, the follower (plan, `send()` guards,
+    `side_leg`, `turn_to`, the obstacle refusal), `park.py build_obstacle`, `sim_truth.py`,
+    the store's obstacle API, the sim HC-SR04 model and `park_world.py`.
+  - Plan mode: the nine open decisions settled with the user; plan in
+    `docs/plans/phase-5-plan.md`; ROADMAP Phase 5 marked 🟨, N/M/X filled in, decision row.
+- **Verified:** nothing run; only read the code.
+- **Notes for the build:**
+  - The sim HC-SR04 is an ideal lidar cone 7 cm up: it sees every sim item, flat or not.
+    The real one's behavior on flat and soft items is unknown (Step 0).
+  - At 0.25 along a side, a small obstacle's near face can be 0.19 m ahead of the axle,
+    nearer than the tilted camera's 0.28 m: the sonar or a box cut off at the frame's
+    bottom has to place it. That's one of the fixed sim cases.
+  - The sim camera is the Module 6 one (0.10 m high, 0.07 m ahead), not the robot's.
+- **Scope:** In scope.
+- **Decisions:** Phase 5 plan (ROADMAP decision log, 2026-11-22).
+- **Open / next:** Step 0, the HC-SR04 check on the robot (user): echo at 20/40/80 cm, a
+  flat bag and a paper towel at 30 cm, the sensor's height. Then build sim first, as in the
+  plan.
+
+### 2026-11-22: Phase 5 Step 0: the HC-SR04 answers (robot)
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** the user ran the plan's Step 0 check (`ros2 topic echo /pico/wheel_ticks`).
+- **Done:** recorded the results; no code changed.
+- **Verified (robot, user's readings; distance = echo_us × 343 / 2e6):**
+
+  | Placed at | echo_us | Reads | Spread |
+  |---|---|---|---|
+  | 20 cm | 1025–1026 | 17.6 cm | ±0.5 µs |
+  | 40 cm | 2332–2333 | 40.0 cm | ±0.5 µs |
+  | 80 cm | 4687–4780 | 80.4–82.0 cm | ~1.6 cm |
+  | milk jug, ~30 cm | 1876 ± 3 | 32.2 cm | ±0.05 cm |
+
+  - It answers and tracks distance. The −2 in Phase 4 was the unplugged sensor (as found).
+  - Steady at the 0.35 m trigger range; noisier at 80 cm (beyond what Phase 5 uses).
+  - The 20 cm reading is 2.4 cm short while 40 cm is exact. That's likely where the tape was
+    measured from, not checked.
+  - The sensor's center is 8.8 cm above the floor (sim: 7 cm; not changed, see below).
+  - Idle `servo_us` read 1500 (firmware start value; the follower levels at 1575).
+- **Not yet measured:** a flat bag and a paper towel at 30 cm (asked).
+- **Scope:** In scope.
+- **Decisions:** none. Keeping the sim sensor at 7 cm: the walle-sim robot is the Module 6
+  model on purpose, and its camera is lower too.
+- **Open / next:** the flat-bag and paper-towel readings, then the sim build.
+
+### 2026-11-22: Phase 5 Step 0: flat items (robot)
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** the user tested the flat items from the Step 0 check.
+- **Verified (robot, user):**
+  - A paper towel and the spinach bag lying flat: below the sensor's beam (8.8 cm up), so no
+    echo from them.
+  - The bag crumpled up: echo_us ≈ 1560 (26.8 cm), so it is seen once it has some height.
+- **Meaning for the plan:** as the plan assumed, flat items are found only by the corner
+  photo; the sonar is the trigger for items with height. A flat item the camera also misses
+  would be driven over (a flat bag or towel, low risk to the wheels). No change to the plan.
+  The robot's flat-bag run (side 2, robot test) checks the camera-only path.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** Step 0 is done; start the sim build.
+
+### 2026-11-22: Phase 5 built; sim check 9/10
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** "Yes, start building" (the approved plan, `docs/plans/phase-5-plan.md`).
+- **Done:**
+  - `walle-app/route/obstacle.py` (new, no ROS):
+    - side frame and echo → metres;
+    - floor position and radius from a box (`footprint_from_box`, flags boxes cut off at
+      the frame's bottom);
+    - corridor test (`blocks_side`);
+    - `SonarTrigger`: 3 pings ≤ 0.35 m, nearer than the leg's end;
+    - `plan_detour`: an approach on the line (backward if too near), then out to the left,
+      past, back; clamped to the far corner, with a depth allowance;
+    - `min_clearance` (body rectangle vs a point or circle).
+  - `route_geometry.build_plan(look_sides=)`: a `look_side` step before each side.
+  - `route_follower.py`:
+    - the obstacle refusal is gone; the follower is never given the obstacle;
+    - `look_side`: tilt down (−15°, the sim clamps to −10°), photo, detect, level;
+    - the sonar `watch` in `side_leg` / `drive_side`;
+    - `drive_with_obstacles` (detours; the sonar refines or adds obstacles);
+    - fallback `ObstacleBlocked` → status `blocked`;
+    - `obstacles.json`; summary `obstacles`, `sides_done`; `--no-obstacles`,
+      `--sim-hide-obstacle`;
+    - the detector and servo now load for obstacle looks even without bin checks;
+    - `layout.json` keeps the given world's obstacle.
+  - `config/route.yaml` `obstacle:` section (sim override: sensor 7 cm ahead).
+  - `detect/sim_truth.py`: projects the obstacle (`hide_obstacle`).
+  - `memory/route_records.py` `record_obstacles`:
+    - a detection (place `obstacle`) + `report_obstacle` per record;
+    - `mark_absent` for store obstacles on driven sides that weren't seen, stamped with the
+      run's end time (rebuild-safe).
+  - `detect/replay_obstacles.py` (sim truth or `--truth "SIDE,ALONG_M[,CROSS_CM]"`).
+  - Sim:
+    - scenarios `obstacle_near` (can at 0.25), `obstacle_far` (cup at 0.75),
+      `obstacle_lying` (bottle);
+    - profile `plastic_pid_sonar_dead`;
+    - `sim_trials.py route-check` accepts obstacles and scores them (found and passed,
+      position, false obstacles, collision vs the true outline, memory);
+    - the Phase 3 memory count leaves out obstacle detections;
+    - `harness/obstacle_trials.py` + `make sim-obstacle-check`.
+  - `tests/test_obstacle.py` (15 tests). `CLAUDE.md` commands and layout; the plan's "as
+    built" notes; ROADMAP sim boxes ticked.
+- **Verified:**
+  - Unit tests 127 OK on the host (3.13) and in both containers (3.10).
+  - Sim, no obstacle (`mixed`, route-check, before the last edits): PASS. Four corner looks
+    "clear", no sonar stops, end 0.8 cm, every bin check right.
+  - Sim, `make sim-obstacle-check` (plastic_pid, dwell 5 s): **9/10 PASS**; zero
+    collisions in all 10; positions 0.3–9.4 cm.
+    - Closest pass: the `far` case, 2.9 cm (under the 5 cm margin; position error 2.5 cm).
+    - Miss: `camera_miss` (sonar only). Default radius 0.10 m at 0.80 along → "no room to
+      turn after it" → blocked, stopped 30 cm clear. The fallback worked; the lap didn't
+      finish.
+  - Memory rebuild from the 22 sim run logs twice: identical stores; obstacles cleared on
+    later runs as designed.
+  - **Not verified:** anything on the robot. `sim-bin-check` was not rerun (the obstacle
+    cases ran every bin check, all OK). The `mixed` no-obstacle check wasn't rerun after
+    the last obstacle-path edits.
+- **Found on the way:**
+  - The first 10-case batch scored 3/10 because the harness's `stop_world` missed
+    `odometry_node.py`. Twelve copies published `/wheel/odom` at once; the jump guard fired
+    on the mess, and its repairs threw the estimate off.
+  - Fixed: process groups, plus a refusal to start with leftovers. That batch's results
+    are void.
+  - The same batch showed the depth problem (the lying bottle) and a too-round collision
+    check. Both were fixed before the valid batch.
+- **Scope:** In scope. Added beyond the plan: `assumed_depth_m` (a planning rule from a
+  sim failure) and `max_hits_per_side`.
+- **Decisions:** none new for the user yet. The depth allowance is a safety rule (config);
+  flagged for review.
+- **Open / next:**
+  - The robot test (user): 3 runs (coffee can side 1 ~0.5; milk jug side 3 ~0.35; flat bag
+    side 2 ~0.6), scored with `replay_obstacles.py`.
+  - Sonar-only obstacles near a far corner block: decide whether that's acceptable or
+    whether a sonar-only object should get a smaller default size or a second look.
+  - Nothing committed.
+
+### 2026-11-22: First Phase 5 robot run (20261122_204947); tape rejected, grouped detours
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** the user ran the robot test (coffee can on side 1): "It successfully found
+  the coffee can and avoided it, but then it hallucinated an obstacle on the side from Bin
+  3 to Bin 4". Then "Implement the proposed fixes".
+- **Robot run 20261122_204947 (user's run, rules as built):**
+  - Side 1: can found by the corner look at 0.48 m (r 4 cm, a clean box), detoured 20 cm
+    inside, rejoined. The user's placement was "~0.5"; not tape-measured.
+  - Bins 2 and 3: centered; bin checks ran.
+  - Side 3: the look returned `paper_towel` at 0.79 (r 15 cm) and `paper_cup` at 0.44.
+    The side was empty floor; both boxes were floor tape. A re-run of the detector on the
+    photo: the FIND step named all three boxes "tape", the NAME step still picked
+    paper_towel and paper_cup for two of them (its not_trash list had no tape).
+  - The follower detoured round the cup (35 cm inside), which also passed the "towel".
+    It then tried a second detour from beyond it ("no room to turn after it") and stopped
+    `blocked`. The fallback was safe; the logic was wrong.
+  - The far tape line (~1.0 m along) was placed at 0.79 m: positions far from the robot
+    are ~20 cm off. Likely the −15° tilt's real angle (calibrated on large moves only);
+    not checked.
+  - `robot.sqlite` now holds the two false obstacles as current on side 3; a later clean
+    run on side 3 clears them (not removed by hand).
+- **Done:**
+  - `detect/detector.py` + `config/detect.yaml` `vlm.reject_names` [tape, tapes, marking,
+    markings]: a FIND name with one of these words is dropped before the NAME step (kept
+    in low_conf, `rejected_by`). The NAME prompt's not_trash list adds "tape or markings
+    stuck on the floor".
+  - `route/obstacle.py` `plan_detour_group` (one rectangle round several objects;
+    `plan_detour` is the one-object case) and `group_ahead` (adds every pending obstacle
+    whose near face is within the detour's reach).
+  - `route_follower.py`: detours by group; a blocked group is refused before moving; each
+    look keeps the VLM's names/descriptions and the boxes it rejected (`rejected`).
+  - Tests: grouping (neighbours cleared, this run's geometry refused up front, far
+    objects kept apart), tape names. 131 in all.
+- **Verified:**
+  - Unit tests: 131 OK on the host (one skip, as before) and in both containers.
+  - `make detect-eval` (Phase 3 set, 52 photos): recall 0.787 → 0.812, precision 0.768 →
+    0.812, category 0.945 → 0.973, bins 1.0, median 7.8 s. No box in the set was named
+    tape, so the filter removed nothing there; the change comes from the prompt line and
+    model variation. Read as "no regression", not as a gain.
+  - Sim regression `make sim-obstacle-check CASES="random_11 far lying"`: 3/3, positions
+    0.7–9.7 cm, no collisions.
+  - **Not verified:** two obstacles in the sim (park.py allows one per lap, a Phase 0
+    decision; changing it needs the user); the fixes on the robot.
+- **Scope:** In scope (fixes to Phase 5 from its robot test). The detector change also
+  touches Phase 3/4 bin-stop detections, checked by the eval above.
+- **Decisions:** none recorded in the roadmap yet; the tape rule is a detector setting
+  (`detect.yaml`), flagged for the user.
+- **Open / next:**
+  - Rerun the robot test (same can run, then the milk jug and the flat bag).
+  - Optional: check the −15° tilt angle (far positions ~20 cm off).
+  - Optional: allow a second obstacle in the sim to test grouping end to end.
+  - Nothing committed.
+
+### 2026-11-22: Second robot run (20261122_211939); re-look from closer, size floor
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** the user reran the coffee can: "unfortunately it hallucinated on side 3
+  again". After the diagnosis: "Let's start with 1 and 3 and see if that makes a
+  difference" (re-look from closer; a size floor).
+- **Robot run 20261122_211939 (rules as of the previous entry):**
+  - Side 1: can at 0.47 m, detoured, rejoined (as in the first run).
+  - Side 3: no tape reported (the tape filter worked). One `paper_towel` ("tissue") box,
+    13 × 7 px, placed at 0.92 m → inside the corner turn zone → `blocked`.
+  - The box is a real ~2 cm speck, seen in both runs' photos, BEYOND the corner 4 cross
+    line in the image. The model placed the cross line (1.00 m from the camera at corner
+    3) at 0.69 m. At −11° tilt it would read 0.96 m, and the speck ~1.66 m (off the
+    route). Far positions are ~30% short: the tilt angle or the nominal 47° vertical FOV
+    is off. Not calibrated (deferred, option 2).
+- **Done:**
+  - `route/obstacle.py` `footprint_from_box`: also returns `width_m` (as seen, before
+    the radius clamp) and `dist_m` (center from the axle).
+  - Size floor: `min_size_m` 0 → 0.04 m, judged on `width_m` (the clamped radius could
+    never be under 6 cm).
+  - Re-look: a corner-look item farther than `trust_range_m` 0.70 m is unconfirmed. The
+    robot drives on the line (sonar on) to `relook_at_m` 0.60 m before it, looks again
+    (`relook`), drops the unconfirmed ones (`action` `not_confirmed`) and keeps what the
+    closer look finds (confirmed if within 0.70 m). A sonar echo on an unconfirmed one
+    confirms it. At most `max_relooks` 3 per side; no photo → act on the corner look.
+  - `not_confirmed` records are skipped by the memory import, `replay_obstacles.py` and
+    the sim check.
+  - Tests: width/distance, the run's speck (under the floor, far), import skips
+    unconfirmed. 132 in all.
+  - ROADMAP decision row (the size floor replaces "avoid everything", the user's call).
+- **Verified:**
+  - Unit tests 132 OK on the host (one skip) and in both containers.
+  - `make sim-obstacle-check`: 9/10 again, positions 0.3–8.9 cm, no collisions.
+    - `far` (cup at 0.75): corner look unconfirmed → re-look → confirmed → detour.
+    - The other eight passing cases were within 0.7 m: no re-look.
+    - Same miss as before: `camera_miss` (sonar only, near the far corner) → `blocked`.
+  - Not run on the robot.
+  - Run 211939's speck replayed through the new rules (unit test only): under 4 cm wide,
+    and farther than 0.7 m, so it'd be both dropped and re-looked.
+- **Scope:** In scope (fixes from the robot test). The size floor reverses a plan-mode
+  decision, with the user's agreement.
+- **Decisions:** ROADMAP decision log, 2026-11-22 (size floor, re-look, tape, grouping).
+- **Open / next:**
+  - The robot rerun (can on side 1, then the milk jug and the flat bag).
+  - Calibrating the down-tilted camera (option 2) when the user has time.
+  - `robot.sqlite` still holds run 204947's two tape "obstacles" and run 211939's speck as
+    current on side 3. A clean pass on side 3 clears them.
+  - Nothing committed.
+
+### 2026-11-23: Robot test runs (6), tape patches removed, detour width 0.50 m
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** the user ran the three planned robot tests twice. The first set showed a
+  false obstacle in each run. The user then removed the loose tape from the floor and ran
+  the set again: "The runs were a lot better."
+- **First set (rules as of the previous entry; placements "about", not tape-measured):**
+
+  | Run | Real obstacle | Result | Position | False obstacle |
+  |---|---|---|---|---|
+  | `20261123_034402` | can, side 1 ~0.5 | passed, end 0 cm | 5.4 cm | side 3, 0.43 m |
+  | `20261123_035324` | milk jug, side 3 ~0.35 | passed, end 0 cm | 5.1 cm | side 1, 0.40 m |
+  | `20261123_040037` | flat bag, side 2 ~0.6 | found, blocked: detour 0.41 m > max 0.40 | 12.2 cm | none |
+
+  - Both false obstacles were flat tape rectangles left of the line (an older layout's
+    tape), found as "paper"/"tissue", so `reject_names` didn't apply.
+  - A reworded NAME prompt describing flat tape patches was tested on six photos
+    (3 false, can, jug, bag): identical results. The NAME step sees only the crop, and a
+    cropped flat white rectangle looks like paper. Prompt change not kept.
+- **Second set (tape patches removed by the user; same rules):**
+
+  | Run | Real obstacle | Result | Position | False obstacle |
+  |---|---|---|---|---|
+  | `20261123_042112` | can, side 1 ~0.5 | passed, end 0 cm (est; not measured) | 5.6 cm | none |
+  | `20261123_042752` | milk jug, side 3 ~0.35 | passed, end 0 cm | 7.3 cm | none |
+  | `20261123_043408` | flat bag, side 2 ~0.6 | passed (detour 30 cm inside, rejoined at corner 3), end 0 cm | 7.3 cm | side 3, 0.41 m |
+
+  - The remaining false obstacle is one more tape rectangle still on the floor near
+    corner 3 (left of the line; visible in that look's photo).
+  - The bag was labelled `paper_bag` (recycling) instead of `plastic_bag` (trash).
+  - Run 043408's bin_1 centering lost a photo (camera timeout); unrelated to Phase 5.
+- **Done:** `route.yaml` `max_offset_m` 0.40 → 0.50 (keeps ≥ 0.5 m from the opposite
+  side). Proposed last turn ("unless you object"); not objected to.
+- **Verified:** unit tests OK on the host after the change; not rerun in the containers
+  or the sim (config value only; the sim's widest detour is ~0.27 m).
+- **Scope:** In scope.
+- **Decisions:** detour width 0.50 m (ROADMAP decision row below).
+- **Open / next:**
+  - The robot done box ("passes a real obstacle and rejoins it, no contact in ≥ 2 of 3")
+    looks met: 3/3 in the second set. Not ticked until the user confirms there was no
+    contact.
+  - The last tape patch near corner 3.
+  - `robot.sqlite` holds the false obstacles from the test runs; a clean pass clears them.
+  - Nothing committed.
+
+### 2026-11-23: Contact with the bag (run 20261123_043408); detours clear of other sides' obstacles
+
+- **Phase:** 5
+- **Branch / commit:** `walle-phase-5` @ uncommitted
+- **Asked for:** the user reported "It touched the plastic bag in the last run when it was
+  trying to avoid the patch it hallucinated on side 3".
+- **Cause (reconstructed from the run's obstacles.json):**
+  - The bag lay across side 2's line at 0.67 m, its inner end reaching toward corner 3.
+  - Side 3's detour (round the false tape patch at 0.41 m) turned in place at (0.85,
+    0.70), 15 cm inside corner 3. Its turn circle (0.14 m) overlapped the bag's footprint
+    by ~11 cm.
+  - The planner only considered obstacles on the side being driven. A real second
+    obstacle there would have done the same.
+- **Done:**
+  - `route/obstacle.py` `plan_clearance`: the gap between a detour's swept area (a turn
+    circle at each leg's start; body ±half width, ±turn radius along each leg) and round
+    keep-out objects.
+  - `route_follower.py`: every detour is checked against all obstacles this run found
+    (other sides, not `not_confirmed`). Under the margin → `blocked`, with which obstacle
+    and how close.
+  - A test built from the run's numbers: the plan's clearance to the bag is < 0; the same
+    bag 37 cm farther down clears.
+  - ROADMAP: robot box ticked (can and jug runs without contact; 2/3 as agreed, the bag
+    contact and its fix noted); decision row; Phase 5 status 🟨 "every done box met".
+- **Verified:**
+  - Unit tests 133 OK on the host and in the robot container. The sim container wasn't
+    rerun.
+  - Sim `CASES="random_11 far"`: 2/2. The sim has one obstacle per world, so this check
+    never has a keep-out there; it shows only that nothing else changed.
+  - **Not verified:** the fix on the robot (would have stopped `blocked` instead of
+    touching the bag).
+- **Scope:** In scope.
+- **Decisions:** ROADMAP decision log, 2026-11-23.
+- **Open / next:**
+  - The user decides whether Phase 5 is closed. Suggested first: remove the last tape
+    patch near corner 3 and rerun the bag case.
+  - Nothing committed.
+
+### 2026-11-23: Last bag run (20261123_045424); Phase 5 closed; commit
+
+- **Phase:** 5 → 6
+- **Branch / commit:** `walle-phase-5` (this commit; pushed to origin for the user's PR)
+- **Asked for:** the user reran the bag case: "it hallucinated an obstacle on side 1, and
+  then couldn't get around the bag on side 2". Then: "Let's move on with preparing for
+  Phase 6. Please add the ledger entry and commit the current code, and please push it up
+  to origin."
+- **Run 20261123_045424 (rules as of the previous entry):**
+  - Side 1: three flat tape rectangles still on the floor, left of the line, at about 0.39
+    / 0.53 / 0.67 m. Each was named "white paper" → `paper_towel`, and all three went into
+    one 34 cm detour (grouping as designed).
+    - The same patches were in runs 042752 and 043408, where side 1 read clear. Whether a
+      patch is flagged varies from run to run.
+  - Side 2: the bag (28 cm wide) at 0.70 m, its far edge 0.84 m, 0.16 m from corner 3.
+    - The turn at the corner needs 0.165 m (turn radius 0.14 + half the margin), so the
+      robot reported `blocked` before moving.
+    - In run 043408 the same bag read 0.67 m and passed.
+    - The park's own rule allows a 14 cm-radius object only up to 0.67 along. The robot
+      did what the agreed fallback says. No rule changed to make it pass (no tuning to one
+      scene).
+  - The other-sides clearance check never came into play (no detour was planned near a
+    known obstacle). It is still not exercised on the robot.
+- **Done:**
+  - ROADMAP: Phase 5 ✅ closed with recorded limits (decision row).
+  - This entry; the commit of all Phase 5 work since `origin/main` @ `4d5c4ee`. That
+    includes:
+    - the plan (`docs/plans/phase-5-plan.md`);
+    - code, configs, scenarios, sim harness and tests;
+    - the nine Phase 5 robot run folders (`results/route/20261122_204947` …
+      `20261123_045424`) and `robot_runs.csv`;
+    - the detector eval `results/detect/20261122_210854`.
+- **Left out of the commit, on purpose:** `.DS_Store`, `.vscode/`,
+  `walle-app/data/photos/_props.jpg` (as in Phase 4: ask first), and the CLIP weight
+  copies (`weights/`, `walle-app/weights/`, `walle-pilot/weights/`).
+- **Verified:** unit tests 133 OK (host, robot container). Sim and robot results as in the
+  entries above. The confirmation run with the bag at ~0.5 m was not done (user's call to
+  move on).
+- **Scope:** In scope. Phase 5 closes on its done boxes, with the limits in the ROADMAP
+  decision row.
+- **Decisions:** Phase 5 closed with recorded limits (ROADMAP decision log).
+- **Open / next:**
+  - The user opens the PR from `walle-phase-5` and merges it; Phase 6 (the WALL-E ROSA
+    agent) starts in plan mode.
+  - `robot.sqlite` lists false obstacles from these test runs (tape patches, the speck).
+    Before Phase 6 relies on "where are the obstacles right now?", rebuild it or let a
+    clean lap clear them.
+  - Optional: calibrate the down-tilted camera; remove the last tape patches on side 1.

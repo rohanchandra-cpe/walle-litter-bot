@@ -67,6 +67,11 @@ vlm:
   # daylight; it is not a general darkness measure (a white LED lamp would pass).
   zoom_bin_top: {enabled: true, max_warm_cast: 9.0, above: 1.0, below: 0.3, side: 0.25,
                  min_side: 448}
+  # A box the FIND step names with one of these words is dropped without asking the NAME step
+  # (kept in low_conf as not_trash). Robot run 20261122_204947: the park's floor tape was
+  # found as "tape" three times, and the NAME step still called two of them paper_towel and
+  # paper_cup, which stopped the robot for obstacles that weren't there.
+  reject_names: [tape, tapes, marking, markings]
   # What the model is told each label looks like (it answers with the label).
   describe:
     paper_towel: crumpled white paper towel or tissue

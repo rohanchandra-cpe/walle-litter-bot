@@ -1,0 +1,64 @@
+{
+ "run": "walle-app/results/route/20261123_043408",
+ "tol_cm": 10.0,
+ "truth": [
+  {
+   "side": 2,
+   "along_m": 0.6,
+   "position": [
+    1.0,
+    0.6
+   ]
+  }
+ ],
+ "records": [
+  {
+   "id": 1,
+   "side": 2,
+   "label": "paper_bag",
+   "category": "recycling",
+   "found_by": "look",
+   "position_source": "camera",
+   "action": "detour",
+   "obj_xy": [
+    1.0143,
+    0.6716
+   ],
+   "camera_xy": [
+    1.0143,
+    0.6716
+   ],
+   "sonar_xy": null,
+   "radius_m": 0.1373,
+   "truth": [
+    1.0,
+    0.6
+   ],
+   "obj_error_cm": 7.3,
+   "camera_error_cm": 7.3,
+   "within_tol": true
+  },
+  {
+   "id": 2,
+   "side": 3,
+   "label": "paper_towel",
+   "category": "trash",
+   "found_by": "look",
+   "position_source": "camera",
+   "action": "detour",
+   "obj_xy": [
+    0.5897,
+    0.899
+   ],
+   "camera_xy": [
+    0.5897,
+    0.899
+   ],
+   "sonar_xy": null,
+   "radius_m": 0.0352,
+   "false_obstacle": true
+  }
+ ],
+ "missed": [],
+ "pass": false
+}

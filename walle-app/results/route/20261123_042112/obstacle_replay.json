@@ -1,0 +1,44 @@
+{
+ "run": "walle-app/results/route/20261123_042112",
+ "tol_cm": 10.0,
+ "truth": [
+  {
+   "side": 1,
+   "along_m": 0.5,
+   "position": [
+    0.5,
+    0.0
+   ]
+  }
+ ],
+ "records": [
+  {
+   "id": 1,
+   "side": 1,
+   "label": "can",
+   "category": "recycling",
+   "found_by": "look",
+   "position_source": "camera",
+   "action": "detour",
+   "obj_xy": [
+    0.4468,
+    0.0164
+   ],
+   "camera_xy": [
+    0.4468,
+    0.0164
+   ],
+   "sonar_xy": null,
+   "radius_m": 0.0308,
+   "truth": [
+    0.5,
+    0.0
+   ],
+   "obj_error_cm": 5.6,
+   "camera_error_cm": 5.6,
+   "within_tol": true
+  }
+ ],
+ "missed": [],
+ "pass": true
+}

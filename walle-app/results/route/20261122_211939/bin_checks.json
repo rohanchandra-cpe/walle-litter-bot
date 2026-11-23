@@ -1,0 +1,97 @@
+{
+ "run_id": "20261122_211939",
+ "source": "robot",
+ "checks": [
+  {
+   "method": "tilt",
+   "overflow_level": 0,
+   "on_top_count": 0,
+   "litter_count": 0,
+   "outcome": "clean",
+   "level_by_count": 0,
+   "level_by_height": 0,
+   "top_height_above_rim_m": null,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [],
+   "litter": [],
+   "not_litter": [],
+   "dist_from_width_m": 0.518,
+   "step": 3,
+   "facing_step": 2,
+   "t_utc": "2026-11-22T21:21:21+00:00",
+   "bin": "bin_2",
+   "bin_id": 2,
+   "level_photo": "photos/bin_2_step3.jpg",
+   "up_photo": "photos/bin_2_step3_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.761,
+   "echo_us": 3740
+  },
+  {
+   "method": "tilt",
+   "overflow_level": 0,
+   "on_top_count": 0,
+   "litter_count": 2,
+   "outcome": "litter",
+   "level_by_count": 0,
+   "level_by_height": 0,
+   "top_height_above_rim_m": null,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [],
+   "litter": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      305.9,
+      241.4,
+      616.3,
+      402.2
+     ],
+     "obj_xy": [
+      1.459,
+      1.315
+     ]
+    },
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      331.5,
+      246.2,
+      638.7,
+      336.0
+     ],
+     "obj_xy": [
+      1.741,
+      1.446
+     ]
+    }
+   ],
+   "not_litter": [],
+   "dist_from_width_m": 0.598,
+   "step": 8,
+   "facing_step": 7,
+   "t_utc": "2026-11-22T21:22:33+00:00",
+   "bin": "bin_3",
+   "bin_id": 3,
+   "level_photo": "photos/bin_3_step8.jpg",
+   "up_photo": "photos/bin_3_step8_up.jpg",
+   "up_tilt_deg": 15.0,
+   "expected_dist_m": 0.758,
+   "echo_us": 4304
+  }
+ ]
+}

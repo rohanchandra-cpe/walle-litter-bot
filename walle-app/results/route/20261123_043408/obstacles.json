@@ -1,0 +1,271 @@
+{
+ "run_id": "20261123_043408",
+ "source": "robot",
+ "sides_done": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:34:38+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    0.01
+   ],
+   "seconds": 5.743,
+   "items": [
+    {
+     "label": "yogurt_container",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      325.1,
+      112.3,
+      362.9,
+      130.1
+     ],
+     "center": [
+      2.0492,
+      -0.0701
+     ],
+     "radius_m": 0.0621,
+     "width_m": 0.1242,
+     "dist_m": 2.0504,
+     "cut": false,
+     "along": 2.0492,
+     "cross": -0.0701,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "white plastic yogurt tub",
+     "vlm_description": "A small, white plastic container with a slightly translucent appearance and rounded edges, likely a yogurt tub."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:35:45+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9964,
+    0.0017,
+    91.36
+   ],
+   "seconds": 5.518,
+   "items": [
+    {
+     "label": "paper_bag",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      181.1,
+      166.6,
+      547.8,
+      258.7
+     ],
+     "center": [
+      1.0143,
+      0.6716
+     ],
+     "radius_m": 0.1373,
+     "width_m": 0.2747,
+     "dist_m": 0.6701,
+     "cut": false,
+     "along": 0.6716,
+     "cross": -0.0143,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "crumpled brown paper takeout bag",
+     "vlm_description": "A crumpled brown paper takeout bag with printed text and orange accents, lying flat on a surface."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:37:12+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9981,
+    0.997,
+    -179.32
+   ],
+   "seconds": 4.76,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      94.7,
+      304.8,
+      242.6,
+      354.2
+     ],
+     "center": [
+      0.5897,
+      0.899
+     ],
+     "radius_m": 0.0352,
+     "width_m": 0.0704,
+     "dist_m": 0.42,
+     "cut": false,
+     "along": 0.4103,
+     "cross": 0.101,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A flat, rectangular sheet of white material with a smooth surface and slight sheen, resembling a single layer of tissue paper."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 15,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-23T04:38:43+00:00",
+   "photo": "photos/side4_step15_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    -0.0014,
+    0.9995,
+    -90.7
+   ],
+   "seconds": 4.762,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      0.0,
+      73.4,
+      399.4,
+      143.0
+     ],
+     "vlm_name": "carpet",
+     "vlm_description": "A cylindrical object made of textured, light-colored material with a matte finish and no shine."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 5,
+   "side": 2,
+   "t_utc": "2026-11-23T04:35:45+00:00",
+   "found_by": "look",
+   "label": "paper_bag",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.1373,
+   "obj_xy": [
+    1.0143,
+    0.6716
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    1.0143,
+    0.6716
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.6716,
+   "cross": -0.0143,
+   "photo": "photos/side2_step5_look.jpg",
+   "pose": [
+    0.9964,
+    0.0017,
+    91.36
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.3143,
+    "end_along": 1.0,
+    "offset_m": 0.3033,
+    "depth_m": 0.2746,
+    "rejoins_corner": true,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    181.1,
+    166.6,
+    547.8,
+    258.7
+   ],
+   "vlm_name": "crumpled brown paper takeout bag",
+   "vlm_description": "A crumpled brown paper takeout bag with printed text and orange accents, lying flat on a surface."
+  },
+  {
+   "id": 2,
+   "step": 10,
+   "side": 3,
+   "t_utc": "2026-11-23T04:37:12+00:00",
+   "found_by": "look",
+   "label": "paper_towel",
+   "category": "trash",
+   "conf": null,
+   "radius_m": 0.0352,
+   "obj_xy": [
+    0.5897,
+    0.899
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.5897,
+    0.899
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4103,
+   "cross": 0.101,
+   "photo": "photos/side3_step10_look.jpg",
+   "pose": [
+    0.9981,
+    0.997,
+    -179.32
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1551,
+    "end_along": 0.8451,
+    "offset_m": 0.3022,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     2
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    94.7,
+    304.8,
+    242.6,
+    354.2
+   ],
+   "vlm_name": "tissue",
+   "vlm_description": "A flat, rectangular sheet of white material with a smooth surface and slight sheen, resembling a single layer of tissue paper."
+  }
+ ],
+ "truth": null
+}

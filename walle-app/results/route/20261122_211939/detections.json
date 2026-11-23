@@ -1,0 +1,317 @@
+{
+ "run_id": "20261122_211939",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 3,
+   "t_utc": "2026-11-22T21:21:15+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3.jpg",
+   "pose": [
+    0.9922,
+    0.0,
+    -44.66
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.31,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.478,
+    "bbox": [
+     190.4,
+     0.3,
+     486.9,
+     338.6
+    ]
+   },
+   "bin_bearing_deg": -1.93,
+   "rim_visible": false,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.024,
+     "bbox": [
+      15.0,
+      134.8,
+      33.1,
+      152.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      194.6,
+      0.0,
+      485.8,
+      335.0
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black plastic container with a smooth surface and slightly tapered sides."
+    }
+   ]
+  },
+  {
+   "step": 3,
+   "t_utc": "2026-11-22T21:21:21+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_2",
+   "bin_id": 2,
+   "photo": "photos/bin_2_step3_up.jpg",
+   "pose": [
+    0.9922,
+    0.0,
+    -44.65
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 4.788,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.141,
+    "bbox": [
+     193.6,
+     153.1,
+     474.2,
+     480.0
+    ]
+   },
+   "bin_bearing_deg": -1.49,
+   "rim_visible": true,
+   "items": [],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.021,
+     "bbox": [
+      149.5,
+      376.0,
+      175.6,
+      399.1
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      2.6,
+      0.0,
+      293.1,
+      225.1
+     ],
+     "vlm_name": "3d printer",
+     "vlm_description": "The object is made of metal and plastic with orange accents, has a rectangular frame shape, and exhibits a matte finish."
+    }
+   ]
+  },
+  {
+   "step": 8,
+   "t_utc": "2026-11-22T21:22:23+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step8.jpg",
+   "pose": [
+    0.9993,
+    0.9966,
+    44.75
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 7.846,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.156,
+    "bbox": [
+     214.3,
+     27.0,
+     471.0,
+     318.9
+    ]
+   },
+   "bin_bearing_deg": -2.34,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      305.9,
+      241.4,
+      616.3,
+      402.2
+     ],
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white tissue with a slightly shiny surface resting on a textured gray floor.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.459,
+      1.315
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      331.5,
+      246.2,
+      638.7,
+      336.0
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled white paper towel or tissue with soft, matte texture and irregular folds.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.741,
+      1.446
+     ]
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.023,
+     "bbox": [
+      288.9,
+      0.0,
+      358.5,
+      32.5
+     ]
+    }
+   ]
+  },
+  {
+   "step": 8,
+   "t_utc": "2026-11-22T21:22:32+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step8_up.jpg",
+   "pose": [
+    0.9993,
+    0.9966,
+    44.74
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.666,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.069,
+    "bbox": [
+     216.4,
+     166.1,
+     459.4,
+     456.1
+    ]
+   },
+   "bin_bearing_deg": -1.91,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      320.6,
+      375.8,
+      638.7,
+      479.0
+     ],
+     "vlm_name": "crumpled white paper towel or tissue",
+     "vlm_description": "A crumpled white object with a slightly translucent and soft texture, lacking any metallic shine or rigid structure.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      172.2,
+      37.4,
+      470.4,
+      165.6
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent plastic film bag with printed text and blue/green branding, showing some shine from ambient light.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 15 cm above the rim"
+    }
+   ],
+   "low_conf": []
+  }
+ ]
+}

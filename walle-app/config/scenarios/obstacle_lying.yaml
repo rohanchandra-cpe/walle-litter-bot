@@ -1,0 +1,8 @@
+# Phase 5 hard case: a bottle lying across the path (20 cm wide): the widest sim obstacle.
+bins:
+  1: {state: ok}
+  2: {state: ok}
+  3: {state: ok}
+  4: {state: ok}
+obstacle: {side: 4, at: 0.5, item: plastic_bottle, pose: lying}
+seed: 1

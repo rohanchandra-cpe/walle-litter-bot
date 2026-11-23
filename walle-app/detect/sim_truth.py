@@ -57,12 +57,15 @@ def item_half_extents(item, model):
 
 class TruthDetector:
     def __init__(self, layout, pose_fn, cfg=None, hide_cut_bins=False, tilt_fn=None,
-                 lens_from_pivot_m=(0.0, 0.0)):
+                 lens_from_pivot_m=(0.0, 0.0), hide_obstacle=False):
         """hide_cut_bins: miss a bin whose box runs off the frame's left or right side, as
         YOLO-World did on the robot (run 20261121_035910, bin 2 scored 0.02).
         tilt_fn: the camera's tilt in deg (+ = up) when the photo is taken, or None (level).
-        lens_from_pivot_m: [forward, up] of the lens from the tilt axis (servo.yaml sim)."""
+        lens_from_pivot_m: [forward, up] of the lens from the tilt axis (servo.yaml sim).
+        hide_obstacle: never report the route obstacle (Phase 5: a detector miss, so only
+        the sonar can find it)."""
         self.cfg = cfg or load_config()
+        self.hide_obstacle = hide_obstacle
         self.hide_cut_bins = hide_cut_bins
         self.layout, self.pose_fn = layout, pose_fn
         self.tilt_fn = tilt_fn
@@ -140,23 +143,25 @@ class TruthDetector:
                 dets.append({"kind": "bin", "label": self.cfg["bin"]["label"],
                              "category": None, "prompt": "ground truth", "conf": 1.0,
                              "bbox": seen[0], "truth": b["name"]})
-        for b in self.layout["bins"]:
-            for group in ("mound", "spill", "litter"):
-                for it in b.get(group, []):
-                    model = self.models[it["item"]]
-                    pts = box_corners(it["position"], item_half_extents(it, model),
-                                      math.radians(it.get("yaw_deg", 0.0)))
-                    seen = self.project(pts, pose, w, h, tilt)
-                    if not seen:
-                        continue
-                    seen = self.occlude(seen, bins, min(p[2] for p in pts))
-                    if seen is None:
-                        continue
-                    dets.append({"kind": "item", "label": it["item"],
-                                 "category": self.cfg["items"].get(it["item"], {})
-                                 .get("category", "unknown"),
-                                 "prompt": "ground truth", "conf": 1.0, "bbox": seen[0],
-                                 "truth": it["name"], "truth_group": group})
+        placed = [(group, it) for b in self.layout["bins"]
+                  for group in ("mound", "spill", "litter") for it in b.get(group, [])]
+        if self.layout.get("obstacle") and not self.hide_obstacle:
+            placed.append(("obstacle", self.layout["obstacle"]))   # Phase 5
+        for group, it in placed:
+            model = self.models[it["item"]]
+            pts = box_corners(it["position"], item_half_extents(it, model),
+                              math.radians(it.get("yaw_deg", 0.0)))
+            seen = self.project(pts, pose, w, h, tilt)
+            if not seen:
+                continue
+            seen = self.occlude(seen, bins, min(p[2] for p in pts))
+            if seen is None:
+                continue
+            dets.append({"kind": "item", "label": it["item"],
+                         "category": self.cfg["items"].get(it["item"], {})
+                         .get("category", "unknown"),
+                         "prompt": "ground truth", "conf": 1.0, "bbox": seen[0],
+                         "truth": it["name"], "truth_group": group})
         return {"detections": dets, "seconds": round(time.time() - t0, 3), "size": [w, h],
                 "model": self.model_name, "source": self.source, "tilt_deg": round(tilt, 2),
                 **({"low_conf": []} if keep_low else {})}

@@ -1,0 +1,44 @@
+{
+ "run": "walle-app/results/route/20261123_042752",
+ "tol_cm": 10.0,
+ "truth": [
+  {
+   "side": 3,
+   "along_m": 0.35,
+   "position": [
+    0.65,
+    1.0
+   ]
+  }
+ ],
+ "records": [
+  {
+   "id": 1,
+   "side": 3,
+   "label": "milk_jug",
+   "category": "recycling",
+   "found_by": "look",
+   "position_source": "camera",
+   "action": "detour",
+   "obj_xy": [
+    0.5861,
+    1.0351
+   ],
+   "camera_xy": [
+    0.5861,
+    1.0351
+   ],
+   "sonar_xy": null,
+   "radius_m": 0.0771,
+   "truth": [
+    0.65,
+    1.0
+   ],
+   "obj_error_cm": 7.3,
+   "camera_error_cm": 7.3,
+   "within_tol": true
+  }
+ ],
+ "missed": [],
+ "pass": true
+}

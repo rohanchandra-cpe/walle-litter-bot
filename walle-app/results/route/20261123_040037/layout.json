@@ -1,0 +1,158 @@
+{
+  "scenario": "default",
+  "seed": 1,
+  "overrides": {
+    "obstacle": "none"
+  },
+  "route": {
+    "side_m": 1.0,
+    "corners": {
+      "1": [
+        0.0,
+        0.0
+      ],
+      "2": [
+        1.0,
+        0.0
+      ],
+      "3": [
+        1.0,
+        1.0
+      ],
+      "4": [
+        0.0,
+        1.0
+      ]
+    },
+    "start": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "waypoints": [
+      {
+        "corner": 2,
+        "x": 1.0,
+        "y": 0.0,
+        "heading_deg": 0.0
+      },
+      {
+        "corner": 3,
+        "x": 1.0,
+        "y": 1.0,
+        "heading_deg": 90.0
+      },
+      {
+        "corner": 4,
+        "x": 0.0,
+        "y": 1.0,
+        "heading_deg": 180.0
+      },
+      {
+        "corner": 1,
+        "x": 0.0,
+        "y": 0.0,
+        "heading_deg": -90.0
+      }
+    ]
+  },
+  "bins": [
+    {
+      "id": 1,
+      "name": "bin_1",
+      "corner": 1,
+      "type": "trash",
+      "position": [
+        -0.6223,
+        -0.6223
+      ],
+      "shape": "box",
+      "height_m": 0.292,
+      "size_m": [
+        0.277,
+        0.211,
+        0.292
+      ],
+      "yaw_deg": -135.0,
+      "view_heading_deg": -135.0,
+      "state": "ok",
+      "overflow_level": null,
+      "mound": [],
+      "spill": [],
+      "litter": []
+    },
+    {
+      "id": 2,
+      "name": "bin_2",
+      "corner": 2,
+      "type": "recycling",
+      "position": [
+        1.6223,
+        -0.6223
+      ],
+      "shape": "box",
+      "height_m": 0.292,
+      "size_m": [
+        0.277,
+        0.211,
+        0.292
+      ],
+      "yaw_deg": -45.0,
+      "view_heading_deg": -45.0,
+      "state": "ok",
+      "overflow_level": null,
+      "mound": [],
+      "spill": [],
+      "litter": []
+    },
+    {
+      "id": 3,
+      "name": "bin_3",
+      "corner": 3,
+      "type": "trash",
+      "position": [
+        1.6223,
+        1.6223
+      ],
+      "shape": "box",
+      "height_m": 0.292,
+      "size_m": [
+        0.277,
+        0.211,
+        0.292
+      ],
+      "yaw_deg": 45.0,
+      "view_heading_deg": 45.0,
+      "state": "ok",
+      "overflow_level": null,
+      "mound": [],
+      "spill": [],
+      "litter": []
+    },
+    {
+      "id": 4,
+      "name": "bin_4",
+      "corner": 4,
+      "type": "recycling",
+      "position": [
+        -0.6223,
+        1.6223
+      ],
+      "shape": "box",
+      "height_m": 0.292,
+      "size_m": [
+        0.277,
+        0.211,
+        0.292
+      ],
+      "yaw_deg": 135.0,
+      "view_heading_deg": 135.0,
+      "state": "ok",
+      "overflow_level": null,
+      "mound": [],
+      "spill": [],
+      "litter": []
+    }
+  ],
+  "obstacle": null
+}
