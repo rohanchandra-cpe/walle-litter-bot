@@ -1,0 +1,349 @@
+{
+ "run_id": "20261125_204207",
+ "source": "robot",
+ "kind": "trip",
+ "sides_done": [
+  1,
+  2,
+  2,
+  1
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:42:44+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "seconds": 12.816,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      330.9,
+      87.8,
+      444.2,
+      354.2
+     ],
+     "center": [
+      0.4051,
+      -0.0251
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0539,
+     "dist_m": 0.4058,
+     "cut": false,
+     "along": 0.4051,
+     "cross": -0.0251,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "The object is a cylindrical can made of metal, primarily white in color with blue accents and text. It has a smooth, slightly reflective surface that catches light, giving it a subtle shine."
+    }
+   ],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      538.3,
+      20.1,
+      639.7,
+      57.9
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular object with a smooth, non-reflective surface and slightly rounded edges."
+    }
+   ]
+  },
+  {
+   "step": 3,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:43:12+00:00",
+   "photo": "photos/side2_step3_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.9934,
+    0.0017,
+    91.12
+   ],
+   "seconds": 4.796,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      534.4,
+      133.9,
+      636.2,
+      190.1
+     ],
+     "center": [
+      1.3293,
+      0.8966
+     ],
+     "radius_m": 0.0645,
+     "width_m": 0.129,
+     "dist_m": 0.9558,
+     "cut": false,
+     "along": 0.8966,
+     "cross": -0.3293,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled, off-white paper material with a matte finish and irregular folds."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 8,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:45:30+00:00",
+   "photo": "photos/side2_step8_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    1.0007,
+    0.9988,
+    -89.19
+   ],
+   "seconds": 9.021,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      0.0,
+      24.0,
+      145.6,
+      69.5
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "This object appears to be made of hard plastic with a matte black finish. It has a rectangular shape with rounded corners and a smooth surface that reflects light slightly, indicating a non-glossy texture."
+    }
+   ]
+  },
+  {
+   "step": 11,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:45:47+00:00",
+   "photo": "photos/side1_step11_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    1.0014,
+    0.0012,
+    178.73
+   ],
+   "seconds": 7.135,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      208.5,
+      68.2,
+      328.2,
+      155.6
+     ],
+     "center": [
+      -0.3397,
+      -0.0917
+     ],
+     "radius_m": 0.1168,
+     "width_m": 0.2336,
+     "dist_m": 1.3443,
+     "cut": false,
+     "along": 1.3397,
+     "cross": 0.0917,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "metal drink can",
+     "vlm_description": "A cylindrical metal can with a white body and blue rim, featuring printed text and nutritional information; it has a matte finish."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 12,
+   "side": 1,
+   "kind": "sonar_look",
+   "t_utc": "2026-11-25T20:46:01+00:00",
+   "sonar": {
+    "range_m": 0.3399,
+    "echo_us": 1835,
+    "pose": [
+     0.9713,
+     0.0021,
+     178.07
+    ],
+    "t_s": 220.48
+   },
+   "photo": "photos/side1_step12_sonar1.jpg",
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      172.2,
+      66.2,
+      304.0,
+      421.4
+     ],
+     "center": [
+      0.5816,
+      -0.0303
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0499,
+     "dist_m": 0.3525,
+     "cut": false,
+     "along": 0.4184,
+     "cross": 0.0303,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a light blue rim and white body, featuring printed nutritional information and barcodes, exhibiting a slight metallic sheen."
+    }
+   ],
+   "pose": [
+    0.9324,
+    0.0034,
+    177.83
+   ],
+   "seconds": 10.926,
+   "rejected": []
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-25T20:42:44+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.4051,
+    -0.0251
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.4051,
+    -0.0251
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4051,
+   "cross": -0.0251,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1551,
+    "end_along": 0.8451,
+    "offset_m": 0.196,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "direction": "ccw",
+   "bbox": [
+    330.9,
+    87.8,
+    444.2,
+    354.2
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "The object is a cylindrical can made of metal, primarily white in color with blue accents and text. It has a smooth, slightly reflective surface that catches light, giving it a subtle shine."
+  },
+  {
+   "id": 2,
+   "step": 12,
+   "side": 1,
+   "t_utc": "2026-11-25T20:46:01+00:00",
+   "found_by": "sonar",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.5816,
+    -0.0303
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.5816,
+    -0.0303
+   ],
+   "camera_cut": false,
+   "sonar_xy": [
+    0.4767,
+    0.0188
+   ],
+   "sonar": {
+    "range_m": 0.3399,
+    "echo_us": 1835,
+    "pose": [
+     0.9713,
+     0.0021,
+     178.07
+    ],
+    "t_s": 220.48
+   },
+   "along": 0.4184,
+   "cross": 0.0303,
+   "photo": "photos/side1_step12_sonar1.jpg",
+   "pose": [
+    0.9324,
+    0.0034,
+    177.83
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1684,
+    "end_along": 0.8584,
+    "offset_m": 0.196,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     2
+    ]
+   },
+   "confirmed": true,
+   "direction": "cw",
+   "bbox": [
+    172.2,
+    66.2,
+    304.0,
+    421.4
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "A cylindrical metal can with a light blue rim and white body, featuring printed nutritional information and barcodes, exhibiting a slight metallic sheen."
+  }
+ ],
+ "truth": null
+}

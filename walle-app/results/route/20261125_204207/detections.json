@@ -1,0 +1,225 @@
+{
+ "run_id": "20261125_204207",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 6,
+   "t_utc": "2026-11-25T20:45:05+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step6.jpg",
+   "pose": [
+    1.0002,
+    0.9991,
+    47.38
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 17.561,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "wastebasket",
+    "conf": 0.256,
+    "bbox": [
+     176.0,
+     56.8,
+     435.8,
+     348.3
+    ]
+   },
+   "bin_bearing_deg": 1.46,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      176.9,
+      0.0,
+      412.7,
+      69.9
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "A crumpled foil object with a shiny silver surface and irregular shape.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      201.0,
+      281.8,
+      522.2,
+      446.9
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.321,
+      1.327
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      325.1,
+      293.8,
+      581.1,
+      388.8
+     ],
+     "vlm_name": "plastic film bag (grocery bag with handles)",
+     "vlm_description": "A crumpled green and white plastic film bag with printed text, showing some shine from its material.",
+     "place": "around_bin",
+     "obj_xy": [
+      1.473,
+      1.364
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      414.1,
+      0.0,
+      520.3,
+      101.8
+     ],
+     "vlm_name": "crumpled brown paper takeout bag",
+     "vlm_description": "The object is made of brown paper, has an irregular crumpled shape, and shows no shine.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.012,
+     "bbox": [
+      526.4,
+      225.7,
+      569.1,
+      309.7
+     ]
+    }
+   ]
+  },
+  {
+   "step": 6,
+   "t_utc": "2026-11-25T20:45:16+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.05,
+   "bin": "bin_3",
+   "bin_id": 3,
+   "photo": "photos/bin_3_step6_up.jpg",
+   "pose": [
+    1.0002,
+    0.9991,
+    47.38
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 10.242,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.352,
+    "bbox": [
+     178.0,
+     234.2,
+     424.4,
+     480.0
+    ]
+   },
+   "bin_bearing_deg": 2.01,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      177.0,
+      139.5,
+      408.0,
+      242.9
+     ],
+     "vlm_name": "foil",
+     "vlm_description": "A crumpled, shiny silver object made of thin metallic material with some blue and red printed text visible on its surface.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      304.0,
+      170.4,
+      483.2,
+      259.2
+     ],
+     "vlm_name": "paper",
+     "vlm_description": "A crumpled, shiny silver object with printed text and graphics, likely aluminum foil.",
+     "place": "on_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.018,
+     "bbox": [
+      529.7,
+      395.4,
+      567.2,
+      478.0
+     ]
+    }
+   ]
+  }
+ ]
+}

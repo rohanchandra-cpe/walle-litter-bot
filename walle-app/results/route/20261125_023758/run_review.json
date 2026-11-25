@@ -1,0 +1,7 @@
+{
+  "leave_out": "bin check wrong: camera tilt slipped (up look about +8 deg instead of +15), so the paper bag and plastic bag on top of bin 1 were dropped as floating",
+  "reviewed_utc": "2026-11-25",
+  "truth": {
+    "bin_1": "overflowing: brown paper bag and grey plastic bag on top, no litter"
+  }
+}

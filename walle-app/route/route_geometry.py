@@ -87,6 +87,7 @@ def build_plan(layout, laps=1, dwell_s=15.0, face_bins=True, look_sides=False):
         ("look_side", corner_from, corner_to, (ax, ay), (bx, by), heading)
                                    look down the side for obstacles (Phase 5; look_sides)
         ("drive", corner_from, corner_to, (ax, ay), (bx, by), heading)
+    (build_trip's look_side / drive steps add a direction: +1 counter-clockwise, -1 not)
         ("face_bin", corner, bin_name, heading)       turn to face the bin
         ("dwell", corner, bin_name, seconds)
         ("turn", corner, heading)                     turn to the next side (or the start)
@@ -116,6 +117,93 @@ def build_plan(layout, laps=1, dwell_s=15.0, face_bins=True, look_sides=False):
             steps.append(("turn", to, nxt))
             here = to
     return steps
+
+
+def side_of(c_from, c_to, n_corners=4):
+    """The leg c_from -> c_to between neighbouring corners: (side, direction). Side k runs
+    from corner k to k+1 (counter-clockwise, park.py's numbering); direction is +1 when the
+    leg drives it that way, -1 when it drives it clockwise (k+1 -> k)."""
+    if c_to == c_from % n_corners + 1:
+        return c_from, 1
+    if c_from == c_to % n_corners + 1:
+        return c_to, -1
+    raise ValueError(f"corners {c_from} and {c_to} are not neighbours")
+
+
+def trip_path(n_bin_corner, first=1, n_corners=4):
+    """The corners from `first` to the bin's corner by the shorter way round the square
+    (counter-clockwise on a tie). [first] when the bin is on the start corner."""
+    ccw = (n_bin_corner - first) % n_corners
+    cw = (first - n_bin_corner) % n_corners
+    step = 1 if ccw <= cw else -1
+    path, c = [first], first
+    for _ in range(min(ccw, cw)):
+        c = (c - 1 + step) % n_corners + 1
+        path.append(c)
+    return path
+
+
+def build_trip(layout, bin_corner, dwell_s=15.0, look_sides=False, face_bin=True):
+    """Phase 6's partial route ("check bin N", docs/plans/phase-6-plan.md decision 4): from
+    the start corner to bin_corner by the shorter way, the bin stop there (face, dwell), a
+    turn back (about 180 deg), the same corners back, and a turn to the start heading.
+    Bin 1 (the start corner): no driving. Same step kinds as build_plan; look_side and
+    drive steps carry a 7th element, the direction (+1 counter-clockwise, -1 clockwise),
+    and their corners are the leg's (corner_from is where the leg starts)."""
+    route = layout["route"]
+    corners = {int(k): tuple(v) for k, v in route["corners"].items()}
+    bins = {b["corner"]: b for b in layout["bins"]}
+    start = route["start"]
+    first = min(corners, key=lambda c: math.hypot(corners[c][0] - start[0],
+                                                  corners[c][1] - start[1]))
+    if bin_corner not in corners:
+        raise ValueError(f"no corner {bin_corner}")
+    path = trip_path(bin_corner, first, len(corners))
+    steps = []
+
+    def leg(c0, c1):
+        _, d = side_of(c0, c1, len(corners))
+        a, b = corners[c0], corners[c1]
+        h = math.atan2(b[1] - a[1], b[0] - a[0])
+        return a, b, h, d
+
+    legs = list(zip(path, path[1:]))
+    back = [(c1, c0) for c0, c1 in reversed(legs)]
+    for k, (c0, c1) in enumerate(legs):
+        a, b, h, d = leg(c0, c1)
+        if k or abs(wrap(h - math.radians(start[2]))) > 1e-6:
+            steps.append(("turn", c0, h))            # onto this leg (bin 4: from the start)
+        if look_sides:
+            steps.append(("look_side", c0, c1, a, b, h, d))
+        steps.append(("drive", c0, c1, a, b, h, d))
+    if face_bin and bin_corner in bins:
+        bn = bins[bin_corner]
+        steps.append(("face_bin", bin_corner, bn["name"], math.radians(bn["view_heading_deg"])))
+        steps.append(("dwell", bin_corner, bn["name"], float(dwell_s)))
+    for c0, c1 in back:
+        a, b, h, d = leg(c0, c1)
+        steps.append(("turn", c0, h))
+        if look_sides:
+            steps.append(("look_side", c0, c1, a, b, h, d))
+        steps.append(("drive", c0, c1, a, b, h, d))
+    steps.append(("turn", first, math.radians(start[2])))
+    return steps
+
+
+def build_look(layout, ahead_m=None):
+    """Phase 6's look-only plan: one look_side step from the start pose along the heading it
+    faces (side 1 when the robot is on the start corner facing corner 2)."""
+    route = layout["route"]
+    corners = {int(k): tuple(v) for k, v in route["corners"].items()}
+    start = route["start"]
+    h = math.radians(start[2])
+    first = min(corners, key=lambda c: math.hypot(corners[c][0] - start[0],
+                                                  corners[c][1] - start[1]))
+    nxt = first % len(corners) + 1
+    length = ahead_m or math.dist(corners[first], corners[nxt])
+    a = (float(start[0]), float(start[1]))
+    b = (a[0] + length * math.cos(h), a[1] + length * math.sin(h))
+    return [("look_side", first, nxt, a, b, h, 1)]
 
 
 # ----- small heading corrections: timed pulses -----

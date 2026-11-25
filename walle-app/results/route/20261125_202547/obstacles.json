@@ -1,0 +1,258 @@
+{
+ "run_id": "20261125_202547",
+ "source": "robot",
+ "kind": "route",
+ "sides_done": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:26:26+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.0,
+    0.0,
+    -0.01
+   ],
+   "seconds": 12.882,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      278.4,
+      90.7,
+      368.6,
+      363.8
+     ],
+     "center": [
+      0.3957,
+      0.0091
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0414,
+     "dist_m": 0.3958,
+     "cut": false,
+     "along": 0.3957,
+     "cross": 0.0091,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a light blue rim and white body, featuring printed text and graphics; it has a smooth, slightly reflective surface."
+    }
+   ],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      524.8,
+      26.2,
+      639.5,
+      57.2
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular object with smooth edges and no visible shine, consistent with a plastic or metal trash bin."
+    }
+   ]
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:27:42+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.9934,
+    0.0008,
+    89.15
+   ],
+   "seconds": 7.576,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      470.4,
+      143.0,
+      572.2,
+      194.9
+     ],
+     "center": [
+      1.2595,
+      0.8509
+     ],
+     "radius_m": 0.0615,
+     "width_m": 0.123,
+     "dist_m": 0.8908,
+     "cut": false,
+     "along": 0.8509,
+     "cross": -0.2595,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled, off-white paper material with a matte finish and irregular folds."
+    },
+    {
+     "label": "foil",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      557.4,
+      152.2,
+      638.7,
+      183.8
+     ],
+     "center": [
+      1.3975,
+      0.9238
+     ],
+     "radius_m": 0.055,
+     "width_m": 0.1101,
+     "dist_m": 1.0076,
+     "cut": false,
+     "along": 0.9238,
+     "cross": -0.3975,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "foil",
+     "vlm_description": "A crumpled sheet of shiny silver material with reflective highlights, consistent with aluminum foil."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:29:25+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.9994,
+    1.0013,
+    -177.92
+   ],
+   "seconds": 9.969,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      49.9,
+      256.3,
+      108.2,
+      268.8
+     ],
+     "center": [
+      0.4727,
+      0.7888
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0411,
+     "dist_m": 0.568,
+     "cut": false,
+     "along": 0.5273,
+     "cross": 0.2112,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "paper",
+     "vlm_description": "A small, flat, white sheet with a slightly crinkled texture and no visible shine."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 15,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:31:12+00:00",
+   "photo": "photos/side4_step15_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.0009,
+    0.997,
+    -92.28
+   ],
+   "seconds": 7.789,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      361.3,
+      145.1,
+      366.0,
+      152.5
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "The object appears to be made of plastic, has a black color, and is cylindrical in shape with a slightly shiny surface."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-25T20:26:26+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.3957,
+    0.0091
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.3957,
+    0.0091
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.3957,
+   "cross": 0.0091,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    -0.01
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1457,
+    "end_along": 0.8357,
+    "offset_m": 0.2051,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    278.4,
+    90.7,
+    368.6,
+    363.8
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "A cylindrical metal can with a light blue rim and white body, featuring printed text and graphics; it has a smooth, slightly reflective surface."
+  }
+ ],
+ "truth": null
+}

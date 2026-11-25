@@ -1,0 +1,150 @@
+{
+ "run_id": "20261125_205410",
+ "source": "robot",
+ "kind": "trip",
+ "sides_done": [
+  4,
+  4
+ ],
+ "looks": [
+  {
+   "step": 1,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:54:51+00:00",
+   "photo": "photos/side4_step1_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    -0.0003,
+    0.0006,
+    89.44
+   ],
+   "seconds": 14.054,
+   "items": [
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      37.1,
+      112.3,
+      114.6,
+      161.3
+     ],
+     "center": [
+      -0.465,
+      1.1995
+     ],
+     "radius_m": 0.0694,
+     "width_m": 0.1389,
+     "dist_m": 1.2858,
+     "cut": false,
+     "along": 1.1995,
+     "cross": 0.465,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "plastic film bag",
+     "vlm_description": "The object is made of thin, translucent plastic with a glossy sheen; it has an irregular, crumpled shape typical of a lightweight film bag."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 6,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:56:11+00:00",
+   "photo": "photos/side4_step6_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.0006,
+    0.9966,
+    -90.64
+   ],
+   "seconds": 5.236,
+   "items": [
+    {
+     "label": "milk_jug",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      174.7,
+      0.0,
+      444.2,
+      343.2
+     ],
+     "center": [
+      0.0132,
+      0.5424
+     ],
+     "radius_m": 0.0669,
+     "width_m": 0.1337,
+     "dist_m": 0.4544,
+     "cut": false,
+     "along": 0.4576,
+     "cross": 0.0132,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "plastic milk jug (gallon)",
+     "vlm_description": "A translucent white plastic container with a smooth, slightly glossy surface and a rounded, bulbous shape typical of a gallon jug."
+    }
+   ],
+   "rejected": []
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 6,
+   "side": 4,
+   "t_utc": "2026-11-25T20:56:11+00:00",
+   "found_by": "look",
+   "label": "milk_jug",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.0669,
+   "obj_xy": [
+    0.0132,
+    0.5424
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.0132,
+    0.5424
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4576,
+   "cross": 0.0132,
+   "photo": "photos/side4_step6_look.jpg",
+   "pose": [
+    0.0006,
+    0.9966,
+    -90.64
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1707,
+    "end_along": 0.8607,
+    "offset_m": 0.2461,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "direction": "ccw",
+   "bbox": [
+    174.7,
+    0.0,
+    444.2,
+    343.2
+   ],
+   "vlm_name": "plastic milk jug (gallon)",
+   "vlm_description": "A translucent white plastic container with a smooth, slightly glossy surface and a rounded, bulbous shape typical of a gallon jug."
+  }
+ ],
+ "truth": null
+}

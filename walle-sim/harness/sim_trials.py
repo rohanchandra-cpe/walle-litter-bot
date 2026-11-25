@@ -137,6 +137,21 @@ def parse_args():
     for action in p._actions:
         if action.dest != "help":
             b._add_action(action)
+    # Phase 6: the partial route (--trip-bin) and the look-only mode, same bars as route-check
+    t = sub.add_parser("trip-check", help="world park: Phase 6 trip - the follower's "
+                       "--trip-bin N (to bin N and back by the shorter way); PASS if it ends "
+                       "within 5 cm and the bin is judged right")
+    for action in p._actions:
+        if action.dest != "help":
+            t._add_action(action)
+    t.add_argument("--bin", type=int, required=True, help="the bin to check (1-4)")
+    t.add_argument("--accept-blocked", action="store_true",
+                   help="an obstacle with no way round may be reported (status blocked) "
+                   "instead of passed (the clockwise obstacle cases)")
+    lk = sub.add_parser("look-check", help="world park: Phase 6 look-only - the follower's "
+                        "--look-only from the start pose; the world's side-1 obstacle must be "
+                        "found, on side 1 and relative to the robot, and the robot must not move")
+    lk.add_argument("--obstacle-tol-cm", type=float, default=10.0)
     for name in ("shakedown", "rq1", "rq2", "motion"):
         sub.choices[name].add_argument("--bag", action="store_true", help="record ros2 bags")
     return parser.parse_args()
@@ -800,11 +815,31 @@ def obstacle_checks(summary, layout, out_dir):
     mine = [r for r in recs if r.get("side") == o["side"] and r.get("obj_xy")]
     best = min(mine, key=lambda r: math.hypot(r["obj_xy"][0] - o["position"][0],
                                               r["obj_xy"][1] - o["position"][1])) if mine else None
-    out.append(("obstacle found and passed", bool(best) and best.get("action") == "detour",
-                (f"{best['label']} ({best['category']}) by the {best['found_by']}, "
-                 f"{best['action']}" if best else
-                 f"none recorded on side {o['side']} ({len(recs)} records)")
-                + f"; truth {o['item']} {o['pose']} at {o['at']:.2f} of side {o['side']}"))
+    trip = ARGS.command == "trip-check"
+    driven = set(summary.get("sides_done") or [])
+    same = []                          # a trip meets it once per leg on its side
+    if trip and o["side"] not in driven and summary.get("status") == "done":
+        best = None                    # off the trip's path: nothing to find
+        out.append(("obstacle off the trip's path", True,
+                    f"side {o['side']}; sides driven {sorted(driven)}"))
+    elif trip:
+        same = [r for r in mine if math.hypot(r["obj_xy"][0] - o["position"][0],
+                                              r["obj_xy"][1] - o["position"][1])
+                <= max(2 * ARGS.obstacle_tol_cm / 100, 0.15)]
+        ok_actions = {"detour"} | ({"blocked"} if getattr(ARGS, "accept_blocked", False)
+                                   else set())
+        out.append(("obstacle found and passed (every leg)", bool(same)
+                    and all(r.get("action") in ok_actions for r in same),
+                    ", ".join(f"{r['label']} by the {r['found_by']}, {r['action']} "
+                              f"({r.get('direction', 'ccw')})" for r in same)
+                    or f"none recorded on side {o['side']} ({len(recs)} records)"
+                    + f"; truth {o['item']} {o['pose']} at {o['at']:.2f} of side {o['side']}"))
+    else:
+        out.append(("obstacle found and passed", bool(best) and best.get("action") == "detour",
+                    (f"{best['label']} ({best['category']}) by the {best['found_by']}, "
+                     f"{best['action']}" if best else
+                     f"none recorded on side {o['side']} ({len(recs)} records)")
+                    + f"; truth {o['item']} {o['pose']} at {o['at']:.2f} of side {o['side']}"))
     if best:
         err = math.hypot(best["obj_xy"][0] - o["position"][0],
                          best["obj_xy"][1] - o["position"][1]) * 100
@@ -814,7 +849,7 @@ def obstacle_checks(summary, layout, out_dir):
                     f"{best.get('camera_xy')}, sonar {best.get('sonar_xy')}, truth "
                     f"{[round(v, 3) for v in o['position'][:2]]})"))
         best["truth_error_cm"] = round(err, 2)
-    extra = [r for r in recs if r is not best]
+    extra = [r for r in recs if r is not best and r not in same]
     if extra:
         out.append(("no false obstacles", False,
                     ", ".join(f"{r['label']} on side {r['side']} at {r.get('obj_xy')}"
@@ -923,8 +958,8 @@ def bin_check_checks(summary, layout, out_dir, dets):
     must have used the up look (method tilt) and reached the memory store."""
     path = os.path.join(out_dir, "bin_checks.json")
     if not os.path.exists(path):
-        return [("bin_checks.json written", False, "missing")] if ARGS.command == "bin-check" \
-            else []
+        return [("bin_checks.json written", False, "missing")] \
+            if ARGS.command in ("bin-check", "trip-check") else []
     with open(path) as f:
         checks_in = json.load(f).get("checks", [])
     import sys as _s
@@ -944,7 +979,7 @@ def bin_check_checks(summary, layout, out_dir, dets):
         want_outcome = t["outcome"]
         ok = (c["overflow_level"] == t["overflow_level"] and c["outcome"] == want_outcome
               and c["litter_count"] == t["litter_count"]
-              and (c["method"] == "tilt" or ARGS.command != "bin-check"))
+              and (c["method"] == "tilt" or ARGS.command not in ("bin-check", "trip-check")))
         rows.append((c["bin"], c["method"], t["overflow_level"], c["overflow_level"],
                      t["on_top_count"], c["on_top_count"], len(visible), t["litter_count"],
                      c["litter_count"], want_outcome, c["outcome"], ok))
@@ -1009,6 +1044,10 @@ def cmd_route_check(sim):
            "--truth-layout", layout_path, "--run-dir", out_dir,
            "--laps", str(ARGS.laps), "--camera-url", "http://localhost:8080/capture",
            "--no-measure"]
+    trip = ARGS.bin if ARGS.command == "trip-check" else None
+    if trip is not None:
+        cmd += ["--trip-bin", str(trip)]
+        print(f"Trip to bin {trip} and back (--trip-bin {trip}).")
     if ARGS.dwell is not None:
         cmd += ["--dwell", str(ARGS.dwell)]
     if getattr(ARGS, "hide_cut_bins", False):
@@ -1058,10 +1097,15 @@ def cmd_route_check(sim):
 
     bins = {b["name"]: b for b in layout["bins"]}
     checks = []
-    checks.append(("run finished", summary["status"] == "done",
-                   summary["status"] + (f" ({summary['reason']})" if summary.get("reason") else "")))
+    blocked_ok = (getattr(ARGS, "accept_blocked", False) and summary["status"] == "blocked"
+                  and layout.get("obstacle") is not None)
+    checks.append(("run finished", summary["status"] == "done" or blocked_ok,
+                   summary["status"] + (f" ({summary['reason']})" if summary.get("reason") else "")
+                   + (" (accepted: --accept-blocked)" if blocked_ok else "")))
     truth = summary["end_errors"].get("ground_truth")
-    if truth:
+    if blocked_ok:
+        pass                          # it stopped where it was blocked: no end position
+    elif truth:
         checks.append((f"ends within {ARGS.tolerance_cm:.0f} cm of the start",
                        truth["position_m"] * 100 <= ARGS.tolerance_cm,
                        f"{truth['position_m'] * 100:.1f} cm, heading {truth['heading_deg']:+.1f} deg"))
@@ -1099,7 +1143,16 @@ def cmd_route_check(sim):
                        f"restarts at {r} s, {len(summary.get('estimate_jumps', []))} estimate "
                        f"jumps caught, {len(summary.get('estimate_repairs', []))} repairs"))
     faced = {ev["bin"] for ev in summary["events"] if ev["event"] == "facing_bin"}
-    for name in bins:
+    want = [f"bin_{trip}"] if trip is not None else list(bins)
+    if trip is not None:
+        checks.append(("run kind trip", summary.get("kind") == "trip"
+                       and summary.get("trip_bin") == trip,
+                       f"kind {summary.get('kind')}, trip_bin {summary.get('trip_bin')}, "
+                       f"sides driven {summary.get('sides_done')}"))
+        other = sorted(faced - set(want))
+        if other:
+            checks.append(("only the trip's bin", False, f"also faced {', '.join(other)}"))
+    for name in ([] if blocked_ok else want):
         if name not in faced:
             checks.append((f"{name} stop", False, "the robot never faced it"))
 
@@ -1111,6 +1164,7 @@ def cmd_route_check(sim):
         print(f"  [{'OK' if ok else 'FAIL'}] {name}: {detail}")
     failures = sum(not ok for _, ok, _ in checks)
     result = {"profile": sim.profile.get("name"), "rtf": rtf, "laps": ARGS.laps,
+              "trip_bin": trip,
               "tolerance_cm": ARGS.tolerance_cm, "pass": failures == 0,
               "checks": [{"name": n, "ok": ok, "detail": d} for n, ok, d in checks],
               "corners": [{"corner": c, "true_error_cm": round(e, 2), "true_heading_deg": h}
@@ -1119,6 +1173,104 @@ def cmd_route_check(sim):
         json.dump(result, f, indent=2)
     log_invocation(sim, {"route_check": out_dir, "pass": failures == 0})
     sim.world.set_pose(ROBOT, sx, sy, REST_Z, math.radians(syaw))
+    print(f"Results: {out_dir}")
+    print("PASS" if not failures else f"FAIL ({failures} problems)")
+    if failures:
+        raise SystemExit(1)
+
+
+def cmd_look_check(sim):
+    """Phase 6: the follower's --look-only from the start pose. Checks: the run is done and
+    a look kind; the robot did not move (truth, <= 1 cm and 1 deg); the look took a photo;
+    with an obstacle on side 1 it is recorded on side 1 within --obstacle-tol-cm, and its
+    robot-relative position (ahead_m, left_m) matches the truth; no other obstacle is
+    reported; the run reached the memory store as kind look."""
+    layout = sim.world.info.get("park")
+    if layout is None:
+        raise SystemExit(f"World '{sim.world.name}' is not the park. Launch world:=park.")
+    sim.wait_robot(("ticks", "wheel", "ekf", "imu"))
+    rtf = warn_rtf(sim)
+    out_dir = os.path.join(RUN_DIR, "look", time.strftime("%Y%m%d_%H%M%S"))
+    os.makedirs(out_dir, exist_ok=True)
+    layout_path = os.path.join(out_dir, "layout_truth.json")
+    with open(layout_path, "w") as f:
+        json.dump(layout, f, indent=2)
+    sx, sy, syaw = layout["route"]["start"]
+    sim.world.set_pose(ROBOT, sx, sy, REST_Z, math.radians(syaw))
+    time.sleep(2.0)
+    o = layout.get("obstacle")
+    print(f"{sim.describe(rtf)}  scenario '{layout['scenario']}', obstacle "
+          + (f"{o['item']} at {o['at']:.2f} of side {o['side']}" if o else "none"))
+    cmd = [sys.executable, ROUTE_FOLLOWER, "--layout-json", layout_path, "--truth-layout",
+           layout_path, "--run-dir", out_dir, "--camera-url", "http://localhost:8080/capture",
+           "--no-measure", "--look-only"]
+    code = subprocess.call(cmd)
+    summary_path = os.path.join(out_dir, "summary.json")
+    if not os.path.exists(summary_path):
+        raise SystemExit(f"FAIL: the route follower wrote no summary (exit {code}).")
+    with open(summary_path) as f:
+        summary = json.load(f)
+    obs_path = os.path.join(out_dir, "obstacles.json")
+    data = json.load(open(obs_path)) if os.path.exists(obs_path) else {}
+    recs = data.get("obstacles", [])
+    checks = [("run finished", summary["status"] == "done",
+               summary["status"] + (f" ({summary['reason']})" if summary.get("reason") else "")),
+              ("run kind look, on the start pose", summary.get("kind") == "look"
+               and summary.get("at_start") is True,
+               f"kind {summary.get('kind')}, at_start {summary.get('at_start')}")]
+    g = summary.get("end_errors", {}).get("ground_truth")
+    checks.append(("did not move", bool(g) and g["position_m"] <= 0.01
+                   and abs(g["heading_deg"]) <= 1.0,
+                   f"{g['position_m'] * 100:.1f} cm, {g['heading_deg']:+.1f} deg from the start"
+                   if g else "no ground truth"))
+    looks = data.get("looks", [])
+    checks.append(("one look with a photo", len(looks) == 1 and bool(looks[0].get("photo")),
+                   f"{len(looks)} looks" + (f", photo {looks[0].get('photo')}" if looks else "")
+                   + (f", error {looks[0].get('error')}" if looks and looks[0].get("error")
+                      else "")))
+    best = None
+    tol = ARGS.obstacle_tol_cm / 100
+    if o and o["side"] == 1:
+        mine = [r for r in recs if r.get("side") == 1 and r.get("obj_xy")]
+        best = min(mine, key=lambda r: math.dist(r["obj_xy"], o["position"][:2])) if mine else None
+        err = math.dist(best["obj_xy"], o["position"][:2]) if best else None
+        checks.append(("side-1 obstacle found", best is not None and err <= tol,
+                       (f"{best['label']} ({best['category']}) {err * 100:.1f} cm from the "
+                        f"truth {[round(v, 3) for v in o['position'][:2]]}" if best else
+                        f"none on side 1 ({len(recs)} records); truth {o['item']} at "
+                        f"{o['at']:.2f}")))
+        if best:
+            h = math.radians(syaw)
+            dx, dy = o["position"][0] - sx, o["position"][1] - sy
+            ahead, left = math.cos(h) * dx + math.sin(h) * dy, -math.sin(h) * dx + math.cos(h) * dy
+            rel = (best.get("ahead_m"), best.get("left_m"))
+            ok = None not in rel and math.hypot(rel[0] - ahead, rel[1] - left) <= tol
+            checks.append(("relative to the robot", ok,
+                           f"ahead {rel[0]} m, left {rel[1]} m (truth {ahead:.3f}, "
+                           f"{left:.3f})"))
+    elif o:
+        checks.append(("obstacle not on side 1", True, f"it is on side {o['side']}"))
+    extra = [r for r in recs if r is not best]
+    checks.append(("no other obstacles reported", not extra,
+                   ", ".join(f"{r['label']} at {r.get('obj_xy')}" for r in extra) or "none"))
+    try:
+        sys.path.insert(0, os.path.join(REPO_DIR, "walle-app"))
+        from memory.store import MemoryStore
+        with MemoryStore("sim") as mem:
+            run = [r for r in mem.runs(limit=20) if r["run_id"] == summary["run_id"]]
+        checks.append(("in the memory store as kind look", bool(run) and run[0]["kind"] == "look",
+                       f"{run[0]['kind'] if run else 'not found'}"))
+    except Exception as e:                             # noqa: BLE001
+        checks.append(("in the memory store as kind look", False, str(e)))
+    print("\nChecks:")
+    for name, ok, detail in checks:
+        print(f"  [{'OK' if ok else 'FAIL'}] {name}: {detail}")
+    failures = sum(not ok for _, ok, _ in checks)
+    with open(os.path.join(out_dir, "look_check.json"), "w") as f:
+        json.dump({"pass": failures == 0, "checks": [{"name": n, "ok": ok, "detail": d}
+                                                    for n, ok, d in checks],
+                   "summary": summary}, f, indent=2)
+    log_invocation(sim, {"look_check": out_dir, "pass": failures == 0})
     print(f"Results: {out_dir}")
     print("PASS" if not failures else f"FAIL ({failures} problems)")
     if failures:
@@ -1162,6 +1314,10 @@ def main():
             cmd_route_check(sim)
         elif ARGS.command == "bin-check":
             cmd_bin_check(sim)
+        elif ARGS.command == "trip-check":
+            cmd_route_check(sim)
+        elif ARGS.command == "look-check":
+            cmd_look_check(sim)
 
 
 if __name__ == "__main__":

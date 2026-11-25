@@ -16,6 +16,12 @@ Cases: five random obstacles (scenario obstacle_only, other seeds), the three ha
 scenarios (obstacle_near at 0.25, obstacle_far at 0.75, obstacle_lying: a bottle across
 the path), one with the sonar dead (the camera alone), one the camera misses (the sonar
 alone). Each takes ~4-6 min (a 30 s launch, then the lap with its bin stops).
+
+Phase 6 adds the clockwise cases (cw_*): a trip (`sim_trials.py trip-check --bin N`, the
+follower's --trip-bin) over the obstacle's side, so a leg drives it clockwise and the detour
+must go to the robot's right. They pass with no collision and every sighting passed or
+reported blocked (--accept-blocked); all of them must pass, apart from the 9-of-10 bar of
+the lap cases. --only picks from both sets; --no-cw / --cw-only pick a set.
 """
 
 import argparse
@@ -40,6 +46,17 @@ CASES = [
     {"name": "sonar_dead", "scenario": "obstacle_only", "seed": 16,
      "profile": "plastic_pid_sonar_dead"},
     {"name": "camera_miss", "scenario": "obstacle_only", "seed": 17, "args": ["--hide-obstacle"]},
+]
+
+# Phase 6: trips with a clockwise leg over the obstacle's side. `at` is along side k from
+# corner k (counter-clockwise), so on side 4 driven from corner 1 it is 1 - at from the start.
+CW_CASES = [
+    {"name": "cw4_mid", "scenario": "obstacle_only", "obstacle": 4, "seed": 21, "trip": 4},
+    {"name": "cw4_near", "scenario": "obstacle_only", "obstacle": 4, "seed": 23, "trip": 4},
+    {"name": "cw4_far", "scenario": "obstacle_only", "obstacle": 4, "seed": 22, "trip": 4},
+    {"name": "cw4_lying", "scenario": "obstacle_lying", "trip": 4},
+    {"name": "cw1_back", "scenario": "obstacle_only", "obstacle": 1, "seed": 24, "trip": 2},
+    {"name": "cw2_back", "scenario": "obstacle_only", "obstacle": 2, "seed": 26, "trip": 3},
 ]
 
 
@@ -91,7 +108,8 @@ def world_up(timeout_s):
 def run_case(case, a, log_dir):
     profile = case.get("profile", PROFILE)
     launch = (f"ros2 launch {LAUNCH} world:=park profile:={profile} gui:=false "
-              f"scenario:={case['scenario']} bins:=scenario obstacle:=scenario "
+              f"scenario:={case['scenario']} bins:=scenario "
+              f"obstacle:={case.get('obstacle', 'scenario')} "
               f"park_seed:={case.get('seed', 'scenario')}")
     log = open(os.path.join(log_dir, f"{case['name']}_launch.log"), "w")
     proc = subprocess.Popen(["bash", "-c", launch], stdout=log, stderr=subprocess.STDOUT,
@@ -101,8 +119,10 @@ def run_case(case, a, log_dir):
         if not world_up(a.launch_timeout):
             return {"name": case["name"], "pass": False, "error": "world did not come up"}
         time.sleep(3)
-        cmd = [sys.executable, TRIALS, "--run", a.run, "route-check",
-               "--obstacle-tol-cm", str(a.tol_cm)] + case.get("args", [])
+        check = (["trip-check", "--bin", str(case["trip"]), "--accept-blocked"]
+                 if case.get("trip") else ["route-check"])
+        cmd = [sys.executable, TRIALS, "--run", a.run] + check + [
+            "--obstacle-tol-cm", str(a.tol_cm)] + case.get("args", [])
         if a.dwell is not None:
             cmd += ["--dwell", str(a.dwell)]
         out_path = os.path.join(log_dir, f"{case['name']}_check.log")
@@ -135,11 +155,19 @@ def main():
     p.add_argument("--dwell", type=float, default=5.0, help="bin wait (s), to save time")
     p.add_argument("--run", default="obstacle_check", help="walle-sim/data/<run>/")
     p.add_argument("--launch-timeout", type=float, default=120.0)
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--no-cw", action="store_true", help="the Phase 5 lap cases only")
+    g.add_argument("--cw-only", action="store_true", help="the Phase 6 clockwise cases only")
     a = p.parse_args()
-    cases = [c for c in CASES if c["name"] in a.only] if a.only else CASES[:a.runs]
+    if a.only:
+        cases = [c for c in CASES + CW_CASES if c["name"] in a.only]
+    else:
+        cases = ([] if a.cw_only else CASES[:a.runs]) + ([] if a.no_cw else CW_CASES)
     if not cases:
-        raise SystemExit(f"No such case. Cases: {', '.join(c['name'] for c in CASES)}")
-    need = a.need if a.need is not None else max(1, round(len(cases) * 0.9 - 1e-9))
+        raise SystemExit("No such case. Cases: "
+                         + ", ".join(c["name"] for c in CASES + CW_CASES))
+    laps = [c for c in cases if not c.get("trip")]
+    need = a.need if a.need is not None else max(1, round(len(laps) * 0.9 - 1e-9)) if laps else 0
     if leftovers():
         raise SystemExit("Sim nodes are already running in this container; stop them first "
                          "(each case launches its own world):\n" + "\n".join(leftovers()))
@@ -149,16 +177,27 @@ def main():
     results = []
     for k, case in enumerate(cases, 1):
         print(f"\n===== case {k}/{len(cases)}: {case['name']} ({case['scenario']}"
+              + (f", obstacle side {case['obstacle']}" if "obstacle" in case else "")
+              + (f", trip to bin {case['trip']}" if case.get("trip") else "")
               + (f", seed {case['seed']}" if "seed" in case else "")
               + (f", {case['profile']}" if "profile" in case else "")
               + (f", {' '.join(case['args'])}" if case.get("args") else "") + ") =====",
               flush=True)
         results.append(run_case(case, a, log_dir))
         with open(os.path.join(log_dir, "obstacle_check.json"), "w") as f:
-            json.dump({"cases": results, "need": need, "tol_cm": a.tol_cm}, f, indent=1)
-    passed = sum(r["pass"] for r in results)
-    print(f"\n===== Phase 5 obstacle check: {passed} of {len(results)} passed "
-          f"(need {need}; position within {a.tol_cm:.0f} cm) =====")
+            json.dump({"cases": results, "need": need, "need_cw": "all", "tol_cm": a.tol_cm},
+                      f, indent=1)
+    trips = {c["name"] for c in cases if c.get("trip")}
+    lap_res = [r for r in results if r["name"] not in trips]
+    cw_res = [r for r in results if r["name"] in trips]
+    passed = sum(r["pass"] for r in lap_res)
+    cw_passed = sum(r["pass"] for r in cw_res)
+    if lap_res:
+        print(f"\n===== Phase 5 obstacle check (laps): {passed} of {len(lap_res)} passed "
+              f"(need {need}; position within {a.tol_cm:.0f} cm) =====")
+    if cw_res:
+        print(f"===== Phase 6 clockwise cases (trips): {cw_passed} of {len(cw_res)} passed "
+              f"(need all) =====")
     for r in results:
         fails = [f"{n}: {d}" for n, (ok, d) in (r.get("checks") or {}).items() if not ok]
         pos = (r.get("checks") or {}).get(f"obstacle position within {a.tol_cm:.0f} cm")
@@ -167,7 +206,7 @@ def main():
               + (f"  {r.get('error')}" if r.get("error") else "")
               + ("".join(f"\n        - {x}" for x in fails)))
     print(f"Logs: {log_dir}")
-    ok = passed >= need
+    ok = passed >= need and cw_passed == len(cw_res)
     print("PASS" if ok else "FAIL")
     raise SystemExit(0 if ok else 1)
 

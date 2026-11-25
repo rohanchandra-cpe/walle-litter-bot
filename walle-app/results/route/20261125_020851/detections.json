@@ -1,0 +1,6 @@
+{
+ "run_id": "20261125_020851",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": []
+}

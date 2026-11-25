@@ -16,6 +16,9 @@ obstacle) and an obstacle sighting (report_obstacle: the same obstacle if one is
 route within the store's match radius, on the same side). An obstacle the store had on a
 side this run drove with obstacle watching on, and that this run did not see, is marked
 absent (cleared).
+Since Phase 6 a summary carries its run kind (route, trip or look; older ones are routes).
+A trip's sides_done lists each side it drove (out and back: twice), in counter-clockwise
+numbers like a lap's; a look drives nothing, so it clears nothing.
 """
 
 import json
@@ -33,7 +36,10 @@ def record_route_summary(store, summary, layout, run_dir):
                          f"not {store.source}.")
     run_id = summary["run_id"]
     started = summary.get("started_utc")
-    store.start_run(run_id=run_id, kind="route", scenario=summary.get("scenario"),
+    # Phase 6: "route" (a lap), "trip" (--trip-bin: out to one bin and back) or "look"
+    # (--look-only: one obstacle look, no driving)
+    store.start_run(run_id=run_id, kind=summary.get("kind") or "route",
+                    scenario=summary.get("scenario"),
                     layout=layout, started_utc=started, run_dir=run_dir,
                     laps=summary.get("laps"))
     ids = bin_ids(layout)
@@ -100,6 +106,18 @@ def record_detections(store, run_id, run_dir):
                 model=photo.get("model") or data.get("model"), t_utc=photo.get("t_utc"))
             n += 1
     return n
+
+
+def load_run_review(run_dir):
+    """<run_dir>/run_review.json, written after a person found a whole run's results wrong
+    (2026-11-25: the camera tilt had slipped, so the bin checks dropped the items on top):
+    {"leave_out": "why", ...}. import_runs.py skips such a run; its logs stay as written.
+    {} if there is none."""
+    path = os.path.join(run_dir, "run_review.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return json.load(f)
 
 
 def load_obstacle_review(run_dir):

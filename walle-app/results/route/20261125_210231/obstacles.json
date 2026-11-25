@@ -1,0 +1,217 @@
+{
+ "run_id": "20261125_210231",
+ "source": "robot",
+ "kind": "trip",
+ "sides_done": [],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T21:03:11+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "seconds": 15.278,
+   "items": [
+    {
+     "label": "carton",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      16.0,
+      166.6,
+      350.7,
+      314.9
+     ],
+     "center": [
+      0.5138,
+      0.1114
+     ],
+     "radius_m": 0.0936,
+     "width_m": 0.1871,
+     "dist_m": 0.5257,
+     "cut": false,
+     "along": 0.5138,
+     "cross": 0.1114,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "Ziploc bag",
+     "vlm_description": "A rectangular cardboard box with blue and beige branding, featuring printed icons and text; it has a matte finish and appears to be made of paperboard."
+    },
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      371.8,
+      86.4,
+      493.4,
+      345.1
+     ],
+     "center": [
+      0.4144,
+      -0.0509
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0599,
+     "dist_m": 0.4175,
+     "cut": false,
+     "along": 0.4144,
+     "cross": -0.0509,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "coffee can",
+     "vlm_description": "A cylindrical metal can with a white label featuring blue text and graphics, exhibiting a slight metallic sheen."
+    }
+   ],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      16.2,
+      65.3,
+      34.2,
+      133.5
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A black, rectangular object with a matte finish and slightly rounded edges, consistent in appearance with a small trash bin."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-25T21:03:11+00:00",
+   "found_by": "look",
+   "label": "carton",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.0936,
+   "obj_xy": [
+    0.5138,
+    0.1114
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.5138,
+    0.1114
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.5138,
+   "cross": 0.1114,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "action": null,
+   "detour": {
+    "start_along": 0.1644,
+    "end_along": 0.8544,
+    "offset_m": 0.371,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     2,
+     1
+    ],
+    "sonar": {
+     "range_m": 0.2722,
+     "echo_us": 1587,
+     "pose": [
+      0.1651,
+      0.3662,
+      1.32
+     ],
+     "t_s": 48.02
+    }
+   },
+   "confirmed": true,
+   "direction": "ccw",
+   "bbox": [
+    16.0,
+    166.6,
+    350.7,
+    314.9
+   ],
+   "vlm_name": "Ziploc bag",
+   "vlm_description": "A rectangular cardboard box with blue and beige branding, featuring printed icons and text; it has a matte finish and appears to be made of paperboard."
+  },
+  {
+   "id": 2,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-25T21:03:11+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.4144,
+    -0.0509
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.4144,
+    -0.0509
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4144,
+   "cross": -0.0509,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "action": "blocked",
+   "detour": {
+    "start_along": 0.1644,
+    "end_along": 0.8544,
+    "offset_m": 0.371,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     2,
+     1
+    ],
+    "sonar": {
+     "range_m": 0.2722,
+     "echo_us": 1587,
+     "pose": [
+      0.1651,
+      0.3662,
+      1.32
+     ],
+     "t_s": 48.02
+    }
+   },
+   "confirmed": true,
+   "direction": "ccw",
+   "bbox": [
+    371.8,
+    86.4,
+    493.4,
+    345.1
+   ],
+   "vlm_name": "coffee can",
+   "vlm_description": "A cylindrical metal can with a white label featuring blue text and graphics, exhibiting a slight metallic sheen.",
+   "blocked_reason": "something 27 cm ahead on the detour"
+  }
+ ],
+ "truth": null
+}

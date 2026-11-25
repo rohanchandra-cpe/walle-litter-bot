@@ -35,6 +35,7 @@ import csv
 import json
 import math
 import os
+import signal
 import sys
 import threading
 import time
@@ -119,6 +120,10 @@ def make_follower_class():
             self.side_known = []             # obstacles the corner look found on this side
             self.sides_done = []             # sides driven with obstacle watching on
             self.truth_obstacle = None       # Gazebo: where the obstacle really is
+            # Phase 6: trips (--trip-bin) and the look-only mode (--look-only)
+            self.mode = "route"              # route | trip | look
+            self.leg_dir = 1                 # the current leg: +1 counter-clockwise, -1 not
+            self.at_start = True             # look-only: the look's positions are on side 1
             # Sensor guard: when each Pico stream last arrived, the gaps seen, the waits made
             self.guard = cfg.get("sensor_guard", {"enabled": False})
             self.last_seen = {}              # topic -> monotonic time of the last message
@@ -666,20 +671,22 @@ def make_follower_class():
             for i, step in enumerate(steps):
                 kind = step[0]
                 if kind == "look_side":
-                    _, c_from, c_to, a, b, heading = step
+                    _, c_from, c_to, a, b, heading = step[:6]
+                    side, inside = self.leg_side(step)
                     print(self.fmt(self.report(state="looking", step=i, corner=c_from)))
                     try:                        # a look must never abort the drive
-                        self.look_side(i, c_from, a, b, heading)
+                        self.look_side(i, side, a, b, heading)
                     except Exception as e:      # noqa: BLE001
                         self.side_known = []
                         self.level_camera()
-                        print(f"  obstacle look on side {c_from} failed: {e}")
+                        print(f"  obstacle look on side {side} failed: {e}")
                 elif kind == "drive":
-                    _, c_from, c_to, a, b, heading = step
+                    _, c_from, c_to, a, b, heading = step[:6]
+                    side, inside = self.leg_side(step)
                     print(self.fmt(self.report(state="driving", step=i, corner=c_to)))
-                    self.drive_with_obstacles(i, c_from, a, b, heading)
+                    self.drive_with_obstacles(i, side, a, b, heading, inside)
                     if self.obs_on:
-                        self.sides_done.append(c_from)
+                        self.sides_done.append(side)
                     snap = self.snapshot()
                     ev = {"step": i, "event": "arrived", "t_utc": utc_now(), "corner": c_to,
                           "target": list(b),
@@ -741,6 +748,15 @@ def make_follower_class():
                     _, corner, heading = step
                     print(self.fmt(self.report(state="turning", step=i, corner=corner)))
                     self.turn_to(heading)
+
+        def leg_side(self, step):
+            """A look_side / drive step's side (counter-clockwise number: side k runs from
+            corner k to k+1) and its inside sign (+1: inside the square is to the robot's
+            left, the counter-clockwise route; -1: a clockwise leg of a trip, inside is to the
+            right). build_plan's steps have no direction: counter-clockwise."""
+            d = step[6] if len(step) > 6 else 1
+            self.leg_dir = d
+            return (step[1] if d > 0 else step[2]), d
 
         # ----- Phase 3: detection at the bin stops -----
         def camera_settings(self):
@@ -1117,8 +1133,18 @@ def make_follower_class():
                             "along": round(along, 4), "cross": round(cross, 4),
                             "blocks": blocks and not small, "small": small,
                             **{k: d[k] for k in ("vlm_name", "vlm_description") if d.get(k)},
-                            **({"truth": d["truth"]} if d.get("truth") else {})})
+                            **({"truth": d["truth"]} if d.get("truth") else {}),
+                            **(self.relative(fp["center"], look["pose"])
+                               if self.mode == "look" else {})})
             return out
+
+        @staticmethod
+        def relative(pt, pose):
+            """Phase 6 look-only: a park point relative to the robot (m ahead of the axle,
+            m to its left)."""
+            dx, dy = pt[0] - pose[0], pt[1] - pose[1]
+            c, s = math.cos(pose[2]), math.sin(pose[2])
+            return {"ahead_m": round(c * dx + s * dy, 4), "left_m": round(-s * dx + c * dy, 4)}
 
         def rejected_boxes(self, look):
             """What the detector dropped in a look (not_trash, tape, low score), with the
@@ -1140,6 +1166,8 @@ def make_follower_class():
                    "cross": 0.0, "photo": look["photo"] if look else None,
                    "pose": self.pose_deg(look["pose"]) if look else None,
                    "action": None, "detour": None, "confirmed": True}
+            if self.mode != "route":         # Phase 6: which way the leg was driven
+                rec["direction"] = "ccw" if self.leg_dir > 0 else "cw"
             if item:
                 rec.update({"label": item["label"], "category": item["category"],
                             "conf": item["conf"], "radius_m": item["radius_m"],
@@ -1148,6 +1176,8 @@ def make_follower_class():
                             "along": item["along"], "cross": item["cross"],
                             "bbox": item["bbox"], "vlm_name": item.get("vlm_name"),
                             "vlm_description": item.get("vlm_description")})
+                if "ahead_m" in item:
+                    rec["ahead_m"], rec["left_m"] = item["ahead_m"], item["left_m"]
             if self.truth_obstacle:
                 t = self.truth_obstacle
                 rec["truth"] = {"item": t["item"], "side": t["side"], "at": t["at"],
@@ -1286,10 +1316,12 @@ def make_follower_class():
             raise ObstacleBlocked(f"blocked on side {o['side']} by the {o['label']}{at}: "
                                   f"{reason}")
 
-        def drive_with_obstacles(self, i, side, a, b, heading):
+        def drive_with_obstacles(self, i, side, a, b, heading, inside=1):
             """Drive the side a -> b. With obstacles on: the sonar watches every move;
             each obstacle found (corner look or sonar) gets a detour inside the square
-            (approach on the line, out, past, back), rejoining the line or corner b."""
+            (approach on the line, out, past, back), rejoining the line or corner b.
+            inside: +1 the square is to the left of a -> b (counter-clockwise), -1 to the
+            right (a trip's clockwise leg): the detour is mirrored to stay inside."""
             if not self.obs_on:
                 self.drive_side(a, b, heading)
                 return
@@ -1331,14 +1363,16 @@ def make_follower_class():
                     continue
                 # one detour round the first obstacle and every one within its reach (robot
                 # run 20261122_204947 detoured round a second object, then tried again)
-                group, plan = ob.group_ahead(pending, self.robot, self.oc, a, b, here)
+                group, plan = ob.group_ahead(pending, self.robot, self.oc, a, b, here,
+                                             inside=inside)
                 o = group[0]
                 names = " + ".join(g["label"] for g in group)
                 if "error" not in plan:
                     # nor may it touch what this run already found elsewhere (robot run
                     # 20261123_043408: side 3's detour swept into the bag on side 2)
                     keep = [o for o in self.obstacles if o not in group and o.get("obj_xy")
-                            and o.get("action") != "not_confirmed"]
+                            and o.get("action") != "not_confirmed"
+                            and not self.same_object(o, group, side)]
                     gap = ob.plan_clearance(plan, [(o["obj_xy"], o["radius_m"]) for o in keep],
                                             self.robot)
                     if gap < self.robot["margin_m"]:
@@ -1380,6 +1414,16 @@ def make_follower_class():
                 if plan["rejoins_corner"]:
                     return
                 self.turn_to(heading)
+
+        def same_object(self, o, group, side):
+            """A trip drives a side out and back, so its way back finds the same obstacle
+            again: that earlier record is the object being detoured round now, not one to
+            keep clear of. Only on trips (a lap's records stay keep-outs, as in Phase 5)."""
+            if self.mode != "trip" or o.get("side") != side:
+                return False
+            merge = float(self.oc["merge_m"])
+            return any(g.get("obj_xy") and math.dist(o["obj_xy"], g["obj_xy"])
+                       <= merge + o["radius_m"] + g["radius_m"] for g in group)
 
         def fmt(self, msg):
             p = msg["pose"]
@@ -1489,7 +1533,55 @@ def parse_args(argv=None):
                    "the sonar can find it)")
     p.add_argument("--no-memory", action="store_true",
                    help="do not record the run in the memory store (walle-app/data/memory/)")
-    return p.parse_args(argv)
+    # Phase 6 (docs/plans/phase-6-plan.md decisions 4 and 5): what the agent runs
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--trip-bin", type=int, metavar="N",
+                      help="partial route: to bin N's corner by the shorter way, check the "
+                      "bin, back the same way (bin 1: no driving; bin 4: side 4 clockwise)")
+    mode.add_argument("--look-only", action="store_true",
+                      help="no driving: one down-tilted obstacle look from where the robot "
+                      "stands (positions relative to the robot, and on side 1 when it is on "
+                      "the start pose)")
+    p.add_argument("--not-at-start", action="store_true",
+                   help="--look-only on the robot: it is not on the start pose, so give "
+                   "positions relative to the robot only (Gazebo checks its true pose)")
+    a = p.parse_args(argv)
+    if a.trip_bin is not None and a.no_bins:
+        p.error("--trip-bin checks a bin: it can't go with --no-bins")
+    if a.not_at_start and not a.look_only:
+        p.error("--not-at-start only goes with --look-only")
+    return a
+
+
+def trip_bin_corner(layout, n):
+    """The corner of bin N (its id, park.yaml numbering) in this layout."""
+    for b in layout["bins"]:
+        if int(b.get("id", -1)) == int(n) or b["name"] == f"bin_{n}":
+            return int(b["corner"])
+    raise SystemExit(f"--trip-bin {n}: this layout has no bin {n} (bins: "
+                     f"{', '.join(b['name'] for b in layout['bins']) or 'none'})")
+
+
+def check_single_publishers(node, cfg, wait_s=3.0):
+    """Refuse to drive when a pose topic has more than one publisher (run 20261125_200224:
+    two pilot.launch.py running, two EKFs, the estimate jumping between their poses and the
+    robot steering off the mat). Discovery is gradual (a new node saw the second EKF only
+    after 1.3 s on the robot), so it keeps looking for wait_s and keeps the highest count."""
+    topics = list(dict.fromkeys([cfg["feedback_topic"], "/wheel/odom", "/odometry/filtered"]))
+    most = {t: 0 for t in topics}
+    end = time.monotonic() + wait_s
+    while True:
+        for t in topics:
+            most[t] = max(most[t], node.count_publishers(t))
+        many = {t: n for t, n in most.items() if n > 1}
+        if many:
+            raise RuntimeError(
+                "more than one publisher on "
+                + ", ".join(f"{t} ({n})" for t, n in many.items())
+                + ": is pilot.launch.py running twice? Stop every launch, start one, retry")
+        if time.monotonic() >= end:
+            return
+        time.sleep(0.1)
 
 
 def main(argv=None):
@@ -1517,8 +1609,23 @@ def main(argv=None):
         if world.get("obstacle"):
             raise SystemExit("This layout has an obstacle on the route and obstacle handling "
                              "is off (--no-obstacles or route.yaml obstacle.enabled).")
-    steps = rg.build_plan(layout, cfg["laps"], cfg["dwell_s"], cfg["face_bins"],
-                          look_sides=obstacles_on)
+    kind = "trip" if a.trip_bin is not None else "look" if a.look_only else "route"
+    if kind == "look":
+        if not obstacles_on:
+            raise SystemExit("--look-only needs obstacle handling on (route.yaml "
+                             "obstacle.enabled, no --no-obstacles).")
+        if not cfg.get("camera_url"):
+            raise SystemExit("--look-only needs a camera (--camera-url).")
+        cfg["face_bins"] = False
+        steps = rg.build_look(layout)
+    elif kind == "trip":
+        steps = rg.build_trip(layout, trip_bin_corner(layout, a.trip_bin), cfg["dwell_s"],
+                              look_sides=obstacles_on, face_bin=True)
+        layout = dict(layout, bins=[b for b in layout["bins"]
+                                    if int(b["corner"]) == trip_bin_corner(layout, a.trip_bin)])
+    else:
+        steps = rg.build_plan(layout, cfg["laps"], cfg["dwell_s"], cfg["face_bins"],
+                              look_sides=obstacles_on)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_dir = os.path.join(APP_DIR, cfg["results_dir"])
@@ -1531,6 +1638,7 @@ def main(argv=None):
 
     rclpy.init(signal_handler_options=SignalHandlerOptions.NO)
     node = make_follower_class()(cfg, layout, run_dir)
+    node.mode = kind
     ex = SingleThreadedExecutor()
     ex.add_node(node)
     spin = threading.Thread(target=ex.spin, daemon=True)
@@ -1539,6 +1647,7 @@ def main(argv=None):
     log_thread = None
     try:
         node.wait_for_odom()
+        check_single_publishers(node, cfg)
         # Mover zeroes its coast in Gazebo (module 6's robot stopped instantly); walle-sim's
         # firmware models spin down like the robot, so the follower keeps its own coasts.
         if a.coast_time is not None:
@@ -1562,7 +1671,20 @@ def main(argv=None):
         print(f"Obstacles: " + ("off" if not node.obs_on else
               "corner looks + sonar" if node.detector else "sonar only (no detector)"))
         bins = [b["name"] for b in layout["bins"]] if cfg["face_bins"] else []
-        print(f"Run {run_id}: {cfg['laps']} lap(s), bins {', '.join(bins) or 'none'}, "
+        if kind == "look":
+            node.at_start = look_at_start(node, a.not_at_start)
+            if node.obs_on and not node.detector:
+                raise RuntimeError("no detector: a look needs one")
+        what = {"route": f"{cfg['laps']} lap(s)",
+                "trip": f"trip to bin {a.trip_bin} and back ("
+                        + ("corners " + "-".join(str(s[1]) for s in steps if s[0] == "drive")
+                           + f"-{steps[-1][1]}" if any(s[0] == "drive" for s in steps)
+                           else "no driving") + ")",
+                "look": "look only, no driving ("
+                        + ("on the start pose: side 1" if node.at_start
+                           else "not on the start pose: positions relative to the robot")
+                        + ")"}[kind]
+        print(f"Run {run_id}: {what}, bins {', '.join(bins) or 'none'}, "
               f"dwell {cfg['dwell_s']:.0f} s, steering by {cfg['feedback_topic']}, "
               f"coast {node.coast_side:.2f} s (sides) / {node.coast_turn:.2f} s (turns), "
               f"{'Gazebo' if node.in_sim else 'REAL ROBOT'}."
@@ -1570,7 +1692,7 @@ def main(argv=None):
         node.logging = True
         log_thread = threading.Thread(target=node.logger, daemon=True)
         log_thread.start()
-        hold = cfg["zero_velocity"]["start_hold_s"]
+        hold = cfg["zero_velocity"]["start_hold_s"] if kind != "look" else 0.0
         for attempt in range(3):
             if hold > 0:
                 print(node.fmt(node.report(state="calibrating", step=-1, corner=None))
@@ -1590,6 +1712,9 @@ def main(argv=None):
         else:
             raise RuntimeError("the Pico kept restarting during the start")
         node.run(steps)
+        if kind == "look" and not any(lk.get("photo") for lk in node.obstacle_looks):
+            errs = [lk.get("error") for lk in node.obstacle_looks if lk.get("error")]
+            raise RuntimeError("the look took no photo" + (f" ({errs[0]})" if errs else ""))
         status = "done"
     except ObstacleBlocked as e:      # Phase 5 fallback: report and stop
         status, reason = "blocked", str(e)
@@ -1601,14 +1726,24 @@ def main(argv=None):
         reason = str(e)
         print(f"\nRun aborted: {e}")
     finally:
-        node.stop()
+        # A second Ctrl+C here (run 20261125_200224: the terminal's, then the agent's) broke
+        # node.stop() before the zero command went out and lost the run's files. Stopping
+        # takes a moment: ignore Ctrl+C while it happens.
+        old_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+        try:
+            node.stop()
+        finally:
+            signal.signal(signal.SIGINT, old_sigint)
         print("Robot stopped.")
         time.sleep(0.5)
         node.logging = False
         if log_thread:
             log_thread.join(timeout=2.0)
-        summary = {"run_id": run_id, "scenario": layout["scenario"],
-                   "laps": cfg["laps"], "bins": [b["name"] for b in layout["bins"]]
+        if kind == "look":
+            node_look_positions(node)
+        summary = {"run_id": run_id, "scenario": layout["scenario"], "kind": kind,
+                   "laps": cfg["laps"] if kind == "route" else None,
+                   "bins": [b["name"] for b in layout["bins"]]
                    if cfg["face_bins"] else [], "config": cfg,
                    "coast_end_s": {"side": round(node.coast_side, 3),
                                    "turn": round(node.coast_turn, 3)},
@@ -1633,6 +1768,10 @@ def main(argv=None):
                                                          "found_by", "action")}
                                  for o in node.obstacles],
                    "sides_done": node.sides_done}
+        if kind == "trip":
+            summary["trip_bin"] = a.trip_bin
+        if kind == "look":
+            summary["at_start"] = node.at_start
         if node.anchors:
             summary.update(end_report(node, started, status, reason))
         else:
@@ -1667,14 +1806,45 @@ def main(argv=None):
     if node.obs_on:
         with open(os.path.join(run_dir, "obstacles.json"), "w") as f:
             json.dump({"run_id": run_id, "source": summary.get("source"),
-                       "sides_done": node.sides_done, "looks": node.obstacle_looks,
+                       "kind": kind, "sides_done": node.sides_done,
+                       **({"at_start": node.at_start} if kind == "look" else {}),
+                       "looks": node.obstacle_looks,
                        "obstacles": node.obstacles, "truth": node.truth_obstacle}, f, indent=1)
-    if not in_sim and node.anchors:
+    if not in_sim and node.anchors and kind == "route":
         print(f"Recorded in {append_robot_row(results_dir, run_id, summary)}")
     if not a.no_memory and node.anchors:
         record_in_memory(summary, world, run_dir)
     print(f"Run log: {run_dir}")
     return 0 if status == "done" else 1
+
+
+def look_at_start(node, told_not):
+    """--look-only: is the robot on the start pose, so that what it sees lies on side 1? In
+    Gazebo from the true pose (within 10 cm and 10 deg); on the robot it is taken to be
+    there (every run ends there) unless --not-at-start says otherwise."""
+    if told_not:
+        return False
+    g = node.park_pose("ground_truth") if node.in_sim else None
+    if g is None:
+        return True
+    sx, sy, sh = node.layout["route"]["start"]
+    return (math.hypot(g[0] - sx, g[1] - sy) <= 0.10
+            and abs(math.degrees(rg.wrap(g[2] - math.radians(sh)))) <= 10.0)
+
+
+def node_look_positions(node):
+    """--look-only off the start pose: the park positions came from a start-pose anchor
+    that doesn't hold, so only the robot-relative ones (ahead_m, left_m) are kept."""
+    if node.at_start:
+        return
+    for o in node.obstacles:
+        for k in ("obj_xy", "camera_xy", "sonar_xy", "along", "side"):
+            o[k] = None
+        o["cross"], o["position_source"] = None, "robot_relative"
+    for look in node.obstacle_looks:
+        for it in look.get("items", []):
+            for k in ("center", "along", "cross"):
+                it[k] = None
 
 
 def load_detector(node, truth_layout, hide_cut_bins=False, hide_obstacle=False):

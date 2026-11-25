@@ -1,0 +1,334 @@
+{
+  "run_id": "20261125_025741",
+  "scenario": "default",
+  "kind": "trip",
+  "laps": null,
+  "bins": [
+    "bin_1"
+  ],
+  "config": {
+    "feedback_topic": "/odometry/filtered",
+    "command_rate_hz": 20,
+    "status_topic": "/walle/route/status",
+    "laps": 1,
+    "dwell_s": 15.0,
+    "face_bins": true,
+    "side": {
+      "min_speed_mps": 0.08,
+      "max_speed_mps": 0.15,
+      "speed_gain": 1.5,
+      "tolerance_m": 0.005,
+      "cross_track_gain": 4.0,
+      "max_correction_deg": 20.0,
+      "heading_gain": 2.0,
+      "max_turn_rps": 0.5,
+      "timeout_s": 30.0,
+      "correct_tol_m": 0.015,
+      "max_corrections": 2
+    },
+    "turn": {
+      "min_rate_rps": 1.0,
+      "max_rate_rps": 1.5,
+      "tolerance_deg": 1.0,
+      "correct_tol_deg": 3.0,
+      "max_corrections": 3,
+      "settle_s": 0.3,
+      "pulse": {
+        "rate_rps": 1.5,
+        "gain_dps": 110.0,
+        "dead_s": 0.04,
+        "min_s": 0.06,
+        "max_s": 0.3,
+        "adapt_gain": 0.5
+      },
+      "pulse_max_deg": 20.0
+    },
+    "sensor_guard": {
+      "enabled": true,
+      "max_age_s": 0.4,
+      "resume_after_s": 0.6,
+      "give_up_s": 20.0,
+      "pulse_outlier": 2.5,
+      "restart_counts": 20000,
+      "restart_settle_s": 2.0,
+      "jump": {
+        "enabled": true,
+        "window_s": 0.25,
+        "max_extra_m": 0.05,
+        "max_extra_deg": 20.0
+      }
+    },
+    "coast": {
+      "side_s": 0.2,
+      "turn_s": 0.15,
+      "adapt": true,
+      "adapt_gain": 0.5,
+      "max_s": 0.5
+    },
+    "zero_velocity": {
+      "enabled": true,
+      "estimate_bias": true,
+      "start_hold_s": 10.0,
+      "max_move_m": 0.002,
+      "max_turn_deg": 0.2
+    },
+    "log_rate_hz": 10,
+    "camera_url": "http://192.168.1.201/capture",
+    "camera_timeout_s": 5.0,
+    "camera_tries": 3,
+    "camera_retry_gap_s": 3.0,
+    "results_dir": "results/route",
+    "detect": true,
+    "center_bins": true,
+    "bin_check": true,
+    "obstacle": {
+      "enabled": true,
+      "look_tilt_deg": -15.0,
+      "sensor_forward_m": 0.125,
+      "trigger_m": 0.35,
+      "confirm_pings": 3,
+      "leg_end_slack_m": 0.0,
+      "min_size_m": 0.04,
+      "trust_range_m": 0.7,
+      "relook_at_m": 0.6,
+      "max_relooks": 3,
+      "min_radius_m": 0.03,
+      "max_box_radius_m": 0.15,
+      "default_radius_m": 0.1,
+      "max_radius_m": 0.2,
+      "assumed_depth_m": 0.25,
+      "uncertainty_m": 0.03,
+      "max_offset_m": 0.5,
+      "max_back_past_corner_m": 0.0,
+      "leg_min_m": 0.01,
+      "merge_m": 0.15,
+      "max_hits_per_side": 6,
+      "sim": {
+        "sensor_forward_m": 0.07
+      }
+    }
+  },
+  "coast_end_s": {
+    "side": 0.2,
+    "turn": 0.079
+  },
+  "corrections": 3,
+  "pulse_gain_end_dps": 99.7,
+  "centering_turn_scale_end": 1.402,
+  "pulses": [
+    {
+      "err_deg": -5.98,
+      "duration_s": 0.094,
+      "moved_deg": 6.29,
+      "err_after_deg": 0.31,
+      "gain_dps": 110.0
+    },
+    {
+      "err_deg": -13.07,
+      "duration_s": 0.156,
+      "moved_deg": 11.62,
+      "err_after_deg": -1.45,
+      "gain_dps": 112.9
+    },
+    {
+      "err_deg": -4.61,
+      "duration_s": 0.083,
+      "moved_deg": 4.22,
+      "err_after_deg": -0.39,
+      "gain_dps": 106.6
+    },
+    {
+      "err_deg": 3.31,
+      "duration_s": 0.072,
+      "moved_deg": 0.07,
+      "err_after_deg": 3.24,
+      "gain_dps": 102.1,
+      "outlier": true
+    },
+    {
+      "err_deg": 3.24,
+      "duration_s": 0.072,
+      "moved_deg": 3.09,
+      "err_after_deg": 0.15,
+      "gain_dps": 102.1
+    }
+  ],
+  "sensor_gaps": [
+    {
+      "topic": "/pico/wheel_ticks",
+      "seconds": 0.45
+    },
+    {
+      "topic": "/pico/wheel_ticks",
+      "seconds": 0.46
+    },
+    {
+      "topic": "/pico/imu/data",
+      "seconds": 0.45
+    }
+  ],
+  "sensor_guard_waits": [],
+  "estimate_repairs": [
+    {
+      "moved_back_cm": 0.0,
+      "turned_back_deg": -0.0,
+      "state": "facing_bin",
+      "corner": 1
+    }
+  ],
+  "zero_velocity_heading_deg": 0.001,
+  "gyro_bias_dps": 0.0,
+  "holds": [
+    {
+      "seconds": 10.01,
+      "raw_drift_deg": -0.0,
+      "bias_dps": -0.0
+    },
+    {
+      "seconds": 15.01,
+      "raw_drift_deg": 0.001,
+      "bias_dps": 0.0
+    }
+  ],
+  "pico_restarts_s": [],
+  "estimate_jumps": [],
+  "tilt_moves": [
+    {
+      "deg": -0.0,
+      "us": 1531,
+      "seconds": 0.06
+    },
+    {
+      "deg": 15.03,
+      "us": 1310,
+      "seconds": 0.23
+    },
+    {
+      "deg": -0.0,
+      "us": 1531,
+      "seconds": 0.24
+    },
+    {
+      "deg": -0.0,
+      "us": 1531,
+      "seconds": 0.0
+    }
+  ],
+  "tilt_guard": [],
+  "obstacles": [],
+  "sides_done": [],
+  "trip_bin": 1,
+  "started_utc": "2026-11-25T02:57:41+00:00",
+  "ended_utc": "2026-11-25T02:59:08+00:00",
+  "status": "done",
+  "reason": null,
+  "source": "robot",
+  "distance_m": 0.006,
+  "start": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "end_poses": {
+    "odom": [
+      -0.0007,
+      -0.0014,
+      -0.14
+    ],
+    "wheel": [
+      -0.001,
+      -0.0014,
+      -1.66
+    ]
+  },
+  "end_errors": {
+    "odom": {
+      "position_m": 0.0016,
+      "dx_m": -0.0007,
+      "dy_m": -0.0014,
+      "heading_deg": -0.14
+    },
+    "wheel": {
+      "position_m": 0.0017,
+      "dx_m": -0.001,
+      "dy_m": -0.0014,
+      "heading_deg": -1.66
+    }
+  },
+  "events": [
+    {
+      "step": 0,
+      "event": "facing_bin",
+      "t_utc": "2026-11-25T02:58:33+00:00",
+      "corner": 1,
+      "bin": "bin_1",
+      "target_heading_deg": -135.0,
+      "poses": {
+        "odom": [
+          -0.001,
+          -0.0009,
+          -151.19
+        ],
+        "wheel": [
+          -0.0011,
+          -0.0008,
+          -162.51
+        ]
+      },
+      "est_heading_error_deg": -16.19,
+      "centering": {
+        "centered": true,
+        "looks": [
+          {
+            "photo": "photos/bin_1_step0_c0.jpg",
+            "seconds": 8.081,
+            "expected_bearing_deg": -0.45,
+            "bin_bearing_deg": -20.57,
+            "bin_conf": 0.836,
+            "heading_deg": -135.33,
+            "clamped": false
+          },
+          {
+            "photo": "photos/bin_1_step0_c1.jpg",
+            "seconds": 6.239,
+            "expected_bearing_deg": 13.11,
+            "bin_bearing_deg": -6.3,
+            "bin_conf": 0.545,
+            "heading_deg": -146.96,
+            "turn_scale": 1.172,
+            "clamped": false
+          },
+          {
+            "photo": "photos/bin_1_step0_c2.jpg",
+            "seconds": 4.895,
+            "expected_bearing_deg": 18.03,
+            "bin_bearing_deg": 1.37,
+            "bin_conf": 0.463,
+            "heading_deg": -151.19,
+            "turn_scale": 1.402
+          }
+        ],
+        "turn_scale_start": 1.35,
+        "turn_scale_end": 1.402,
+        "offset_from_config_deg": -16.19
+      },
+      "photo": "photos/bin_1_step1.jpg",
+      "photo_tries": 1,
+      "held_heading_drift_deg": 0.002,
+      "detected": {
+        "items": 1,
+        "on_bin": 1,
+        "around_bin": 0,
+        "bin_found": true,
+        "rim_visible": true
+      },
+      "bin_check": {
+        "method": "tilt",
+        "outcome": "overflowing",
+        "overflow_level": 1,
+        "on_top_count": 1,
+        "litter_count": 0
+      }
+    }
+  ]
+}

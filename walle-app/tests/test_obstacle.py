@@ -316,3 +316,23 @@ class ReviewTests(unittest.TestCase):
             now = s.current_obstacles()
             self.assertEqual([(o["side"], o["label"], o["category"]) for o in now],
                              [(2, "plastic_bag", "trash")])
+
+    def test_run_left_out(self):
+        """run_review.json leave_out: import_runs skips the whole run."""
+        import json
+        import tempfile
+        from memory import import_runs
+        from memory.store import MemoryStore
+        root = tempfile.mkdtemp()
+        for rid in ("r1", "r2"):
+            os.makedirs(os.path.join(root, "runs", rid))
+            with open(os.path.join(root, "runs", rid, "summary.json"), "w") as f:
+                json.dump({"run_id": rid, "source": "robot", "kind": "route", "status": "done",
+                           "started_utc": "2026-11-25T02:16:00Z", "events": []}, f)
+        with open(os.path.join(root, "runs", "r2", "run_review.json"), "w") as f:
+            json.dump({"leave_out": "camera tilt slipped"}, f)
+        db = os.path.join(root, "m.sqlite")
+        import_runs.main(["--runs", os.path.join(root, "runs"), "--db", db, "--no-embed"])
+        with MemoryStore("robot", path=db, embedder=None) as s:
+            self.assertTrue(s.has_run("r1"))
+            self.assertFalse(s.has_run("r2"))

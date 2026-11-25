@@ -1,0 +1,11 @@
+[
+ {
+  "tool_ok": 6,
+  "facts_ok": 4,
+  "of": 6,
+  "median_s": 15.1,
+  "max_s": 21.3,
+  "extra_ok": 1,
+  "model": "qwen3.5:4b"
+ }
+]

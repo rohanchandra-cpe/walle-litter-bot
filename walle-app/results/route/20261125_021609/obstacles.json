@@ -1,0 +1,207 @@
+{
+ "run_id": "20261125_021609",
+ "source": "robot",
+ "kind": "route",
+ "sides_done": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T02:16:40+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    0.01
+   ],
+   "seconds": 7.164,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      280.3,
+      98.4,
+      370.6,
+      358.1
+     ],
+     "center": [
+      0.4018,
+      0.0082
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0424,
+     "dist_m": 0.4019,
+     "cut": false,
+     "along": 0.4018,
+     "cross": 0.0082,
+     "blocks": true,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a white label featuring black text and graphics, exhibiting a slight metallic sheen."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 5,
+   "side": 2,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T02:17:54+00:00",
+   "photo": "photos/side2_step5_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.9951,
+    0.0025,
+    91.06
+   ],
+   "seconds": 4.887,
+   "items": [
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      534.4,
+      142.6,
+      636.2,
+      204.5
+     ],
+     "center": [
+      1.2888,
+      0.7986
+     ],
+     "radius_m": 0.0565,
+     "width_m": 0.113,
+     "dist_m": 0.8485,
+     "cut": false,
+     "along": 0.7986,
+     "cross": -0.2888,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "tissue",
+     "vlm_description": "A crumpled white object made of soft, absorbent material with a matte finish and irregular folds."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 10,
+   "side": 3,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T02:19:36+00:00",
+   "photo": "photos/side3_step10_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    1.0004,
+    1.001,
+    177.2
+   ],
+   "seconds": 9.46,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      547.8,
+      35.0,
+      639.4,
+      165.6
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "The object appears to be made of plastic, is black in color, has a rectangular shape with rounded edges, and exhibits a slight sheen."
+    }
+   ]
+  },
+  {
+   "step": 15,
+   "side": 4,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T02:20:39+00:00",
+   "photo": "photos/side4_step15_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.9969,
+    -89.06
+   ],
+   "seconds": 5.155,
+   "items": [],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      0.0,
+      102.7,
+      421.8,
+      185.8
+     ],
+     "vlm_name": "carpet",
+     "vlm_description": "A cylindrical, beige-colored object with a textured surface resembling carpet fabric, lying horizontally on a light-colored floor."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 0,
+   "side": 1,
+   "t_utc": "2026-11-25T02:16:40+00:00",
+   "found_by": "look",
+   "label": "can",
+   "category": "recycling",
+   "conf": null,
+   "radius_m": 0.03,
+   "obj_xy": [
+    0.4018,
+    0.0082
+   ],
+   "position_source": "camera",
+   "camera_xy": [
+    0.4018,
+    0.0082
+   ],
+   "camera_cut": false,
+   "sonar_xy": null,
+   "sonar": null,
+   "along": 0.4018,
+   "cross": 0.0082,
+   "photo": "photos/side1_step0_look.jpg",
+   "pose": [
+    0.0,
+    0.0,
+    0.01
+   ],
+   "action": "detour",
+   "detour": {
+    "start_along": 0.1518,
+    "end_along": 0.8418,
+    "offset_m": 0.2042,
+    "depth_m": 0.25,
+    "rejoins_corner": false,
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "bbox": [
+    280.3,
+    98.4,
+    370.6,
+    358.1
+   ],
+   "vlm_name": "metal drink or coffee can",
+   "vlm_description": "A cylindrical metal can with a white label featuring black text and graphics, exhibiting a slight metallic sheen."
+  }
+ ],
+ "truth": null
+}

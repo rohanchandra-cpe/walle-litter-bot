@@ -1,0 +1,64 @@
+{
+ "run_id": "20261125_020154",
+ "source": "robot",
+ "kind": "route",
+ "sides_done": [],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T02:02:26+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.0,
+   "pose": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "seconds": 9.796,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      253.4,
+      328.8,
+      350.1,
+      478.1
+     ],
+     "center": [
+      0.3181,
+      0.0181
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0313,
+     "dist_m": 0.3186,
+     "cut": true,
+     "along": 0.3181,
+     "cross": 0.0181,
+     "blocks": false,
+     "small": true,
+     "vlm_name": "coffee can",
+     "vlm_description": "A cylindrical metal can with a white label featuring blue text, exhibiting a slight metallic sheen."
+    }
+   ],
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      458.2,
+      243.8,
+      638.7,
+      429.1
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A large, matte black rectangular container with rounded corners and a slightly glossy surface, likely made of plastic."
+    }
+   ]
+  }
+ ],
+ "obstacles": [],
+ "truth": null
+}

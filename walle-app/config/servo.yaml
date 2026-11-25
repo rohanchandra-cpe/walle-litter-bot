@@ -21,10 +21,25 @@
 # -> 10 us/deg; the longest move measured, so it wins over the short ones (1490 us = 18 deg,
 # 1516 us = ~15 deg: a degree or two of reading error is a big share of a short move).
 # Safe range 1000-1750 us = +57.5 .. -17.5 deg; the limits stay a little inside it.
-level_us: 1575
-us_per_deg: -10.0         # negative: shorter pulse = up. 15 deg up = 1425 us
-min_deg: -15.0            # 1725 us (1750 us is the measured down limit)
-max_deg: 55.0             # 1025 us (1000 us is the measured up limit)
+# (Was: level_us 1575, us_per_deg -10.0, min_deg -15, max_deg 55.)
+#
+# RECALIBRATED 2026-11-25 FROM PHOTOS, not an inclinometer (the phone level wasn't sensitive
+# enough). The camera slipped during the Phase 5 robot runs (2026-11-22 evening): bin-stop
+# photos from then on show each bin's rim where a camera ~7 deg lower than the old numbers
+# would see it, so bin_check dropped items on top as "floating" (LEDGER 2026-11-24). Fitting
+# the tilt to the rim (bin 0.292 m tall, distance from its box width) over lap
+# 20261125_021609 (4 bins) and trip 20261125_023758: 1575 us = -3.0 deg (-2.7..-3.5),
+# 1425 us = +7.2 deg (+6.6..+8.4). First fit (line through those two): 1531 us, 14.7 us/deg.
+# Its trip 20261125_025741 overshot: 1310 us = +21.8 deg (rim fit). The level photos' rim
+# fits are biased by items on top (1575 and 1531 us both fit -3.0); fitted from the bin's
+# base on the floor instead, 1531 us = +0.2 deg. Second fit, used now: level 1531 us,
+# 11.1 us/deg (15 deg up between the two up looks: 1364 us). It puts 1425 us at +9.5 deg
+# (seen +7.2) and 1310 us at +19.9 (seen +21.8): ~2 deg either way.
+# A real inclinometer reading wins over this.
+level_us: 1531
+us_per_deg: -11.1         # negative: shorter pulse = up. 15 deg up = 1364 us
+min_deg: -17.0            # 1720 us (1750 us is the measured down limit)
+max_deg: 45.0             # 1032 us (1000 us is the measured up limit)
 lens_from_pivot_m: [0.01, 0.04]   # [forward, up] of the lens from the tilt axis, camera level
                                   # (user, 2026-11-21: 4 cm above the horn's center, lens edge
                                   # 1 cm ahead). At 15 deg up the lens is ~1 cm farther back.

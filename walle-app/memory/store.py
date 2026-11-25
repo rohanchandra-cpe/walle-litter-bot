@@ -462,6 +462,15 @@ class MemoryStore:
                           "DESC LIMIT 1", (bin_id,))
         return rows[0] if rows else None
 
+    def bin_check_items(self, run_id, bin_id):
+        """What a run saw at one bin: the items above its rim and the litter around it
+        (labels, categories, confidences), for reporting a bin check (Phase 6)."""
+        rows = self._rows("SELECT label, category, place, confidence FROM detections "
+                          "WHERE run_id=? AND bin_id=? AND place IN ('on_bin', 'around_bin') "
+                          "ORDER BY place DESC, confidence DESC", (run_id, bin_id))
+        return {"on_top": [r for r in rows if r["place"] == "on_bin"],
+                "around": [r for r in rows if r["place"] == "around_bin"]}
+
     def current_obstacles(self):
         """Obstacles whose latest sighting says they are still there."""
         rows = self._rows(

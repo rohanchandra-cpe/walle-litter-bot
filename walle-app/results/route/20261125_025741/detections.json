@@ -1,0 +1,140 @@
+{
+ "run_id": "20261125_025741",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 1,
+   "t_utc": "2026-11-25T02:58:54+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step1.jpg",
+   "pose": [
+    -0.001,
+    -0.0009,
+    -151.19
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 6.108,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.424,
+    "bbox": [
+     171.6,
+     50.9,
+     434.4,
+     360.5
+    ]
+   },
+   "bin_bearing_deg": 1.76,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      150.4,
+      0.0,
+      477.4,
+      80.6
+     ],
+     "vlm_name": "crumpled white paper",
+     "vlm_description": "The object is made of thin, fibrous material that appears to be white and slightly translucent with soft folds, lacking any metallic shine or rigid structure.",
+     "place": "on_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": []
+  },
+  {
+   "step": 1,
+   "t_utc": "2026-11-25T02:59:03+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.03,
+   "bin": "bin_1",
+   "bin_id": 1,
+   "photo": "photos/bin_1_step1_up.jpg",
+   "pose": [
+    -0.001,
+    -0.0009,
+    -151.18
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 8.024,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.19,
+    "bbox": [
+     168.6,
+     297.7,
+     428.6,
+     479.9
+    ]
+   },
+   "bin_bearing_deg": 2.29,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "paper_towel",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      246.4,
+      225.1,
+      451.2,
+      325.9
+     ],
+     "vlm_name": "crumpled white paper towel",
+     "vlm_description": "The object is made of white paper, has an irregular crumpled shape, and appears matte with no shine.",
+     "place": "around_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      147.8,
+      192.0,
+      309.1,
+      312.0
+     ],
+     "vlm_name": "brown paper takeout bag",
+     "vlm_description": "The object is made of brown paper, has an irregular crumpled shape, and appears matte with no shine.",
+     "place": "on_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [],
+   "low_conf": []
+  }
+ ]
+}

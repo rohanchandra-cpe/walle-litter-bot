@@ -1,0 +1,39 @@
+# WALL-E ROSA agent (ROADMAP Phase 6). See walle-app/agent/ and docs/plans/phase-6-plan.md.
+
+llm:
+  model: qwen3.5:4b            # chosen by the model test (agent/bench.py); OLLAMA_MODEL overrides
+  # Ollama runs on the host. OLLAMA_URL overrides; containers reach the host through
+  # host.docker.internal, the host itself through localhost.
+  url: http://host.docker.internal:11434
+  temperature: 0
+  num_ctx: 16384
+  # Thinking models (qwen3.5) reason before every tool call: better choices, more seconds.
+  # null = the model's default. The model test records both.
+  reasoning: null
+
+max_iterations: 12             # tool calls + answers per prompt (not time: a lap is 5-8 min)
+
+# Which memory store the history tools read. auto = sim when /sim/ground_truth is
+# published (Gazebo), else robot. --store overrides.
+store: auto
+
+approval:
+  required: true               # one approval per motion tool call (covers the whole run)
+  # --auto-approve is accepted only when the agent sees /sim/ground_truth (Gazebo).
+
+route:                         # how the motion tools start the follower (agent/runner.py)
+  scenario: default            # the robot's park (config/scenarios/)
+  camera_url: http://192.168.1.201/capture   # robot only; Gazebo uses its own camera
+  sim_camera_url: http://localhost:8080/capture
+  extra_args: []               # added to every follower command
+  stop_wait_s: 10              # after Ctrl+C, wait this long for the follower to write its files
+  # rough durations, for the approval text only
+  minutes:
+    lap: {robot: "5-8", sim: "2-3"}
+    trip: {robot: "1-4", sim: "1-2"}
+    look: {robot: "less than 1", sim: "less than 1"}
+
+history:
+  most_seen_limit: 5
+  recent_runs_limit: 5
+  recall_k: 5

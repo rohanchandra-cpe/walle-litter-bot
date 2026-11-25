@@ -1,0 +1,79 @@
+{
+ "run_id": "20261125_205410",
+ "source": "robot",
+ "checks": [
+  {
+   "method": "tilt",
+   "overflow_level": 1,
+   "on_top_count": 2,
+   "litter_count": 1,
+   "outcome": "overflowing",
+   "level_by_count": 1,
+   "level_by_height": 0,
+   "top_height_above_rim_m": 0.193,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [
+    {
+     "label": "carton",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      221.2,
+      187.3,
+      289.4,
+      239.7
+     ],
+     "height_above_rim_m": 0.117,
+     "cut_top": false
+    },
+    {
+     "label": "carton",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      273.3,
+      139.2,
+      419.2,
+      250.1
+     ],
+     "height_above_rim_m": 0.193,
+     "cut_top": false
+    }
+   ],
+   "litter": [
+    {
+     "label": "plastic_bag",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      341.8,
+      325.9,
+      517.1,
+      367.2
+     ],
+     "obj_xy": [
+      -0.378,
+      1.556
+     ]
+    }
+   ],
+   "not_litter": [],
+   "dist_from_width_m": 0.626,
+   "step": 4,
+   "facing_step": 3,
+   "t_utc": "2026-11-25T20:56:01+00:00",
+   "bin": "bin_4",
+   "bin_id": 4,
+   "level_photo": "photos/bin_4_step4.jpg",
+   "up_photo": "photos/bin_4_step4_up.jpg",
+   "up_tilt_deg": 15.05,
+   "expected_dist_m": 0.756,
+   "echo_us": 4537
+  }
+ ]
+}

@@ -1,0 +1,63 @@
+{
+ "run_id": "20261125_151754",
+ "source": "robot",
+ "checks": [
+  {
+   "method": "tilt",
+   "overflow_level": 1,
+   "on_top_count": 2,
+   "litter_count": 0,
+   "outcome": "overflowing",
+   "level_by_count": 1,
+   "level_by_height": 0,
+   "top_height_above_rim_m": 0.253,
+   "top_cut_off": false,
+   "rim_visible": true,
+   "bin_found": {
+    "level": true,
+    "up": true
+   },
+   "on_top": [
+    {
+     "label": "paper_bag",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      178.6,
+      102.7,
+      363.5,
+      254.9
+     ],
+     "height_above_rim_m": 0.253,
+     "cut_top": false
+    },
+    {
+     "label": "paper_towel",
+     "category": "trash",
+     "conf": null,
+     "bbox": [
+      261.1,
+      102.7,
+      496.0,
+      250.1
+     ],
+     "height_above_rim_m": 0.253,
+     "cut_top": false
+    }
+   ],
+   "litter": [],
+   "not_litter": [],
+   "dist_from_width_m": 0.546,
+   "step": 1,
+   "facing_step": 0,
+   "t_utc": "2026-11-25T15:19:40+00:00",
+   "bin": "bin_1",
+   "bin_id": 1,
+   "level_photo": "photos/bin_1_step1.jpg",
+   "up_photo": "photos/bin_1_step1_up.jpg",
+   "up_tilt_deg": 15.05,
+   "expected_dist_m": 0.755,
+   "echo_us": 4064
+  }
+ ]
+}

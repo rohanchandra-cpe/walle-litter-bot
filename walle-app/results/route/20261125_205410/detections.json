@@ -1,0 +1,254 @@
+{
+ "run_id": "20261125_205410",
+ "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+ "source": "robot",
+ "photos": [
+  {
+   "step": 4,
+   "t_utc": "2026-11-25T20:55:43+00:00",
+   "place_kind": "bin_stop",
+   "look": "level",
+   "tilt_deg": 0.0,
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step4.jpg",
+   "pose": [
+    -0.0004,
+    0.9973,
+    132.21
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 13.717,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.588,
+    "bbox": [
+     222.4,
+     67.7,
+     467.6,
+     347.1
+    ]
+   },
+   "bin_bearing_deg": -2.58,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "carton",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      223.3,
+      10.9,
+      313.4,
+      72.6
+     ],
+     "vlm_name": "card",
+     "vlm_description": "A rectangular brown object with a green circular sticker or label, appearing to be made of paperboard material with a matte finish.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "plastic_bag",
+     "category": "trash",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      341.8,
+      325.9,
+      517.1,
+      367.2
+     ],
+     "vlm_name": "plastic film bag",
+     "vlm_description": "A crumpled, translucent white object with a glossy, reflective surface that catches light in bright spots.",
+     "place": "around_bin",
+     "obj_xy": [
+      -0.378,
+      1.556
+     ]
+    }
+   ],
+   "ignored": [],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "black bin",
+     "conf": 0.021,
+     "bbox": [
+      0.0,
+      0.0,
+      241.1,
+      332.7
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      272.9,
+      0.0,
+      427.8,
+      73.6
+     ],
+     "vlm_name": "wallet",
+     "vlm_description": "A dark blue wallet with a glossy finish and white cursive text, featuring a rectangular shape."
+    }
+   ]
+  },
+  {
+   "step": 4,
+   "t_utc": "2026-11-25T20:56:01+00:00",
+   "place_kind": "bin_stop",
+   "look": "up",
+   "tilt_deg": 15.05,
+   "bin": "bin_4",
+   "bin_id": 4,
+   "photo": "photos/bin_4_step4_up.jpg",
+   "pose": [
+    -0.0004,
+    0.9973,
+    132.22
+   ],
+   "model": "yolov8s-worldv2.pt+qwen3.5:4b",
+   "source": "robot",
+   "seconds": 17.195,
+   "size": [
+    640,
+    480
+   ],
+   "bin_detection": {
+    "kind": "bin",
+    "label": "bin",
+    "category": null,
+    "prompt": "black bin",
+    "conf": 0.567,
+    "bbox": [
+     220.7,
+     243.1,
+     459.9,
+     480.0
+    ]
+   },
+   "bin_bearing_deg": -2.17,
+   "rim_visible": true,
+   "items": [
+    {
+     "kind": "item",
+     "label": "carton",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      221.2,
+      187.3,
+      289.4,
+      239.7
+     ],
+     "vlm_name": "food or broth carton",
+     "vlm_description": "A rectangular object made of brown paperboard with a green circular label, exhibiting a matte finish and typical carton shape.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "carton",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      273.3,
+      139.2,
+      419.2,
+      250.1
+     ],
+     "vlm_name": "purple box",
+     "vlm_description": "A dark purple rectangular box with a glossy finish and visible branding, likely made of cardboard.",
+     "place": "on_bin",
+     "obj_xy": null
+    },
+    {
+     "kind": "item",
+     "label": "paper_bag",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      536.3,
+      272.2,
+      639.4,
+      479.0
+     ],
+     "vlm_name": "brown paper takeout bag",
+     "vlm_description": "A crumpled brown paper takeout bag with printed text and handles, showing some texture but no significant shine.",
+     "place": "around_bin",
+     "obj_xy": null
+    }
+   ],
+   "ignored": [
+    {
+     "kind": "item",
+     "label": "foil",
+     "category": "recycling",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      244.9,
+      134.6,
+      307.3,
+      189.8
+     ],
+     "vlm_name": "crumpled aluminum foil",
+     "vlm_description": "The object is made of shiny silver material, crumpled into an irregular shape with a metallic sheen.",
+     "place": "on_bin",
+     "obj_xy": null,
+     "ignored": "bottom 11 cm above the rim"
+    }
+   ],
+   "low_conf": [
+    {
+     "kind": "bin",
+     "label": "bin",
+     "category": null,
+     "prompt": "wastebasket",
+     "conf": 0.024,
+     "bbox": [
+      436.3,
+      430.0,
+      566.0,
+      480.0
+     ]
+    },
+    {
+     "kind": "item",
+     "label": "not_trash",
+     "category": "unknown",
+     "prompt": "qwen3.5:4b",
+     "conf": null,
+     "bbox": [
+      220.8,
+      249.1,
+      439.7,
+      479.0
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular container with a smooth surface and no visible shine."
+    }
+   ]
+  }
+ ]
+}

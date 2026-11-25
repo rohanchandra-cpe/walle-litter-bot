@@ -1,0 +1,10 @@
+{
+  "leave_out": "bin checks wrong: camera tilt slipped (level about -3 deg, up look about +7 deg instead of 0 and +15), so items on top of bins 1, 3 and 4 were dropped as floating",
+  "reviewed_utc": "2026-11-25",
+  "truth": {
+    "bin_1": "overflowing: brown paper bag and grey plastic bag on top, no litter",
+    "bin_2": "clean",
+    "bin_3": "overflowing: 2 plastic bags on top; litter: paper towel, plastic bag, plastic lid",
+    "bin_4": "items on top: tissue box, cardboard carton, aluminum foil; litter: clear plastic"
+  }
+}

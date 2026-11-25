@@ -1,0 +1,687 @@
+{
+ "summary": {
+  "tool_ok": 30,
+  "facts_ok": 25,
+  "of": 30,
+  "median_s": 18.9,
+  "max_s": 31.6,
+  "extra_ok": 5
+ },
+ "rows": [
+  {
+   "tool_ok": true,
+   "facts_ok": false,
+   "missing": [
+    "\\bcan\\b",
+    "side\\s*1"
+   ],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Run your route and check the path for any obstructions.",
+   "seconds": 31.6,
+   "calls": [
+    {
+     "tool": "run_route",
+     "args": {
+      "check_bins": "yes"
+     }
+    }
+   ],
+   "answer": ""
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Check Bin 1 to see if it is overflowing. If it is, estimate how much.",
+   "seconds": 15.0,
+   "calls": [
+    {
+     "tool": "check_bin",
+     "args": {
+      "bin": "1"
+     }
+    }
+   ],
+   "answer": "Bin 1 is overflowing. Here are the details:\n- **Overflow level**: 1 (out of 3)\n- **Items on top**: 1 paper bag\n- **Litter around**: None\n\nThe bin has overflowed once, with one item visible on top. The previous check was about 2 hours ago and showed litter but no overflow."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Historically, what objects have you seen the most?",
+   "seconds": 22.4,
+   "calls": [
+    {
+     "tool": "most_seen_objects",
+     "args": {
+      "place": "any"
+     }
+    }
+   ],
+   "answer": "Historically, here are the objects I've seen most often:\n\n1. **milk_jug** (recycling) - 9 times seen\n2. **can** (recycling) - 6 times seen\n3. **paper_towel** (trash) - 4 times seen\n4. **foil** (trash) - 3 times seen\n5. **coffee_can** (trash) - 2 times seen\n\nNote: These counts represent sightings in photos, not distinct objects - an item left in place is counted again on every run that sees it. The labels come from a small camera model and can occasionally be wrong.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Are people generally recycling the correct objects?",
+   "seconds": 24.6,
+   "calls": [
+    {
+     "tool": "recycling_report",
+     "args": {}
+    }
+   ],
+   "answer": "Based on my memory store, people are recycling correctly **75% of the time** overall. Here's the breakdown:\n\n**Overall Statistics:**\n- Correctly placed items: 6\n- Incorrectly placed items: 2\n- Unclassified items: 0\n\n**Per-Bin Performance:**\n- Bin 1 (trash): No wrong items recorded\n- Bin 2 (recycling): 0 correct, 1 wrong (foil placed in recycling bin)\n- Bin 3 (trash): 4 correct, 1 wrong (can placed in trash bin instead of recycling)\n- Bin 4 (recycling): 2 correct, 0 wrong\n\n**Wrong Items Found:**\n- Foil (trash category) was placed in bin 2 (recycling bin) - 1 time\n- Can (recycling category) was placed in bin 3 (trash bin) - 1 time\n\nThere's also litter around bins 1, 2, and 3 that I've noted separately. The bins are opaque so I can only judge items visible above the rim.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Which bins overflow most often?",
+   "seconds": 18.4,
+   "calls": [
+    {
+     "tool": "bin_overflow_history",
+     "args": {}
+    }
+   ],
+   "answer": "Based on the overflow history, **bin 3** overflows most often - it has overflowed 4 times out of 5 checks (80%). Bin 4 is second with 2 overflows (40%), bin 2 with 1 overflow (20%), and bin 1 hasn't overflowed at all.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Where are the obstacles on the route right now?",
+   "seconds": 18.9,
+   "calls": [
+    {
+     "tool": "report_obstacles",
+     "args": {}
+    }
+   ],
+   "answer": "There is currently one obstacle on the route:\n\n- **Coffee can** (trash) on side 3, between corner 3 and corner 4, located 0.40 m from corner 3\n- Last seen 1.8 hours ago\n- Seen 2 times total\n\nNote: Obstacle labels come from a small camera model and can occasionally be wrong. An obstacle stays listed until a run drives its side and doesn't see it again.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 0,
+   "prompt": "Is anything in front of you right now?",
+   "seconds": 11.7,
+   "calls": [
+    {
+     "tool": "look_ahead",
+     "args": {}
+    }
+   ],
+   "answer": "Yes, there is a can in front of me. It's located on side 1 (between corner 1 and corner 2), approximately 0.45 meters ahead and slightly to the left (0.02 m). This was only seen by looking ahead - I didn't drive around it."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": false,
+   "missing": [
+    "\\bcan\\b",
+    "side\\s*1"
+   ],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Run your route and check the path for any obstructions.",
+   "seconds": 18.3,
+   "calls": [
+    {
+     "tool": "run_route",
+     "args": {
+      "check_bins": "yes"
+     }
+    }
+   ],
+   "answer": ""
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Check Bin 1 to see if it is overflowing. If it is, estimate how much.",
+   "seconds": 15.0,
+   "calls": [
+    {
+     "tool": "check_bin",
+     "args": {
+      "bin": "1"
+     }
+    }
+   ],
+   "answer": "Bin 1 is overflowing. Here are the details:\n- **Overflow level**: 1 (out of 3)\n- **Items on top**: 1 paper bag\n- **Litter around**: None\n\nThe bin has overflowed once, with one item visible on top. The previous check was about 2 hours ago and showed litter but no overflow."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Historically, what objects have you seen the most?",
+   "seconds": 22.4,
+   "calls": [
+    {
+     "tool": "most_seen_objects",
+     "args": {
+      "place": "any"
+     }
+    }
+   ],
+   "answer": "Historically, here are the objects I've seen most often:\n\n1. **milk_jug** (recycling) - 9 times seen\n2. **can** (recycling) - 6 times seen\n3. **paper_towel** (trash) - 4 times seen\n4. **foil** (trash) - 3 times seen\n5. **coffee_can** (trash) - 2 times seen\n\nNote: These counts represent sightings in photos, not distinct objects - an item left in place is counted again on every run that sees it. The labels come from a small camera model and can occasionally be wrong.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Are people generally recycling the correct objects?",
+   "seconds": 24.5,
+   "calls": [
+    {
+     "tool": "recycling_report",
+     "args": {}
+    }
+   ],
+   "answer": "Based on my memory store, people are recycling correctly **75% of the time** overall. Here's the breakdown:\n\n**Overall Statistics:**\n- Correctly placed items: 6\n- Incorrectly placed items: 2\n- Unclassified items: 0\n\n**Per-Bin Performance:**\n- Bin 1 (trash): No wrong items recorded\n- Bin 2 (recycling): 0 correct, 1 wrong (foil placed in recycling bin)\n- Bin 3 (trash): 4 correct, 1 wrong (can placed in trash bin instead of recycling)\n- Bin 4 (recycling): 2 correct, 0 wrong\n\n**Wrong Items Found:**\n- Foil (trash category) was placed in bin 2 (recycling bin) - 1 time\n- Can (recycling category) was placed in bin 3 (trash bin) - 1 time\n\nThere's also litter around bins 1, 2, and 3 that I've noted separately. The bins are opaque so I can only judge items visible above the rim.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Which bins overflow most often?",
+   "seconds": 18.4,
+   "calls": [
+    {
+     "tool": "bin_overflow_history",
+     "args": {}
+    }
+   ],
+   "answer": "Based on the overflow history, **bin 3** overflows most often - it has overflowed 4 times out of 5 checks (80%). Bin 4 is second with 2 overflows (40%), bin 2 with 1 overflow (20%), and bin 1 hasn't overflowed at all.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Where are the obstacles on the route right now?",
+   "seconds": 18.9,
+   "calls": [
+    {
+     "tool": "report_obstacles",
+     "args": {}
+    }
+   ],
+   "answer": "There is currently one obstacle on the route:\n\n- **Coffee can** (trash) on side 3, between corner 3 and corner 4, located 0.40 m from corner 3\n- Last seen 1.8 hours ago\n- Seen 2 times total\n\nNote: Obstacle labels come from a small camera model and can occasionally be wrong. An obstacle stays listed until a run drives its side and doesn't see it again.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 1,
+   "prompt": "Is anything in front of you right now?",
+   "seconds": 11.7,
+   "calls": [
+    {
+     "tool": "look_ahead",
+     "args": {}
+    }
+   ],
+   "answer": "Yes, there is a can in front of me. It's located on side 1 (between corner 1 and corner 2), approximately 0.45 meters ahead and slightly to the left (0.02 m). This was only seen by looking ahead - I didn't drive around it."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": false,
+   "missing": [
+    "\\bcan\\b",
+    "side\\s*1"
+   ],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Run your route and check the path for any obstructions.",
+   "seconds": 18.3,
+   "calls": [
+    {
+     "tool": "run_route",
+     "args": {
+      "check_bins": "yes"
+     }
+    }
+   ],
+   "answer": ""
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Check Bin 1 to see if it is overflowing. If it is, estimate how much.",
+   "seconds": 15.0,
+   "calls": [
+    {
+     "tool": "check_bin",
+     "args": {
+      "bin": "1"
+     }
+    }
+   ],
+   "answer": "Bin 1 is overflowing. Here are the details:\n- **Overflow level**: 1 (out of 3)\n- **Items on top**: 1 paper bag\n- **Litter around**: None\n\nThe bin has overflowed once, with one item visible on top. The previous check was about 2 hours ago and showed litter but no overflow."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Historically, what objects have you seen the most?",
+   "seconds": 22.4,
+   "calls": [
+    {
+     "tool": "most_seen_objects",
+     "args": {
+      "place": "any"
+     }
+    }
+   ],
+   "answer": "Historically, here are the objects I've seen most often:\n\n1. **milk_jug** (recycling) - 9 times seen\n2. **can** (recycling) - 6 times seen\n3. **paper_towel** (trash) - 4 times seen\n4. **foil** (trash) - 3 times seen\n5. **coffee_can** (trash) - 2 times seen\n\nNote: These counts represent sightings in photos, not distinct objects - an item left in place is counted again on every run that sees it. The labels come from a small camera model and can occasionally be wrong.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Are people generally recycling the correct objects?",
+   "seconds": 25.7,
+   "calls": [
+    {
+     "tool": "recycling_report",
+     "args": {}
+    }
+   ],
+   "answer": "Based on my memory store, people are recycling correctly **75% of the time** overall. Here's the breakdown:\n\n**Overall Statistics:**\n- Correctly placed items: 6\n- Incorrectly placed items: 2\n- Unclassified items: 0\n\n**Per-Bin Performance:**\n- Bin 1 (trash): No wrong items recorded\n- Bin 2 (recycling): 0 correct, 1 wrong (foil placed in recycling bin)\n- Bin 3 (trash): 4 correct, 1 wrong (can placed in trash bin instead of recycling)\n- Bin 4 (recycling): 2 correct, 0 wrong\n\n**Wrong Items Found:**\n- Foil (trash category) was placed in bin 2 (recycling bin) - 1 time\n- Can (recycling category) was placed in bin 3 (trash bin) - 1 time\n\nThere's also litter around bins 1, 2, and 3 that I've noted separately. The bins are opaque so I can only judge items visible above the rim.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Which bins overflow most often?",
+   "seconds": 18.5,
+   "calls": [
+    {
+     "tool": "bin_overflow_history",
+     "args": {}
+    }
+   ],
+   "answer": "Based on the overflow history, **bin 3** overflows most often - it has overflowed 4 times out of 5 checks (80%). Bin 4 is second with 2 overflows (40%), bin 2 with 1 overflow (20%), and bin 1 hasn't overflowed at all.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Where are the obstacles on the route right now?",
+   "seconds": 18.9,
+   "calls": [
+    {
+     "tool": "report_obstacles",
+     "args": {}
+    }
+   ],
+   "answer": "There is currently one obstacle on the route:\n\n- **Coffee can** (trash) on side 3, between corner 3 and corner 4, located 0.40 m from corner 3\n- Last seen 1.8 hours ago\n- Seen 2 times total\n\nNote: Obstacle labels come from a small camera model and can occasionally be wrong. An obstacle stays listed until a run drives its side and doesn't see it again.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 2,
+   "prompt": "Is anything in front of you right now?",
+   "seconds": 11.7,
+   "calls": [
+    {
+     "tool": "look_ahead",
+     "args": {}
+    }
+   ],
+   "answer": "Yes, there is a can in front of me. It's located on side 1 (between corner 1 and corner 2), approximately 0.45 meters ahead and slightly to the left (0.02 m). This was only seen by looking ahead - I didn't drive around it."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": false,
+   "missing": [
+    "\\bcan\\b",
+    "side\\s*1"
+   ],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Run your route and check the path for any obstructions.",
+   "seconds": 18.2,
+   "calls": [
+    {
+     "tool": "run_route",
+     "args": {
+      "check_bins": "yes"
+     }
+    }
+   ],
+   "answer": ""
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Check Bin 1 to see if it is overflowing. If it is, estimate how much.",
+   "seconds": 15.0,
+   "calls": [
+    {
+     "tool": "check_bin",
+     "args": {
+      "bin": "1"
+     }
+    }
+   ],
+   "answer": "Bin 1 is overflowing. Here are the details:\n- **Overflow level**: 1 (out of 3)\n- **Items on top**: 1 paper bag\n- **Litter around**: None\n\nThe bin has overflowed once, with one item visible on top. The previous check was about 2 hours ago and showed litter but no overflow."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Historically, what objects have you seen the most?",
+   "seconds": 22.3,
+   "calls": [
+    {
+     "tool": "most_seen_objects",
+     "args": {
+      "place": "any"
+     }
+    }
+   ],
+   "answer": "Historically, here are the objects I've seen most often:\n\n1. **milk_jug** (recycling) - 9 times seen\n2. **can** (recycling) - 6 times seen\n3. **paper_towel** (trash) - 4 times seen\n4. **foil** (trash) - 3 times seen\n5. **coffee_can** (trash) - 2 times seen\n\nNote: These counts represent sightings in photos, not distinct objects - an item left in place is counted again on every run that sees it. The labels come from a small camera model and can occasionally be wrong.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Are people generally recycling the correct objects?",
+   "seconds": 25.0,
+   "calls": [
+    {
+     "tool": "recycling_report",
+     "args": {}
+    }
+   ],
+   "answer": "Based on my memory store, people are recycling correctly **75% of the time** overall. Here's the breakdown:\n\n**Overall Statistics:**\n- Correctly placed items: 6\n- Incorrectly placed items: 2\n- Unclassified items: 0\n\n**Per-Bin Performance:**\n- Bin 1 (trash): No wrong items recorded\n- Bin 2 (recycling): 0 correct, 1 wrong (foil placed in recycling bin)\n- Bin 3 (trash): 4 correct, 1 wrong (can placed in trash bin instead of recycling)\n- Bin 4 (recycling): 2 correct, 0 wrong\n\n**Wrong Items Found:**\n- Foil (trash category) was placed in bin 2 (recycling bin) - 1 time\n- Can (recycling category) was placed in bin 3 (trash bin) - 1 time\n\nThere's also litter around bins 1, 2, and 3 that I've noted separately. The bins are opaque so I can only judge items visible above the rim.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Which bins overflow most often?",
+   "seconds": 19.2,
+   "calls": [
+    {
+     "tool": "bin_overflow_history",
+     "args": {}
+    }
+   ],
+   "answer": "Based on the overflow history, **bin 3** overflows most often - it has overflowed 4 times out of 5 checks (80%). Bin 4 is second with 2 overflows (40%), bin 2 with 1 overflow (20%), and bin 1 hasn't overflowed at all.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Where are the obstacles on the route right now?",
+   "seconds": 19.0,
+   "calls": [
+    {
+     "tool": "report_obstacles",
+     "args": {}
+    }
+   ],
+   "answer": "There is currently one obstacle on the route:\n\n- **Coffee can** (trash) on side 3, between corner 3 and corner 4, located 0.40 m from corner 3\n- Last seen 1.8 hours ago\n- Seen 2 times total\n\nNote: Obstacle labels come from a small camera model and can occasionally be wrong. An obstacle stays listed until a run drives its side and doesn't see it again.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 3,
+   "prompt": "Is anything in front of you right now?",
+   "seconds": 11.7,
+   "calls": [
+    {
+     "tool": "look_ahead",
+     "args": {}
+    }
+   ],
+   "answer": "Yes, there is a can in front of me. It's located on side 1 (between corner 1 and corner 2), approximately 0.45 meters ahead and slightly to the left (0.02 m). This was only seen by looking ahead - I didn't drive around it."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": false,
+   "missing": [
+    "\\bcan\\b",
+    "side\\s*1"
+   ],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Run your route and check the path for any obstructions.",
+   "seconds": 18.2,
+   "calls": [
+    {
+     "tool": "run_route",
+     "args": {
+      "check_bins": "yes"
+     }
+    }
+   ],
+   "answer": ""
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Check Bin 1 to see if it is overflowing. If it is, estimate how much.",
+   "seconds": 15.0,
+   "calls": [
+    {
+     "tool": "check_bin",
+     "args": {
+      "bin": "1"
+     }
+    }
+   ],
+   "answer": "Bin 1 is overflowing. Here are the details:\n- **Overflow level**: 1 (out of 3)\n- **Items on top**: 1 paper bag\n- **Litter around**: None\n\nThe bin has overflowed once, with one item visible on top. The previous check was about 2 hours ago and showed litter but no overflow."
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Historically, what objects have you seen the most?",
+   "seconds": 22.3,
+   "calls": [
+    {
+     "tool": "most_seen_objects",
+     "args": {
+      "place": "any"
+     }
+    }
+   ],
+   "answer": "Historically, here are the objects I've seen most often:\n\n1. **milk_jug** (recycling) - 9 times seen\n2. **can** (recycling) - 6 times seen\n3. **paper_towel** (trash) - 4 times seen\n4. **foil** (trash) - 3 times seen\n5. **coffee_can** (trash) - 2 times seen\n\nNote: These counts represent sightings in photos, not distinct objects - an item left in place is counted again on every run that sees it. The labels come from a small camera model and can occasionally be wrong.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Are people generally recycling the correct objects?",
+   "seconds": 24.6,
+   "calls": [
+    {
+     "tool": "recycling_report",
+     "args": {}
+    }
+   ],
+   "answer": "Based on my memory store, people are recycling correctly **75% of the time** overall. Here's the breakdown:\n\n**Overall Statistics:**\n- Correctly placed items: 6\n- Incorrectly placed items: 2\n- Unclassified items: 0\n\n**Per-Bin Performance:**\n- Bin 1 (trash): No wrong items recorded\n- Bin 2 (recycling): 0 correct, 1 wrong (foil placed in recycling bin)\n- Bin 3 (trash): 4 correct, 1 wrong (can placed in trash bin instead of recycling)\n- Bin 4 (recycling): 2 correct, 0 wrong\n\n**Wrong Items Found:**\n- Foil (trash category) was placed in bin 2 (recycling bin) - 1 time\n- Can (recycling category) was placed in bin 3 (trash bin) - 1 time\n\nThere's also litter around bins 1, 2, and 3 that I've noted separately. The bins are opaque so I can only judge items visible above the rim.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Which bins overflow most often?",
+   "seconds": 18.4,
+   "calls": [
+    {
+     "tool": "bin_overflow_history",
+     "args": {}
+    }
+   ],
+   "answer": "Based on the overflow history, **bin 3** overflows most often - it has overflowed 4 times out of 5 checks (80%). Bin 4 is second with 2 overflows (40%), bin 2 with 1 overflow (20%), and bin 1 hasn't overflowed at all.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Where are the obstacles on the route right now?",
+   "seconds": 19.0,
+   "calls": [
+    {
+     "tool": "report_obstacles",
+     "args": {}
+    }
+   ],
+   "answer": "There is currently one obstacle on the route:\n\n- **Coffee can** (trash) on side 3, between corner 3 and corner 4, located 0.40 m from corner 3\n- Last seen 1.8 hours ago\n- Seen 2 times total\n\nNote: Obstacle labels come from a small camera model and can occasionally be wrong. An obstacle stays listed until a run drives its side and doesn't see it again.\n(Source: the simulator's memory store, 5 runs, last run 2026-11-20 04:00 UTC.)"
+  },
+  {
+   "tool_ok": true,
+   "facts_ok": true,
+   "missing": [],
+   "invented": [],
+   "model": "qwen3.5:9b",
+   "reasoning": null,
+   "repeat": 4,
+   "prompt": "Is anything in front of you right now?",
+   "seconds": 11.7,
+   "calls": [
+    {
+     "tool": "look_ahead",
+     "args": {}
+    }
+   ],
+   "answer": "Yes, there is a can in front of me. It's located on side 1 (between corner 1 and corner 2), approximately 0.45 meters ahead and slightly to the left (0.02 m). This was only seen by looking ahead - I didn't drive around it."
+  }
+ ]
+}

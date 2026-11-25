@@ -2190,3 +2190,335 @@ Work done before the ledger started, summarized from git history:
 - **Decisions:** none.
 - **Open / next:** Phase 6 starts in plan mode from the prompt. The handoff folder and this
   entry are uncommitted until the user says.
+
+### 2026-11-23: Phase 6 plan approved; agent, memory tools, model test, sim check written
+
+- **Phase:** 6 (WALL-E ROSA agent)
+- **Branch / commit:** `walle-phase-6` @ uncommitted (after `976fbe1`)
+- **Asked for:** "Yes, plan Phase 6": plan mode, settle the open decisions, then build.
+- **Done:**
+  - Plan approved and copied to `docs/plans/phase-6-plan.md`; decisions in the ROADMAP log.
+    User's choices: a larger local model in the model test (pulled `qwen3.5:9b`, 6.6 GB);
+    "Check Bin N" = a partial route there and back (new motion code); a `look_ahead` tool.
+  - `walle-app/agent/walle_tools.py`: motion tools `run_route`, `check_bin`, `look_ahead`,
+    `stop_robot` (one approval per call, through a runner) and memory tools
+    `most_seen_objects`, `bin_overflow_history`, `recycling_report`, `report_obstacles`,
+    `last_bin_check`, `recent_runs`, `recall_memory` (store queries only; each result names
+    the store and its limits). Every call is logged for the checks.
+  - `walle-app/agent/walle_agent.py`: ROSA with **only these tools**. Found: ROSA's
+    `blacklist` filters ROS names, not tools, so its ~50 built-ins (incl. `ros2_topic_pub`,
+    which could publish `/pico/cmd_vel` around the follower's guards) were always added;
+    `WalleROSA._get_tools` drops them. `respond()` adds the store's name, run count and
+    last run to every memory answer in code (the 4B model often didn't say it).
+    `--auto-approve` refused unless `/sim/ground_truth` is published.
+  - `walle-app/agent/runner.py`: the follower as a subprocess (`--no-measure`; Gazebo: the
+    world's layout, runs to `walle-sim/data/agent/`), output passed through, Ctrl+C →
+    SIGINT, 10 s wait, kill; `digest_run()` turns a run folder into the model's summary.
+    Uses the follower flags `--trip-bin N` and `--look-only`, which **don't exist yet**.
+  - `walle-app/agent/fixture_store.py` (known history), `bench.py` (model test: stub
+    runner with real robot runs, fixture store, tool + fact + invented-number scoring),
+    `facts.py` (what history answers should say, from a store), `config/agent.yaml`.
+  - `memory/store.py`: one new read query, `bin_check_items(run_id, bin_id)` (deviation
+    from the plan's "store unchanged"; read-only, tested).
+  - `walle-sim/harness/agent_trials.py` + `make sim-agent-check`: history prompts on the
+    fixture store, and world cases `route` (mixed), `bin1` (bincheck), `look` (obstacle on
+    side 1), scored against the world. **Not run yet.**
+  - `tests/test_agent.py` (13 tests); `CLAUDE.md` layout and commands.
+- **Verified:**
+  - Unit tests: 147 OK in `walle-pilot` (Python 3.10); host 145 OK, 7 skipped (no
+    langchain_core) before the last 2 tests were added.
+  - The memory tools run on `robot.sqlite` and return the store's values (checked against
+    `facts.py`: paper_towel 23, bin 4 38 %, 77 % correct, the bag on side 2).
+  - Model test smoke run, `qwen3.5:4b`, 1 repeat: right tool 7/7, median 15 s; two
+    "invented number" flags were list markers and a correct sum, so the check now ignores
+    those. The full 4B vs 9B run (5 repeats) was started; results in the next entry.
+  - Nothing run in Gazebo or on the robot.
+- **Scope:** In scope. The follower modes (`--trip-bin`, `--look-only`) were proposed as a
+  separate session (not started yet); until they exist, `check_bin` and `look_ahead` fail
+  in sim with "unrecognized arguments".
+- **Decisions:** the Phase 6 plan decisions (ROADMAP log, 2026-11-23); the LLM waits for the
+  model test.
+- **Open / next:** model test results → pick the LLM; the follower modes; then
+  `make sim-agent-check`; then the robot.
+
+### 2026-11-23: Model test: qwen3.5:4b chosen for the agent
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the model test from the plan (decision 1), user-approved pull of
+  `qwen3.5:9b` and "run it now".
+- **Done:** `agent/bench.py --models qwen3.5:4b qwen3.5:9b --repeats 5` in `walle-pilot`
+  (results `walle-app/results/agent/bench/20261123_165252/`). LLM decision in the ROADMAP log;
+  `config/agent.yaml` already names `qwen3.5:4b`.
+- **Verified (stubbed motion, fixture store, Ollama on the host):**
+
+  | Model | tool + args | fact check | median s | max s | look prompt |
+  |---|---|---|---|---|---|
+  | qwen3.5:4b | 30/30 | 30/30 | 13.8 | 17.8 | 5/5 |
+  | qwen3.5:9b | 30/30 | 25/30 | 18.9 | 31.6 | 5/5 |
+
+  The 9B's five misses: an empty final answer to "Run your route…" every time.
+  At temperature 0 the 4B's answers barely varied between repeats, so 5 repeats show
+  consistency more than spread.
+- **Scope:** In scope.
+- **Decisions:** agent LLM = `qwen3.5:4b` (above the target: ≥ 28/30 and ≥ 27/30).
+- **Open / next:** unchanged: the follower modes, `make sim-agent-check`, the robot.
+
+### 2026-11-23: Sim agent check: history prompts 12/12, route prompt passed
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the plan's sim acceptance check (decision 7), the parts that run without
+  the new follower modes.
+- **Done / verified (Gazebo, `walle-sim` container, `qwen3.5:4b`):**
+  - `make sim-agent-check ONLY=history`: prompts 3-6 on the fixture store, 3 repeats:
+    **12/12** (right memory tool, no motion, facts present, no invented numbers). Logs
+    `walle-sim/data/agent_check/20261123_171242/`.
+  - `make sim-agent-check ONLY=route`: prompt 1 in a headless `mixed` world: **PASS**. The
+    agent called `run_route(check_bins=yes)` once (auto-approved, Gazebo); the run ended
+    `done` in 1.6 min; bins 1-4 judged right against the world (clean / overflowing 1 /
+    litter / overflowing 3); the plastic bottle on side 3 was found 2.3 cm from the truth
+    and driven around; the answer named it, its side and both overflowing bins, with no
+    invented numbers. Logs `walle-sim/data/agent_check/20261123_171538/`, run
+    `walle-sim/data/agent/20261123_171601/`. (No collision check in this harness; the
+    Phase 5 obstacle check covers it.)
+  - Not run: the `bin1` and `look` cases (they need `--trip-bin` / `--look-only`).
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** the follower modes (proposed session not started); then `bin1` + `look`
+  cases, the full `make sim-agent-check`, and the robot.
+
+### 2026-11-23: Follower --trip-bin / --look-only (side session); agent bin1 + look pass; item counts fixed
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted (same checkout)
+- **Asked for:** plan build steps 2 and 4, done in a side session the user started
+  ("Phase 6: follower --trip-bin and --look-only modes"); then the plan's sim check.
+- **Done (side session; this entry records it, since that session was told to leave the
+  ledger alone):**
+  - `route/route_geometry.py`: `build_trip()`, `trip_path()`, `side_of()`, `build_look()`.
+  - `route/obstacle.py`: `inside` sign (+1 counter-clockwise, the default; −1 clockwise) for
+    `plan_detour`, `plan_detour_group`, `group_ahead`. With +1 the arithmetic is unchanged.
+  - `route/route_follower.py`:
+    - `--trip-bin N` takes the shorter way to bin N and back (bin 1 no driving; bin 4 drives
+      side 4 clockwise). `summary.json` `kind: trip`, one bin; `sides_done` uses
+      counter-clockwise numbers; obstacle records carry `direction`. On the way back the
+      trip's own earlier record of the same obstacle isn't a separate object to keep clear of.
+    - `--look-only` takes one down-tilted look, no start hold, `ahead_m` / `left_m`, plus
+      `side: 1` and park `obj_xy` at the start pose. **On the robot the start pose is
+      assumed** (Gazebo checks the truth); `--not-at-start` keeps robot-relative positions
+      only. Every agent lap and trip ends at the start, so the assumption holds after them.
+  - `memory/route_records.py`: the run kind comes from `summary["kind"]`.
+  - `tests/test_trip.py` (16 tests); `sim_trials.py` `trip-check` / `look-check`;
+    `obstacle_trials.py` 6 clockwise trip cases; `make sim-trip-check BIN=n`,
+    `make sim-look-check`, `sim-obstacle-check CW=0|only`.
+- **Done (this session):**
+  - The `bin1` and `look` agent cases.
+  - Item counts: a full-check run (`walle-sim/data/agent_check/20261123_183505/`, 14 of 15)
+    failed `route` on a real model error. Bin 4 had 10 items on top (4 plastic bottles, 3
+    paper cups, 2 cans, 1 wrapper); the 4B read the label list as "6 plastic bottles, 2
+    paper cups, 1 can, 1 wrapper". `runner.digest_bins` and `last_bin_check` now give
+    `{label: count}` instead of lists, so the model copies counts instead of counting.
+    `agent_trials` checks every "N <label>" against the run's counts for that label.
+  - Approval text: "Takes N min." (was "about under 1 min").
+  - `walle-app/README.md`: an agent section and the robot acceptance steps.
+- **Verified:**
+  - Side session's reported Gazebo results, not re-run by me:
+    - look-check PASS, 0.5 cm;
+    - trips to bins 1-4 PASS, ends 0.1-0.8 cm from the start;
+    - `sim-obstacle-check`: old 10 cases 9/10 (`camera_miss`, the known Phase 5 miss) and
+      the clockwise cases 6/6, closest 7.4 cm.
+  - Unit tests: 164 OK in `walle-pilot`.
+  - Agent cases `bin1` + `look` (`walle-sim/data/agent_check/20261123_180037/`): both PASS.
+    - Bin 1 judged overflowing at level 2 = truth, no driving.
+    - The wrapper on side 1 found 0.5 cm from the truth.
+  - A full re-run after the count fix was started; result in the next entry.
+- **Scope:** In scope (plan steps 2, 4, 5).
+- **Decisions:** none new (the look's start-pose assumption is the side session's
+  default, offered to the user).
+- **Open / next:** the full sim check result; robot acceptance (README steps).
+
+### 2026-11-23: Sim agent check 15/15; Phase 6 sim box ticked
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the plan's sim acceptance check (decision 7), after the item-count fix.
+- **Done:**
+  - A check fix: run `20261123_185359` (14/15) failed `route` only because the answer put
+    the bins in a markdown table and the check looked for "bin N … overflow" in prose. The
+    check now also accepts a table row. That answer was correct (every count matched the
+    run); re-scored offline it passed (the obstacle-distance check skipped, since it needs
+    the live run folder).
+  - ROADMAP: the sim box ticked; the history box notes sim done, robot open.
+- **Verified:** `make sim-agent-check`, one command: **15/15 PASS**, logs
+  `walle-sim/data/agent_check/20261123_190152/`.
+  - History prompts 3-6 × 3 on the fixture store: 12/12.
+  - `route`, `bin1` and `look` in their own headless worlds: all PASS against the world.
+  - Item counts matched the runs.
+  - No invented numbers.
+  - Nothing run on the robot.
+- **Scope:** In scope.
+- **Decisions:** none.
+- **Open / next:** robot acceptance (`walle-app/README.md`, "Robot acceptance"), run by the
+  user; then the remaining two ROADMAP boxes. Nothing is committed yet.
+
+### 2026-11-24: First robot acceptance runs; camera tilt has slipped; reviewed lap left out of memory
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the user ran the agent on the robot (prompt 1, then "Check Bin 1") and
+  asked why it "didn't work", then why the bin results were wrong; "leave it out" (the lap)
+  of the robot store.
+- **Done:**
+  - Runs `20261125_020154`, `_020403`, `_020851`: the robot never moved. The servo readback
+    showed the Pico received every command, so the link was fine; the cause was the 9 V
+    supply (batteries not seated, user confirmed with a multimeter).
+  - Lap `20261125_021609` (agent prompt 1): done, 0.2 cm end error, the can on side 1 found
+    and passed, the agent's answer matched the run files. Bin checks 1/4 right against the
+    user's truth (bins 1, 3, 4 had items on top; the robot said clean / litter / litter).
+  - Cause, from the photos: the detector found the items on top, but bin_check's
+    `on_top_max_gap_m` (0.10 m) filter dropped them as "11-15 cm above the rim". Fitting the
+    camera tilt from where each bin's rim falls in the photo (scratch script; bin height
+    0.292 m, distance from the box width): run `20261122_145845` level +2..+3 deg, up
+    +12..+14 deg; from `20261122_211939` on, level -3..-7 deg, up +4..+9 deg; tonight about
+    -3 and +7. Agreement across bins is ~1 deg, so it's mechanical (horn or mount), from the
+    Phase 5 robot runs (the -15 deg corner looks, near the 1750 us limit). Servo commands
+    and `servo.yaml` are unchanged (1425 us up).
+  - Replaying the lap with the fitted tilts (`replay_bin_checks.py` on a scratch copy):
+    outcome 3/4 instead of 1/4. Bin 4 stays wrong (the tissue box box = the bin's box).
+  - Trip `20261125_023758` ("Check Bin 1", after the user tightened the mount screw): same
+    fault, level -3.0, up +8.4; paper bag and paper towel found on_bin, both dropped as
+    "12 cm above the rim". Agent action and answer were right for the run.
+  - `run_review.json` (new, per run): `{"leave_out": why}` makes `import_runs.py` skip a
+    whole run; the run's logs stay as written (`memory/route_records.py` load_run_review,
+    `memory/import_runs.py`, test in `tests/test_obstacle.py` ReviewTests). Written for
+    `20261125_021609` with the user's truth. `robot.sqlite` rebuilt: 23 runs, that lap left
+    out (backup of the old file in the session scratchpad only).
+- **Verified:** unit tests 165/165 in `walle-pilot`; the rebuild printed the skip. The tilt
+  diagnosis is from photo geometry, not yet from an inclinometer.
+- **Scope:** In scope (robot acceptance). The tilt fault comes from Phase 4/5 hardware.
+- **Decisions:** none (how to recalibrate is open: re-seat the camera so 1575 us is level,
+  or measure and change `servo.yaml`).
+- **Open / next:** recalibrate the tilt on the robot (inclinometer at 1575 / 1425 / 1725 us),
+  then "Check Bin 1" again before the full prompt set. Decide whether trip `_023758` and the
+  aborted runs `_020154` / `_020851` stay in the robot store. Phase 5's far-position error
+  (route.yaml note on run `20261122_211939`) is likely the same fault.
+
+### 2026-11-24: Camera tilt recalibrated from photos (servo.yaml)
+
+- **Phase:** 6 (the fix is in Phase 4's calibration)
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the phone level isn't sensitive enough; "try updating the values based on
+  what you suspect (-3 down, 7-8 up) and see if that makes a difference".
+- **Done:**
+  - `walle-app/config/servo.yaml` (robot only; sim untouched): level_us 1575 -> 1531,
+    us_per_deg -10.0 -> -14.7, min_deg -15 -> -14 (1737 us, inside the 1750 us limit),
+    max_deg 55 -> 34 (1031 us). The line through the photo fits 1575 us = -3.0 deg and
+    1425 us = +7.2 deg (means over lap `20261125_021609` and trip `20261125_023758`). The
+    old values and the method are in the file's comments.
+  - What changes on the robot: the level photo is taken at 1531 us. The up look goes to
+    1310 us (a real ~15 deg, as Phase 4 designed it) instead of 1425. The corner look's
+    -15 deg is clamped to -14 = 1737 us, near the old 1725 us.
+- **Verified:**
+  - Re-judged tonight's photos with the tilts the new numbers give for the pulses used
+    (`replay_bin_checks.py` on scratch copies): lap outcome 3/4 (was 1/4; bins 1 and 3 now
+    overflowing, bin 4 still the detector's miss), trip bin 1 overflowing with 2 on top (was
+    clean). This only checks the geometry on old photos; the new pulses are untested.
+  - Unit tests 165/165 in `walle-pilot` and on the host.
+  - Not run on the robot.
+- **Scope:** In scope (robot acceptance needs the bin check).
+- **Decisions:** calibration from photo geometry until an inclinometer reading exists (user,
+  2026-11-24).
+- **Open / next:** "Check Bin 1" on the robot (expect overflowing, 2 on top) and a look at
+  the up photo; then the full prompt set. Phase 5's corner-look ranging was tuned on the
+  slipped camera; watch the obstacle distances on the next lap.
+
+### 2026-11-24: Robot "Check Bin 1" after the recalibration; second tilt fit
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the user ran "Check Bin 1" with the first photo calibration (trip
+  `20261125_025741`) and pasted the log.
+- **Done:**
+  - The trip: bin 1 **overflowing, level 1** (truth: overflowing, 2 on top). Counted 1 on top
+    (the paper bag, 11 cm over the rim). The grey plastic bag was seen but called
+    around_bin: in the up photo it hangs 28 px below the rim row, past the rim margin
+    (0.12 × a bin box cut off by the frame bottom = 22 px). Agent action and answer right.
+    The answer called level 1 "moderate", and its "previous check: clean" is the faulty trip
+    `20261125_023758` (still in the store).
+  - The up look at 1310 us fitted +21.8 deg, not 15: the first fit overshot. The level
+    photos' rim fits are biased by items on top (1575 and 1531 us both fit -3.0); fitted
+    from the bin's base on the floor, 1531 us = +0.2 deg (1575 us: -2.2..+1.0).
+  - `servo.yaml`, second fit: level 1531 us, us_per_deg -11.1 (up 15 deg = 1364 us; within
+    ~2 deg of both up observations), min_deg -17 (1720 us), max_deg 45 (1032 us). The
+    corner look's -15 deg is now 1698 us (Phase 5 runs used 1725 us).
+- **Verified:** replays with the tilts the new numbers give: lap `_021609` 3/4 outcomes
+  (bin 4 the detector's miss), trip `_023758` overflowing 2 on top, trip `_025741`
+  overflowing 1 on top (its photo was taken too high; the draped bag stays out). Unit tests
+  165/165 in `walle-pilot`. The 1364 us up look has not run on the robot.
+- **Scope:** In scope.
+- **Decisions:** none new.
+- **Open / next:** "Check Bin 1" again (expect 2 on top); whether trip `_023758` leaves the
+  robot store; then the full prompt set, watching the corner-look obstacle distances.
+
+### 2026-11-24: "Check Bin 1" right on the robot with the second tilt fit; 02:37 trip left out
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** the user ran "Check Bin 1" again (trip `20261125_031458`) and said to leave
+  the faulty trip `20261125_023758` out of the robot store.
+- **Done:**
+  - The trip: bin 1 **overflowing, level 1, 2 on top** (paper_bag, paper_towel), no litter:
+    matches the truth (brown paper bag + grey plastic bag). The plastic bag is labeled
+    paper_towel, a known label limit. Agent: right tool, answer matches the run.
+  - Up look at 1364 us fits +13.9 deg from the rim (target 15). The level photo's fits are
+    noisy (+2.0 rim, +6.2 base; earlier +0.2): left as is.
+  - `results/route/20261125_023758/run_review.json` (leave_out, with the truth).
+    `robot.sqlite` rebuilt: 24 runs, 2 left out (`_021609`, `_023758`). Ollama timed out
+    during the rebuild; `embed_pending()` then embedded the 85 texts (0 left).
+- **Verified:** on the robot by the user (log pasted); the store rebuild's output.
+- **Scope:** In scope.
+- **Decisions:** the second photo fit in `servo.yaml` stands (user ran it).
+- **Open / next:** the full prompt set (README "Robot acceptance"): watch the corner-look
+  obstacle distances (corner look now 1698 us, was 1725) and bins 3-4. Restart the agent
+  before history prompts (it caches the old store file).
+
+### 2026-11-25: Robot lap ran off the mat: two launches running; Ctrl+C stop path fixed
+
+- **Phase:** 6
+- **Branch / commit:** `walle-phase-6` @ uncommitted
+- **Asked for:** "strange behavior": on agent prompt 1 (run `20261125_200224`) the robot
+  turned backwards instead of detouring around the can and ran off the mat; the user hit
+  Ctrl+C and the follower printed a traceback.
+- **Done:**
+  - Cause: two `pilot.launch.py` were running in `walle-pilot` (started 17:19:33 and
+    17:19:57), so two `wheel_odometry` nodes and two EKFs published `/wheel/odom` and
+    `/odometry/filtered` with different poses. The trajectory flips between (0, 0, 0 deg) and
+    (0.15, 0.03, -114 deg); "driven 5.20 m" before moving. The follower steered by whichever
+    message came last. The estimate-jump guard fired but carried on.
+  - Second fault: Ctrl+C reached the follower twice: from the terminal (same process group)
+    and again from `runner._interrupt`. The second hit inside `node.stop()`, so the zero
+    command and the run's files (no `summary.json`) were lost; the Pico's 500 ms watchdog
+    stopped the motors. The agent's "The robot was stopped" was not backed by anything.
+  - `route/route_follower.py`: `check_single_publishers()` after `wait_for_odom()`: for 3 s
+    (discovery is gradual: a new node saw the second EKF after 1.3 s on the robot) it counts
+    publishers on the feedback topic, `/wheel/odom` and `/odometry/filtered`, and refuses to
+    drive if any has more than one. The `finally` ignores Ctrl+C while `node.stop()` runs.
+  - `agent/runner.py`: `_interrupt(signalled=True)` after a terminal Ctrl+C sends no second
+    SIGINT (only after `stop_wait_s` if the follower is still running, then kill); the
+    stop_robot tool path still sends one. A zero `/pico/cmd_vel` follows either way.
+  - `tests/test_stop_paths.py` (new): the publisher check, and `_interrupt` against a child
+    process that reports a second SIGINT (terminal Ctrl+C, tool stop, hung follower).
+- **Verified:**
+  - Unit tests 170/170 in `walle-pilot`.
+  - The check on the live robot graph (both launches still up): refused, "/wheel/odom (2)".
+  - Sim, twice, `walle-sim` (headless park, mixed): the runner's lap interrupted with one
+    SIGINT to the whole process group while driving side 1. "Robot stopped", run saved
+    (`walle-sim/data/agent/20261125_200800`, `_201017`), the agent got the digest, and the
+    check did not trip on the sim's own nodes.
+  - Not run on the robot yet.
+- **Scope:** In scope (robot acceptance; robot-safety rule).
+- **Decisions:** none.
+- **Open / next:** the user stops both launches (or `make down && make up`, which also
+  clears ~19 stale `/pico_pilot` participants) and starts one `make launch`; then prompt 1
+  again. Run `20261125_200224` has no summary, so it isn't in the robot store.

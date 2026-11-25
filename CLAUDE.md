@@ -106,6 +106,10 @@ walle-app/           the WALL-E application (ROADMAP phases); see walle-app/READ
   data/photos/phase3/  labeled ESP32-CAM photo set: shots.yaml (shot list), labels.yaml
   data/photos/phase4/  tilted photo set (level + up looks, day + night): shots.yaml
   models/            YOLO-World + CLIP weights (git-ignored, downloaded on first use)
+  agent/             WALL-E ROSA agent (Phase 6): walle_agent.py (the agent), walle_tools.py
+                     (motion + memory tools), runner.py (follower subprocess + run digests),
+                     fixture_store.py (known history), bench.py (model test), facts.py;
+                     config/agent.yaml
 walle-sim/           Gazebo simulator; worlds/park_world.py builds the park world at launch
 docs/plans/          approved phase plans (phase-N-plan.md)
 docs/handoff/        start prompts for each phase's session, session summaries
@@ -152,6 +156,10 @@ python3 walle-app/memory/import_runs.py --rebuild       # rebuild robot.sqlite f
 make detect-eval                                        # Phase 3: score the detector on the photo set
 python3 walle-app/detect/capture_set.py --camera-url http://192.168.1.201/capture   # take the set (host)
 python3 /workspace/walle-app/servo/servo_test.py --sweep    # Phase 4: move the camera servo (container)
+python3 /workspace/walle-app/agent/walle_agent.py      # Phase 6: the agent (container; --no-motion, --once)
+python3 /workspace/walle-app/agent/bench.py --models qwen3.5:4b qwen3.5:9b   # model test (container)
+python3 walle-app/agent/facts.py                       # what history answers should say (robot store)
+make sim-agent-check                                   # Phase 6: acceptance prompts in sim (ONLY=history ...)
 ```
 
 Route follower on the robot (after `make launch`, robot on corner 1 facing corner 2):

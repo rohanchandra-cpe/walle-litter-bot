@@ -1,0 +1,165 @@
+{
+ "run_id": "20261125_195944",
+ "source": "robot",
+ "kind": "route",
+ "sides_done": [],
+ "looks": [
+  {
+   "step": 0,
+   "side": 1,
+   "kind": "corner_look",
+   "t_utc": "2026-11-25T20:00:23+00:00",
+   "photo": "photos/side1_step0_look.jpg",
+   "tilt_deg": -15.05,
+   "pose": [
+    0.634,
+    -0.2942,
+    -1.51
+   ],
+   "seconds": 16.9,
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      278.4,
+      94.1,
+      369.9,
+      355.2
+     ],
+     "center": [
+      1.0384,
+      -0.2961
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0433,
+     "dist_m": 0.4044,
+     "cut": false,
+     "along": 1.0384,
+     "cross": -0.2961,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a white label featuring blue text and graphics, exhibiting a slight metallic sheen."
+    }
+   ],
+   "rejected": []
+  },
+  {
+   "step": 1,
+   "side": 1,
+   "kind": "sonar_look",
+   "t_utc": "2026-11-25T20:00:35+00:00",
+   "sonar": {
+    "range_m": 0.3459,
+    "echo_us": 2002,
+    "pose": [
+     0.1214,
+     -0.0826,
+     113.67
+    ],
+    "t_s": 39.59
+   },
+   "photo": "photos/side1_step1_sonar0.jpg",
+   "items": [
+    {
+     "label": "can",
+     "category": "recycling",
+     "conf": null,
+     "bbox": [
+      266.2,
+      84.0,
+      382.7,
+      390.2
+     ],
+     "center": [
+      -0.0437,
+      0.2731
+     ],
+     "radius_m": 0.03,
+     "width_m": 0.0487,
+     "dist_m": 0.3725,
+     "cut": false,
+     "along": -0.0437,
+     "cross": 0.2731,
+     "blocks": false,
+     "small": false,
+     "vlm_name": "metal drink or coffee can",
+     "vlm_description": "A cylindrical metal can with a white label featuring blue text and graphics, exhibiting a slight metallic sheen."
+    }
+   ],
+   "pose": [
+    0.1135,
+    -0.0646,
+    113.6
+   ],
+   "seconds": 9.981,
+   "rejected": [
+    {
+     "label": "not_trash",
+     "bbox": [
+      507.7,
+      0.0,
+      639.7,
+      58.1
+     ],
+     "vlm_name": "black bin",
+     "vlm_description": "A matte black rectangular object with a smooth, non-reflective surface and slightly rounded edges."
+    }
+   ]
+  }
+ ],
+ "obstacles": [
+  {
+   "id": 1,
+   "step": 1,
+   "side": 1,
+   "t_utc": "2026-11-25T20:00:35+00:00",
+   "found_by": "sonar",
+   "label": "unknown",
+   "category": "unknown",
+   "conf": null,
+   "radius_m": 0.1,
+   "obj_xy": [
+    -0.1078,
+    0.4403
+   ],
+   "position_source": "sonar",
+   "camera_xy": null,
+   "camera_cut": null,
+   "sonar_xy": [
+    -0.1078,
+    0.4403
+   ],
+   "sonar": {
+    "range_m": 0.3459,
+    "echo_us": 2002,
+    "pose": [
+     0.1214,
+     -0.0826,
+     113.67
+    ],
+    "t_s": 39.59
+   },
+   "along": -0.1078,
+   "cross": 0.0,
+   "photo": "photos/side1_step1_sonar0.jpg",
+   "pose": [
+    0.1135,
+    -0.0646,
+    113.6
+   ],
+   "action": "blocked",
+   "detour": {
+    "error": "object -0.21 m along the side: no room to turn before it",
+    "group": [
+     1
+    ]
+   },
+   "confirmed": true,
+   "blocked_reason": "object -0.21 m along the side: no room to turn before it"
+  }
+ ],
+ "truth": null
+}

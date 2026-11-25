@@ -17,7 +17,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from memory.route_records import record_route_summary  # noqa: E402
+from memory.route_records import load_run_review, record_route_summary  # noqa: E402
 from memory.store import APP_DIR, MemoryStore, db_path, load_config  # noqa: E402
 
 
@@ -48,6 +48,11 @@ def main(argv=None):
         rid = summary.get("run_id")
         if summary.get("source") != a.source:
             print(f"  skip {rid}: a {summary.get('source')} run")
+            skipped += 1
+            continue
+        review = load_run_review(run_dir)
+        if review.get("leave_out"):
+            print(f"  skip {rid}: left out after review ({review['leave_out']})")
             skipped += 1
             continue
         if store.has_run(rid):

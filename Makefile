@@ -6,7 +6,8 @@ SVC     := pilot
 .DEFAULT_GOAL := help
 .PHONY: help up build down restart shell launch fake logs agent-logs ps \
         sim-up sim-build sim-down sim-shell sim-launch sim-check sim-worlds \
-        sim-park sim-park-check sim-route-check sim-bin-check sim-obstacle-check detect-eval
+        sim-park sim-park-check sim-route-check sim-bin-check sim-obstacle-check sim-trip-check sim-look-check sim-agent-check \
+        detect-eval
 
 # Gazebo simulator (walle-sim/README.md): a separate Compose project and ROS domain
 SIM_COMPOSE := docker compose -f docker-compose.sim.yml
@@ -57,6 +58,9 @@ help:
 	@echo "make sim-route-check  world park: drive the route (LAPS=1 DWELL=s COAST=s MISPLACE=deg HIDE_CUT=1 BLACKOUT="every_s for_s"), PASS if it ends within 5 cm"
 	@echo "make sim-bin-check  world park, Phase 4: servo sweep + route-check with every bin check judged against the world (same options)"
 	@echo "make sim-obstacle-check  Phase 5: launches each obstacle case headless (no launch may be running), PASS if 9 of 10 pass (RUNS=n CASES=\"near lying\")"
+	@echo "                  + Phase 6 clockwise trip cases (cw_*), all must pass (CW=0 skips them, CW=only runs only them)"
+	@echo "make sim-trip-check BIN=n  world park, Phase 6: the follower's --trip-bin n (to bin n and back), PASS if it ends within 5 cm and the bin is judged right"
+	@echo "make sim-look-check  world park, Phase 6: the follower's --look-only from the start pose, finds the side-1 obstacle (launch OBSTACLE=1)"
 	@echo "make sim-worlds  regenerate walle-sim/worlds/*.sdf after editing generate_worlds.py"
 	@echo "make sim-down    stop the simulator"
 	@echo "Desktop: http://localhost:6080/vnc.html"
@@ -125,7 +129,19 @@ sim-bin-check:
 
 # Phase 5: obstacle cases, one headless world each (walle-sim/harness/obstacle_trials.py)
 sim-obstacle-check:
-	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/obstacle_trials.py $(if $(RUNS),--runs $(RUNS)) $(if $(CASES),--only $(CASES))"
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/obstacle_trials.py $(if $(RUNS),--runs $(RUNS)) $(if $(CASES),--only $(CASES)) $(if $(filter 0,$(CW)),--no-cw) $(if $(filter only,$(CW)),--cw-only)"
+
+# Phase 6: the follower's partial route (--trip-bin) and look-only mode, against Gazebo
+sim-trip-check:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) trip-check --bin $(BIN) $(if $(DWELL),--dwell $(DWELL)) $(if $(COAST),--coast-time $(COAST))"
+
+sim-look-check:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/sim_trials.py --run $(RUN) look-check"
+
+# Phase 6: the agent's acceptance prompts (walle-sim/harness/agent_trials.py); world cases
+# launch their own headless worlds (stop any launch first). ONLY="history route bin1 look"
+sim-agent-check:
+	$(SIM_COMPOSE) exec sim bash -ic "python3 /workspace/walle-sim/harness/agent_trials.py $(if $(ONLY),--only $(ONLY)) $(if $(REPEATS),--repeats $(REPEATS))"
 
 # Phase 3: score YOLO-World on the labeled ESP32-CAM photos (walle-app/data/photos/phase3/)
 detect-eval:

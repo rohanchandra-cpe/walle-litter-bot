@@ -308,15 +308,15 @@ One ROSA agent that runs the whole thing from plain-language prompts.
   - "Where are the obstacles on the route right now?"
 
 **Done when**
-- [ ] Each acceptance prompt gives a correct action or answer in sim.
+- [x] Each acceptance prompt gives a correct action or answer in sim. (2026-11-23,
+  `make sim-agent-check` 15/15, `walle-sim/data/agent_check/20261123_190152/`)
 - [ ] Each acceptance prompt works on the robot (user).
-- [ ] History answers match the memory store's contents (checked by query).
+- [ ] History answers match the memory store's contents (checked by query). Sim: done (fixture
+  store, 12/12; `agent/fixture_store.py` facts checked against its queries). Robot: compare
+  with `agent/facts.py` at the robot acceptance.
 
-**Open decisions**
-- Which LLM runs the agent (local Ollama model vs. a hosted model) and the latency and cost
-  of each.
-- Approval rule: today every movement asks a person. A full route run probably needs one
-  approval for the run, with emergency stop kept.
+**Open decisions:** settled 2026-11-23 (decision log; plan `docs/plans/phase-6-plan.md`),
+the LLM included: `qwen3.5:4b` (model test 2026-11-23).
 
 ---
 
@@ -344,6 +344,8 @@ Decisions made during the phases, newest first. Each links to its ledger entry.
 
 | Date | Phase | Decision |
 |---|---|---|
+| 2026-11-23 | 6 | Agent LLM: **`qwen3.5:4b`** (local Ollama). Model test (`agent/bench.py`, stub runner + fixture store, 6 acceptance prompts × 5): 4B right tool + arguments 30/30, fact check 30/30, median 13.8 s, max 17.8 s; `qwen3.5:9b` 30/30 tools, 25/30 facts (an empty answer to every route prompt), median 18.9 s, max 31.6 s. The look-only prompt: 5/5 for both. |
+| 2026-11-23 | 6 | Phase 6 plan (user-approved, `docs/plans/phase-6-plan.md`). **LLM:** local only; a stubbed model test of the six prompts (5 repeats) picks between `qwen3.5:4b` and one larger local model: the smallest with right tool + arguments ≥ 28/30 and fact check ≥ 27/30. **Approval:** one approval per motion tool call (covers the whole run); Ctrl+C, the Pico watchdog and the follower guards kept; `--auto-approve` only when `/sim/ground_truth` is published; ROSA's built-in tools blacklisted (`ros2_topic_pub` could bypass the follower). **Route:** the follower runs as a subprocess of its CLI (`--no-measure`), the tool blocks, output streamed, Ctrl+C reaches both processes. **"Check Bin N":** a partial route (user's choice): the shorter way to the bin's corner and back the same way (bin 1: no driving; bin 4: side 4 clockwise), obstacle handling on every leg, detours inside the square. **Look-only:** a `look_ahead` tool (user's choice), one down-tilted photo, `--look-only`; "where are the obstacles now" answered from the store with its age. **Grounding:** history answers only from store queries, naming the store and the limits. **Sim check:** `make sim-agent-check`; history prompts on a fixed fixture store 12/12; action prompts against the world and run files; no number in an answer that the tools didn't return. **Robot:** the six prompts + "Check Bin 4" + one look, the user checks against `agent/facts.py`. |
 | 2026-11-23 | 5 | Phase 5 closed with recorded limits (user: "Let's move on with preparing for Phase 6"; the suggested confirmation run with the bag at ~0.5 m was not done). Limits: flat paper-like things on the floor (tape patches) can be read as paper, so the test floor is kept clear of loose tape; far camera positions are biased (the down-tilted camera is not calibrated; far items get a closer re-look); a sonar-only object near a side's end stops the run (`blocked`); grouping and the other-sides clearance check are unit-tested only (the sim has one obstacle per lap); labels can be wrong (a plastic bag read as `paper_bag`). Last bag run (20261123_045424): blocked at corner 2, the bag's far edge 16 cm from corner 3 (needs 16.5); tape patches still on side 1. Next: Phase 6. |
 | 2026-11-23 | 5 | A detour is also checked against every obstacle the run found on other sides (its turns and legs keep the margin), else the robot reports `blocked` (robot run 20261123_043408: side 3's detour swept into side 2's bag). |
 | 2026-11-23 | 5 | Widest detour 0.50 m (was 0.40): the flat bag across the line needed 0.41 m (robot run 20261123_040037); the detour stays ≥ 0.5 m from the square's opposite side. Loose tape patches on the test floor are removed (user): the detector reads a flat tape rectangle as paper, and no prompt change fixed it. |

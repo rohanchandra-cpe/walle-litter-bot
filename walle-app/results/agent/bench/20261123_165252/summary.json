@@ -1,0 +1,20 @@
+[
+ {
+  "tool_ok": 30,
+  "facts_ok": 30,
+  "of": 30,
+  "median_s": 13.8,
+  "max_s": 17.8,
+  "extra_ok": 5,
+  "model": "qwen3.5:4b"
+ },
+ {
+  "tool_ok": 30,
+  "facts_ok": 25,
+  "of": 30,
+  "median_s": 18.9,
+  "max_s": 31.6,
+  "extra_ok": 5,
+  "model": "qwen3.5:9b"
+ }
+]

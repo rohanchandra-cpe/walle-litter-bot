@@ -17,6 +17,8 @@ route/route_follower.py drives the route on the EKF (Phase 1); route_geometry.py
 results/route/          route runs: one folder per run, robot_runs.csv (one row per robot run)
 memory/                 the memory store (Phase 2): write API, queries, schema, run import
 config/memory.yaml      memory store settings; data/memory/ holds robot.sqlite, sim.sqlite
+agent/                  the WALL-E ROSA agent (Phase 6): walle_agent.py, walle_tools.py, runner.py
+config/agent.yaml       agent settings: LLM (qwen3.5:4b), store, approval, follower command
 tests/                  python3 -m unittest discover -s walle-app/tests
 ```
 
@@ -174,3 +176,49 @@ camera). Results and photos go to `walle-sim/data/<RUN>/route/`.
    y toward corner 4, cm), the end heading error, and whether each bin was centered in view.
    These go into the run's `summary.json` and a row of `results/route/robot_runs.csv`.
 
+
+## The WALL-E agent (Phase 6)
+
+One ROSA agent runs the park from plain-language prompts. Plan:
+[`docs/plans/phase-6-plan.md`](../docs/plans/phase-6-plan.md).
+
+- **Motion tools** start the route follower as a subprocess (`agent/runner.py`), so every
+  follower guard applies:
+  - `run_route` drives one lap;
+  - `check_bin` drives the partial route to one bin and back (`--trip-bin N`);
+  - `look_ahead` takes one down-tilted photo (`--look-only`);
+  - `stop_robot` stops.
+
+  Each asks `[APPROVAL NEEDED] … Allow? [y/N]` once, and that covers the whole run.
+  **Ctrl+C stops the robot**, and the Pico stops by itself 500 ms after the last command.
+- **Memory tools** only read the store (`memory/store.py` queries). The agent adds the
+  store's name and run count to every answer from memory.
+- ROSA's built-in ROS tools are left out, so the model can't publish to `/pico/cmd_vel`
+  itself.
+
+### Robot acceptance
+
+1. Set up the park: `make up`, `make launch`, and the robot on corner 1 facing corner 2.
+   - Bin 1 overflowing (~4 items on top).
+   - A can on side 1, about halfway.
+   - The camera at `config/agent.yaml` `route.camera_url`.
+2. In `make shell`, start the agent:
+
+   ```bash
+   python3 /workspace/walle-app/agent/walle_agent.py
+   ```
+
+   It should say `motion REAL ROBOT` and `memory 'robot'`.
+3. Send the prompts in this order, approving each motion:
+   1. "Run your route and check the path for any obstructions." (a lap, 5–8 min)
+   2. "Check Bin 1 to see if it is overflowing. If it is, estimate how much." (turn in place)
+   3. "Historically, what objects have you seen the most?"
+   4. "Are people generally recycling the correct objects?"
+   5. "Which bins overflow most often?"
+   6. "Where are the obstacles on the route right now?"
+   7. "Check Bin 4." (side 4 driven clockwise and back)
+   8. "Is anything in front of you right now?"
+4. Check each answer:
+   - Motion prompts: the right action, no contact, and the answer matches what is on the track.
+   - History prompts: run `python3 walle-app/agent/facts.py` (host or container) **after**
+     the motion runs, since they add to the store, and compare it with the answers.

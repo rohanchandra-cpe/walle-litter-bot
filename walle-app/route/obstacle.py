@@ -8,6 +8,8 @@ Decided in plan mode (docs/plans/phase-5-plan.md, 2026-11-22):
   within trigger_m, and nearer than the end of the current leg);
 - the detour goes INSIDE the square (left of the counter-clockwise route) as a rectangle of
   turns in place and straight legs: out sideways, past, back to the line (or to the corner);
+  on a clockwise leg (Phase 6's trips, docs/plans/phase-6-plan.md) inside is to the robot's
+  RIGHT: the planners take an `inside` sign, +1 counter-clockwise (the default), -1 clockwise;
 - no way around (too big, too wide, the sonar blocks a detour leg) -> report and stop.
 
 Frames: the park frame (x, y, heading rad); along a side a -> b, `along` is metres from a
@@ -130,13 +132,13 @@ class SonarTrigger:
 
 
 def plan_detour(a, b, obstacle_along, obstacle_cross, radius_m, robot, cfg, here_along,
-                depth_m=None):
+                depth_m=None, inside=1):
     """The detour around one object: plan_detour_group with a group of one."""
     return plan_detour_group(a, b, [(obstacle_along, obstacle_cross, radius_m)], robot, cfg,
-                             here_along, depth_m)
+                             here_along, depth_m, inside)
 
 
-def plan_detour_group(a, b, objects, robot, cfg, here_along, depth_m=None):
+def plan_detour_group(a, b, objects, robot, cfg, here_along, depth_m=None, inside=1):
     """The detour around objects on the side a -> b (park points), inside the square.
     objects: [(along, cross, radius_m), ...]; one rectangle goes round all of them (robot
     run 20261122_204947: a detour round one object already passed a second one beside it,
@@ -153,7 +155,10 @@ def plan_detour_group(a, b, objects, robot, cfg, here_along, depth_m=None):
     bottle lying along the path looked 6 cm wide and was 20 cm deep, 2026-11-22), so the
     turn back waits until depth_m (default max(the group's measured length,
     assumed_depth_m)) past the nearest face is cleared; near corner b that allowance may
-    shrink to the measured length."""
+    shrink to the measured length.
+    inside: +1 the detour goes to the LEFT of a -> b (the counter-clockwise route), -1 to the
+    right (a clockwise leg); the plan is then the mirror image across the line a -> b."""
+    inside = 1 if inside >= 0 else -1
     ux, uy, length = side_unit(a, b)
     heading = math.atan2(uy, ux)
     unc = float(cfg["uncertainty_m"])
@@ -165,7 +170,7 @@ def plan_detour_group(a, b, objects, robot, cfg, here_along, depth_m=None):
     far = max(al + r for al, _, r in objects)
     if depth_m is None:
         depth_m = max(far - near, float(cfg.get("assumed_depth_m", 0.0)))
-    left_edge = max(max(cr, 0.0) + r for _, cr, r in objects)
+    left_edge = max(max(inside * cr, 0.0) + r for _, cr, r in objects)   # inside edge
     offset = left_edge + robot["half_width_m"] + m + unc
     if offset > float(cfg["max_offset_m"]):
         return {"error": f"detour {offset:.2f} m wide > max_offset_m {cfg['max_offset_m']}"}
@@ -182,17 +187,18 @@ def plan_detour_group(a, b, objects, robot, cfg, here_along, depth_m=None):
         return {"error": f"object {length - far:.2f} m from the corner: no room to turn "
                          "after it"}
     p0 = from_side(start, 0.0, a, b)
-    p1 = from_side(start, offset, a, b)
-    p2 = from_side(end, offset, a, b)
+    p1 = from_side(start, inside * offset, a, b)
+    p2 = from_side(end, inside * offset, a, b)
     p3 = from_side(end, 0.0, a, b)
     here = from_side(here_along, 0.0, a, b)
-    left, right = heading + math.pi / 2, heading - math.pi / 2
+    left, right = heading + inside * math.pi / 2, heading - inside * math.pi / 2  # out, back
     approach = ((here, p0, heading) if abs(start - here_along) > float(cfg.get("leg_min_m", 0.01))
                 else None)              # on the line (backward if start < here)
     legs = [(p0, p1, wrap(left)), (p1, p2, heading), (p2, p3, wrap(right))]
     return {"approach": approach, "legs": legs, "start_along": round(start, 4),
             "end_along": round(end, 4), "offset_m": round(offset, 4),
-            "depth_m": round(depth_m, 4), "rejoins_corner": end >= length - 1e-9}
+            "depth_m": round(depth_m, 4), "rejoins_corner": end >= length - 1e-9,
+            "inside": inside}
 
 
 def plan_clearance(plan, keepouts, robot, step=0.01):
@@ -218,14 +224,14 @@ def plan_clearance(plan, keepouts, robot, step=0.01):
     return best
 
 
-def group_ahead(pending, robot, cfg, a, b, here_along):
+def group_ahead(pending, robot, cfg, a, b, here_along, inside=1):
     """The first pending obstacle (sorted by along) and every later one whose near face is
     within the detour's reach: before its turn back point plus a turn's clearance. Grows
     until no more join. Returns (group, plan)."""
     group = [pending[0]]
     while True:
         plan = plan_detour_group(a, b, [(o["along"], o["cross"], o["radius_m"]) for o in group],
-                                 robot, cfg, here_along)
+                                 robot, cfg, here_along, inside=inside)
         reach = (plan["end_along"] if "error" not in plan else
                  max(o["along"] + o["radius_m"] for o in group)) \
             + robot["turn_radius_m"] + robot["margin_m"]
